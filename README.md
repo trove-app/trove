@@ -14,9 +14,18 @@
 - Foster a collaborative, open data culture
 
 ## Getting Started
-1. Clone the repo
-2. Install dependencies
-3. Start the development server
+
+### Run the Full Stack with Docker Compose
+
+```bash
+docker-compose up --build
+```
+
+- Frontend: [http://localhost:3000](http://localhost:3000)
+- Backend: [http://localhost:8000](http://localhost:8000)
+- PostgreSQL: [localhost:5432](localhost:5432)
+
+See [frontend/README.md](frontend/README.md) and [backend/README.md](backend/README.md) for more details.
 
 ## License
 This project is licensed under the Elastic License 2.0 (ELv2). See [LICENSE](LICENSE) for details.
