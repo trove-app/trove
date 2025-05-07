@@ -33,6 +33,9 @@ services:
     build: ./frontend
     ports:
       - "3000:3000"
+    volumes:
+      - ./frontend:/app # Mount frontend code for hot reloading
+      - /app/node_modules
     depends_on:
       - backend
     networks:
