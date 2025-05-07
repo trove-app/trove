@@ -3,7 +3,7 @@
 .PHONY: up down build build-nocache logs clean frontend-backend-deps
 
 up:
-	docker compose up --build -d
+	docker compose up -d
 
 down:
 	docker compose down
