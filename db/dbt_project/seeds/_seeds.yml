@@ -1,0 +1,28 @@
+version: 2
+
+seeds:
+  - name: customer_base
+    description: Customer base stored as csv file
+    columns:
+      - name: customer_id
+        tests:
+          - not_null
+      - name: store_id
+        tests:
+          - not_null
+  - name: payment
+    description: Payment events for staging model
+    columns:
+      - name: payment_id
+        tests:
+          - unique
+          - not_null
+      - name: customer_id
+        tests:
+          - not_null
+      - name: payment_date
+        tests:
+          - not_null
+      - name: amount
+        tests:
+          - not_null
