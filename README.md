@@ -27,6 +27,26 @@ docker-compose up --build
 
 See [frontend/README.md](frontend/README.md) and [backend/README.md](backend/README.md) for more details.
 
+## Database Seeding and dbt Integration
+
+For development and testing, you can use the included dbt project to seed and build your database schema and sample data.
+
+### Reset and Seed the Database
+
+To drop all tables and reseed the database (dev/test only!):
+
+```bash
+make db-seed
+```
+
+This will:
+- Drop and recreate the `public` schema in your Postgres database (deletes all tables/data!)
+- Run `dbt deps` to install dbt dependencies
+- Run `dbt seed` to load seed data (from `dbt_project/seeds`)
+- Run `dbt run` to build dbt models
+
+**Warning:** This will erase all data in the `public` schema. Use only for development/testing.
+
 ## License
 This project is licensed under the Elastic License 2.0 (ELv2). See [LICENSE](LICENSE) for details.
 
