@@ -59,6 +59,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    environment:
+      BACKEND_URL: http://backend:8000
 
 volumes:
   db_data:
