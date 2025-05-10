@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import SqlResultTable from "./SqlResultTable";
 import { useSchema } from "../context/SchemaContext";
+import SqlEditor from "./SqlEditor";
 
 export default function SqlBuilder() {
   const [query, setQuery] = useState("");
@@ -40,14 +41,9 @@ export default function SqlBuilder() {
       <h1 className="text-5xl font-extrabold mb-6 text-blue-600 dark:text-cyan-400">Trove SQL Runner</h1>
       <form onSubmit={runQuery} className="w-full max-w-2xl bg-white/80 dark:bg-zinc-900/80 rounded-2xl shadow-xl p-8 flex flex-col gap-4 border border-slate-200 dark:border-zinc-800 mb-6">
         <label htmlFor="sql" className="font-semibold text-lg text-slate-800 dark:text-zinc-100">SQL Query</label>
-        <textarea
-          id="sql"
-          className="w-full min-h-[100px] rounded-md border border-slate-300 dark:border-zinc-700 p-2 font-mono text-base bg-white dark:bg-zinc-800 text-slate-900 dark:text-slate-100"
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          placeholder="SELECT * FROM ..."
-          required
-        />
+        <div className="w-full min-h-[120px]">
+          <SqlEditor value={query} onChange={setQuery} />
+        </div>
         <button
           type="submit"
           className="self-end px-6 py-2 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 disabled:opacity-60"
