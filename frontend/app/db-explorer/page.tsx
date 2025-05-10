@@ -7,8 +7,25 @@ function copyToClipboard(text: string) {
 }
 
 function TableSidebar({ tables, selected, onSelect, filter, setFilter, columnMatches }: any) {
+  const [hovered, setHovered] = useState<string | null>(null);
+  const [tooltip, setTooltip] = useState<{ text: string; x: number; y: number } | null>(null);
+
+  const handleMouseEnter = (tableName: string) => (e: React.MouseEvent) => {
+    const rect = (e.target as HTMLElement).getBoundingClientRect();
+    setHovered(tableName);
+    setTooltip({
+      text: tableName,
+      x: rect.left + window.scrollX,
+      y: rect.bottom + window.scrollY + 4, // 4px below
+    });
+  };
+  const handleMouseLeave = () => {
+    setHovered(null);
+    setTooltip(null);
+  };
+
   return (
-    <aside className="w-72 bg-white/90 dark:bg-zinc-900/90 border-r border-slate-200 dark:border-zinc-800 p-4 flex flex-col gap-2 h-full rounded-l-xl">
+    <aside className="w-72 min-w-72 max-w-72 bg-white/90 dark:bg-zinc-900/90 border-r border-slate-200 dark:border-zinc-800 p-4 flex flex-col gap-2 h-full rounded-l-xl min-w-0">
       <input
         type="text"
         placeholder="Search tables or columns..."
@@ -18,19 +35,37 @@ function TableSidebar({ tables, selected, onSelect, filter, setFilter, columnMat
       />
       <ul className="flex-1 overflow-y-auto space-y-1">
         {tables.map((table: any) => (
-          <li key={table.table_name}>
+          <li key={table.table_name} className="relative">
             <button
-              className={`w-full text-left px-2 py-1 rounded font-mono text-base transition-colors ${selected === table.table_name ? "bg-blue-100 dark:bg-zinc-800 text-blue-700 dark:text-cyan-400 font-bold" : "hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-800 dark:text-zinc-100"}`}
+              className={`w-full text-left px-2 py-1 rounded font-mono text-base transition-colors flex flex-col items-start cursor-pointer ${selected === table.table_name ? "bg-blue-100 dark:bg-zinc-800 text-blue-700 dark:text-cyan-400 font-bold" : "hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-800 dark:text-zinc-100"}`}
               onClick={() => onSelect(table.table_name)}
+              onMouseEnter={handleMouseEnter(table.table_name)}
+              onMouseLeave={handleMouseLeave}
+              style={{ cursor: 'pointer' }}
             >
-              <span className="mr-2">🗄️</span>{table.table_name}
+              <span className="flex items-center w-full">
+                <span className="mr-2">🗄️</span>
+                <span className="truncate max-w-[10rem] inline-block align-bottom" >{table.table_name}</span>
+              </span>
               {filter && columnMatches[table.table_name]?.length > 0 && (
-                <span className="ml-2 text-xs text-fuchsia-600 dark:text-fuchsia-400">({columnMatches[table.table_name].length} col match{columnMatches[table.table_name].length > 1 ? 'es' : ''})</span>
+                <span className="ml-6 mt-0.5 text-xs text-fuchsia-600 dark:text-fuchsia-400">({columnMatches[table.table_name].length} col match{columnMatches[table.table_name].length > 1 ? 'es' : ''})</span>
               )}
             </button>
           </li>
         ))}
       </ul>
+      {/* Fixed-position tooltip */}
+      {tooltip && (
+        <div
+          className="fixed z-50 bg-black text-white text-xs rounded px-2 py-1 shadow-lg whitespace-pre-line max-w-xs pointer-events-none"
+          style={{
+            left: Math.min(tooltip.x, window.innerWidth - 300),
+            top: tooltip.y,
+          }}
+        >
+          {tooltip.text}
+        </div>
+      )}
     </aside>
   );
 }
@@ -46,8 +81,8 @@ function TableDetails({ table, filter }: any) {
   if (!table) return <div className="flex-1 flex items-center justify-center text-slate-400">Select a table to view details</div>;
   return (
     <section className="flex-1 p-8">
-      <h2 className="text-3xl font-bold mb-4 flex items-center gap-2">
-        🗄️ {highlight(table.table_name, filter)}
+      <h2 className="text-3xl font-bold mb-4 flex items-center gap-2 break-words" title={table.table_name}>
+        🗄️ <span className="break-words whitespace-pre-line">{highlight(table.table_name, filter)}</span>
       </h2>
       <div className="mb-2 text-slate-600 dark:text-zinc-300">Columns:</div>
       <ul className="space-y-2">
