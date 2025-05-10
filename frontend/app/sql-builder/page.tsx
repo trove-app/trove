@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import SqlResultTable from "./SqlResultTable";
 
 export default function SqlBuilder() {
   const [query, setQuery] = useState("");
@@ -54,30 +55,7 @@ export default function SqlBuilder() {
       </form>
       {error && <div className="text-red-600 font-semibold mb-4">{error}</div>}
       {result && (
-        <div className="w-full max-w-2xl overflow-x-auto bg-white dark:bg-zinc-900 rounded-xl shadow p-4 border border-slate-200 dark:border-zinc-800">
-          <table className="min-w-full border-collapse">
-            <thead>
-              <tr>
-                {result.columns.map(col => (
-                  <th key={col} className="px-3 py-2 border-b border-slate-300 dark:border-zinc-700 text-left font-bold bg-slate-100 dark:bg-zinc-800">{col}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {result.rows.length === 0 ? (
-                <tr><td colSpan={result.columns.length} className="text-center py-4">No results</td></tr>
-              ) : (
-                result.rows.map((row, i) => (
-                  <tr key={i} className="even:bg-slate-50 dark:even:bg-zinc-800">
-                    {result.columns.map(col => (
-                      <td key={col} className="px-3 py-2 border-b border-slate-200 dark:border-zinc-800">{row[col]?.toString() ?? ""}</td>
-                    ))}
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+        <SqlResultTable columns={result.columns} rows={result.rows} />
       )}
     </main>
   );
