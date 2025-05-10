@@ -9,6 +9,7 @@ export default function Sidebar() {
       </div>
       <nav className="flex flex-col gap-2">
         <Link href="/" className="px-3 py-2 rounded-lg hover:bg-blue-100 dark:hover:bg-zinc-800 font-medium transition-colors">🏠 Home</Link>
+        <Link href="/db-explorer" className="px-3 py-2 rounded-lg hover:bg-blue-100 dark:hover:bg-zinc-800 font-medium transition-colors">🗄️ DB Explorer</Link>
         <Link href="/sql-builder" className="px-3 py-2 rounded-lg hover:bg-blue-100 dark:hover:bg-zinc-800 font-medium transition-colors">🛠️ SQL Builder</Link>
         <span className="px-3 py-2 rounded-lg text-slate-400 dark:text-zinc-500 cursor-not-allowed">🔗 Add/Manage DB Connections (coming soon)</span>
       </nav>

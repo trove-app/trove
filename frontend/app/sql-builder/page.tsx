@@ -1,12 +1,15 @@
 "use client";
 import React, { useState } from "react";
 import SqlResultTable from "./SqlResultTable";
+import { useSchema } from "../context/SchemaContext";
 
 export default function SqlBuilder() {
   const [query, setQuery] = useState("");
   const [result, setResult] = useState<{ columns: string[]; rows: any[] } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const { tables, loading: schemaLoading, error: schemaError, refresh } = useSchema();
 
   const runQuery = async (e: React.FormEvent) => {
     e.preventDefault();
