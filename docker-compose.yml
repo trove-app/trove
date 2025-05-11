@@ -35,6 +35,8 @@ services:
     build: ./backend
     env_file:
       - ./backend/.env
+    volumes:
+      - ./backend:/app # Mount BE code for hot reloading
     depends_on:
       db:
         condition: service_healthy
