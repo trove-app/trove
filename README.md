@@ -1,3 +1,8 @@
+[![CI](https://github.com/hr23232323/trove/actions/workflows/ci.yml/badge.svg)](https://github.com/hr23232323/trove/actions/workflows/ci.yml)
+[![License: ELv2](https://img.shields.io/badge/license-ELv2-blue.svg)](LICENSE)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/hr23232323/trove/releases)
+
 # trove
 
 **trove** is an open source data exploration and observability tool designed for everyone at small, scrappy startups who need to pull, explore, and use data—PMs, EMs, marketing, partner success, and more. trove is focused on making data discovery and exploration easy, intuitive, and collaborative, without the complexity or per-seat pricing of traditional BI tools.
