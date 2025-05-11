@@ -11,6 +11,8 @@
 
 <video controls src="./assets/Trove-demo.mp4" title="Trove - demo"></video>
 
+[![Watch the video](https://github.com/hr23232323/trove/blob/main/assets/thumbnail.png)](https://github.com/hr23232323/trove/blob/main/assets/Trove-demo.mp4)
+
 ## Existing Features
 
 - DB explorer - Schema and table discovery
