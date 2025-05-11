@@ -1,17 +1,14 @@
 "use client";
 import React, { useState } from "react";
 import SqlResultTable from "./SqlResultTable";
-import { useSchema } from "../context/SchemaContext";
 import SqlEditor from "./SqlEditor";
 
 export default function SqlBuilder() {
   const [query, setQuery] = useState("");
-  const [result, setResult] = useState<{ columns: string[]; rows: any[] } | null>(null);
+  const [result, setResult] = useState<{ columns: string[]; rows: Record<string, unknown>[] } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showEditor, setShowEditor] = useState(true);
-
-  const { tables, loading: schemaLoading, error: schemaError, refresh } = useSchema();
 
   const runQuery = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,8 +28,12 @@ export default function SqlBuilder() {
       const data = await res.json();
       setResult(data);
       setShowEditor(false); // auto-collapse after running query
-    } catch (err: any) {
-      setError(err.message || "Unknown error");
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message || "Unknown error");
+      } else {
+        setError("Unknown error");
+      }
     } finally {
       setLoading(false);
     }

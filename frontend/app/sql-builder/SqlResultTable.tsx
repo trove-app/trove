@@ -4,7 +4,7 @@ import { MantineProvider } from '@mantine/core';
 
 interface SqlResultTableProps {
   columns: string[];
-  rows: any[];
+  rows: Record<string, unknown>[];
 }
 
 const customBlue: [string, string, string, string, string, string, string, string, string, string] = [
@@ -22,7 +22,7 @@ const customBlue: [string, string, string, string, string, string, string, strin
 
 export default function SqlResultTable({ columns, rows }: SqlResultTableProps) {
   // Build Mantine column definitions
-  const mantineColumns: MRT_ColumnDef<any>[] = columns.map(col => ({
+  const mantineColumns: MRT_ColumnDef<Record<string, unknown>>[] = columns.map(col => ({
     accessorKey: col,
     header: col,
     size: 180,
@@ -85,7 +85,7 @@ export default function SqlResultTable({ columns, rows }: SqlResultTableProps) {
             mantineTableContainerProps={{ style: { maxHeight: 500, overflowX: 'auto', borderRadius: 6, background: 'transparent' } }}
             mantineTableBodyRowProps={() => ({ style: { height: 32, transition: 'background 0.2s', cursor: 'pointer', fontSize: '0.96rem' } })}
             mantineTableBodyProps={{
-              sx: (theme) => ({
+              sx: {
                 '& tr:nth-of-type(odd)': {
                   backgroundColor: 'rgba(30, 80, 180, 0.10)',
                 },
@@ -95,7 +95,7 @@ export default function SqlResultTable({ columns, rows }: SqlResultTableProps) {
                 '& td, & th': {
                   color: '#F1F5F9',
                 },
-              }),
+              },
             }}
           />
         </MantineProvider>

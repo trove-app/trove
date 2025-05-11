@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const beRes = await fetch(`${BACKEND_URL}/api/v1/tables`);
     const data = await beRes.json();
@@ -13,9 +13,10 @@ export async function GET(req: NextRequest) {
         "Access-Control-Allow-Origin": "*",
       },
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error("Proxy error");
     return new NextResponse(
-      JSON.stringify({ detail: err.message || "Proxy error" }),
+      JSON.stringify({ detail: error.message || "Proxy error" }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }

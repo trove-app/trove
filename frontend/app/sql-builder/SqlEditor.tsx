@@ -1,4 +1,5 @@
 import MonacoEditor, { OnMount } from "@monaco-editor/react";
+import type { editor, languages } from "monaco-editor";
 import React, { useEffect, useRef } from "react";
 import { useSchema } from "../context/SchemaContext";
 
@@ -34,7 +35,7 @@ function getSqlContext(text: string) {
 
 export default function SqlEditor({ value, onChange }: SqlEditorProps) {
   const { tables } = useSchema();
-  const monacoRef = useRef<any>(null);
+  const monacoRef = useRef<typeof import("monaco-editor") | null>(null);
 
   useEffect(() => {
     if (!monacoRef.current || !tables.length) return;
@@ -45,7 +46,7 @@ export default function SqlEditor({ value, onChange }: SqlEditorProps) {
     }
     const disposable = monaco.languages.registerCompletionItemProvider("sql", {
       triggerCharacters: [" ", ".", ","],
-      provideCompletionItems: (model: any, position: any) => {
+      provideCompletionItems: (model: editor.ITextModel, position: editor.Position) => {
         const textUntilPosition = model.getValueInRange({
           startLineNumber: 1,
           startColumn: 1,
@@ -53,7 +54,7 @@ export default function SqlEditor({ value, onChange }: SqlEditorProps) {
           endColumn: position.column,
         });
         const context = getSqlContext(textUntilPosition);
-        let suggestions: any[] = [];
+        const suggestions: languages.CompletionItem[] = [];
         if (context === "table") {
           for (const table of tables) {
             suggestions.push({

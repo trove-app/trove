@@ -14,7 +14,7 @@ export interface TableMetadata {
   columns: ColumnMetadata[];
 }
 
-interface SchemaContextValue {
+export interface SchemaContextValue {
   tables: TableMetadata[];
   loading: boolean;
   error: string | null;
@@ -42,8 +42,8 @@ export function SchemaProvider({ children }: { children: ReactNode }) {
       if (!res.ok) throw new Error("Failed to fetch schema tables");
       const data = await res.json();
       setTables(data);
-    } catch (err: any) {
-      setError(err.message || "Unknown error");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
       setLoading(false);
     }

@@ -20,10 +20,11 @@ export async function POST(req: NextRequest) {
         "Access-Control-Allow-Origin": "*",
       },
     });
-  } catch (err: any) {
-    console.error("[API/query] Error:", err);
+  } catch (err) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    console.error("[API/query] Error:", error);
     return new NextResponse(
-      JSON.stringify({ detail: err.message || "Proxy error" }),
+      JSON.stringify({ detail: error.message || "Proxy error" }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }

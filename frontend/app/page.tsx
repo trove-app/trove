@@ -1,4 +1,3 @@
-import Image from "next/image";
 import TroveGradientTitle from "./components/TroveGradientTitle";
 
 export default function Home() {
