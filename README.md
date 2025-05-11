@@ -7,6 +7,10 @@
 
 **trove** is an open source data exploration and observability tool designed for everyone at small, scrappy startups who need to pull, explore, and use data—PMs, EMs, marketing, partner success, and more. trove is focused on making data discovery and exploration easy, intuitive, and collaborative, without the complexity or per-seat pricing of traditional BI tools.
 
+## Demo
+
+<video controls src="./assets/Trove-demo.mp4" title="Trove - demo"></video>
+
 ## Existing Features
 
 - DB explorer - Schema and table discovery
