@@ -1,5 +1,5 @@
 # Development Dockerfile for Next.js + Tailwind
-FROM node:20-alpine
+FROM node:23-alpine
 WORKDIR /app
 
 # Install dependencies
@@ -11,4 +11,4 @@ COPY . .
 
 EXPOSE 3000
 
-CMD ["yarn", "dev"] 
+CMD ["yarn", "dev"]

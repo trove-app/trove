@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   db:
@@ -44,11 +44,13 @@ services:
       - trove-net
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      # dockerfile: prod.Dockerfile # Production
     ports:
       - "3000:3000"
     volumes:
-      - ./frontend:/app # Mount frontend code for hot reloading
+      - ./frontend:/app # Mount frontend code for hot reloading (DEV only)
       - /app/node_modules
     depends_on:
       - backend
@@ -67,4 +69,4 @@ volumes:
 
 networks:
   trove-net:
-    driver: bridge 
+    driver: bridge
