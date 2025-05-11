@@ -32,53 +32,74 @@ export default function SqlResultTable({ columns, rows }: SqlResultTableProps) {
 
   return (
     <div className="w-full max-w-6xl mx-auto mt-12 mb-12 px-4">
-      <MantineProvider
-        theme={{
-          primaryColor: 'blue',
-          primaryShade: 8,
-          colors: {
-            blue: customBlue,
-          },
-        }}
-      >
-        <MantineReactTable
-          columns={mantineColumns}
-          data={rows}
-          enableStickyHeader
-          enableColumnResizing
-          enablePagination
-          mantineTableProps={{
-            striped: true,
-            highlightOnHover: true,
-            withColumnBorders: false,
-            style: {
-              minHeight: 300,
-              borderRadius: 16,
+      <div className="w-full bg-white/70 dark:bg-zinc-900/80 border border-slate-200 dark:border-zinc-800 rounded-md" style={{ boxShadow: 'none' }}>
+        <MantineProvider
+          theme={{
+            primaryColor: 'blue',
+            primaryShade: 8,
+            colors: {
+              blue: customBlue,
             },
+            colorScheme: 'dark',
           }}
-          mantinePaperProps={{ radius: 'xl', shadow: 'none', p: 0, style: { overflow: 'hidden', border: 'none' } }}
-          initialState={{ pagination: { pageSize: 25, pageIndex: 0 } }}
-          positionPagination="bottom"
-          enableFullScreenToggle
-          enableDensityToggle
-          enableColumnActions
-          enableHiding
-          enableGlobalFilter
-          enableColumnFilters
-          enableSorting
-          enableRowNumbers
-          enableTableHead
-          enableTableFooter={false}
-          enableRowSelection={false}
-          enableRowActions={false}
-          enableTopToolbar={true}
-          enableBottomToolbar={true}
-          enableColumnDragging={false}
-          enableColumnOrdering
-          enableColumnPinning
-          mantineTableContainerProps={{ style: { maxHeight: 500, overflowX: 'auto', borderRadius: 16 } }}
-        />
-      </MantineProvider>
+        >
+          <MantineReactTable
+            columns={mantineColumns}
+            data={rows}
+            enableStickyHeader
+            enableColumnResizing
+            enablePagination
+            mantineTableProps={{
+              striped: true,
+              highlightOnHover: true,
+              withColumnBorders: false,
+              style: {
+                minHeight: 300,
+                borderRadius: 6,
+                boxShadow: 'none',
+                fontSize: '0.97rem',
+                background: '#181C23',
+                color: '#F1F5F9',
+              },
+            }}
+            mantinePaperProps={{ radius: 'md', shadow: 'none', p: 0, style: { overflow: 'hidden', border: 'none', background: 'transparent' } }}
+            initialState={{ pagination: { pageSize: 25, pageIndex: 0 }, density: 'xs' }}
+            positionPagination="bottom"
+            enableFullScreenToggle
+            enableDensityToggle={false}
+            enableColumnActions
+            enableHiding
+            enableGlobalFilter
+            enableColumnFilters
+            enableSorting
+            enableRowNumbers
+            enableTableHead
+            enableTableFooter={false}
+            enableRowSelection={false}
+            enableRowActions={false}
+            enableTopToolbar={true}
+            enableBottomToolbar={true}
+            enableColumnDragging={false}
+            enableColumnOrdering
+            enableColumnPinning
+            mantineTableContainerProps={{ style: { maxHeight: 500, overflowX: 'auto', borderRadius: 6, background: 'transparent' } }}
+            mantineTableBodyRowProps={() => ({ style: { height: 32, transition: 'background 0.2s', cursor: 'pointer', fontSize: '0.96rem' } })}
+            mantineTableBodyProps={{
+              sx: (theme) => ({
+                '& tr:nth-of-type(odd)': {
+                  backgroundColor: 'rgba(30, 80, 180, 0.10)',
+                },
+                '& tr:nth-of-type(even)': {
+                  backgroundColor: '#181C23',
+                },
+                '& td, & th': {
+                  color: '#F1F5F9',
+                },
+              }),
+            }}
+          />
+        </MantineProvider>
+      </div>
     </div>
   );
 } 
