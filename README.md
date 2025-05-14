@@ -1,5 +1,5 @@
 [![CI](https://github.com/hr23232323/trove/actions/workflows/ci.yml/badge.svg)](https://github.com/hr23232323/trove/actions/workflows/ci.yml)
-[![License: ELv2](https://img.shields.io/badge/license-ELv2-blue.svg)](LICENSE)
+[![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 [![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/hr23232323/trove/releases)
 
@@ -42,7 +42,9 @@ See [frontend/README.md](frontend/README.md), [backend/README.md](backend/README
 
 ## License
 
-This project is licensed under the Elastic License 2.0 (ELv2). See [LICENSE](LICENSE) for details.
+This project is licensed under the Apache License 2.0. See [LICENSE](LICENSE) for details.
+
+A hosted version may be offered in the future, but the open source project is and will remain Apache 2.0 licensed.
 
 ---
 

@@ -11,5 +11,8 @@ Thank you for your interest in contributing to trove! We welcome contributions f
 - Please ensure your code is well-tested and documented.
 - Follow the existing coding style and conventions.
 
+## License
+This project is licensed under the Apache License 2.0. See [LICENSE](LICENSE) for details.
+
 ## Questions?
 Open an issue or start a discussion! 
