@@ -35,37 +35,24 @@ function getSqlContext(text: string) {
 
 export default function SqlEditor({ value, onChange }: SqlEditorProps) {
   const { tables } = useSchema();
-  // The Monaco instance is only available at runtime, so we use 'unknown' for the ref
   type MonacoInstance = typeof import("monaco-editor");
   const monacoRef = useRef<unknown>(null);
+  // Ref to always have the latest tables in the provider
+  const tablesRef = useRef(tables);
+  // Ref to store the disposable for the completion provider
+  const providerDisposableRef = useRef<{ dispose: () => void } | null>(null);
 
   useEffect(() => {
-    if (!monacoRef.current || !tables.length) return;
-    const monaco = monacoRef.current as MonacoInstance;
-    // Remove Monaco's default SQL suggestions if possible
-    const languages = monaco.languages as unknown;
-    if (
-      typeof languages === "object" &&
-      languages !== null &&
-      "sql" in languages &&
-      typeof (languages as Record<string, unknown>).sql === "object" &&
-      (languages as Record<string, unknown>).sql !== null
-    ) {
-      const sql = (languages as Record<string, unknown>).sql as Record<string, unknown>;
-      if (
-        "_providers" in sql &&
-        typeof (sql._providers) === "object" &&
-        sql._providers !== null
-      ) {
-        const providers = sql._providers as Record<string, unknown>;
-        if (
-          "completionItem" in providers &&
-          Array.isArray(providers.completionItem)
-        ) {
-          (providers.completionItem as unknown[]).length = 0;
-        }
-      }
+    tablesRef.current = tables;
+  }, [tables]);
+
+  const handleMount: OnMount = (_editor, monaco) => {
+    monacoRef.current = monaco;
+    // Dispose previous provider if any
+    if (providerDisposableRef.current) {
+      providerDisposableRef.current.dispose();
     }
+    // Register provider
     const disposable = monaco.languages.registerCompletionItemProvider("sql", {
       triggerCharacters: [" ", ".", ","],
       provideCompletionItems: (
@@ -87,8 +74,9 @@ export default function SqlEditor({ value, onChange }: SqlEditorProps) {
           word.endColumn
         );
         const suggestions: MonacoType.languages.CompletionItem[] = [];
+        const currentTables = tablesRef.current;
         if (context === "table") {
-          for (const table of tables) {
+          for (const table of currentTables) {
             suggestions.push({
               label: table.table_name,
               kind: monaco.languages.CompletionItemKind.Struct,
@@ -98,7 +86,7 @@ export default function SqlEditor({ value, onChange }: SqlEditorProps) {
             });
           }
         } else if (context === "column") {
-          for (const table of tables) {
+          for (const table of currentTables) {
             for (const col of table.columns) {
               suggestions.push({
                 label: col.name,
@@ -114,7 +102,7 @@ export default function SqlEditor({ value, onChange }: SqlEditorProps) {
           const match = textUntilPosition.match(/([a-zA-Z0-9_]+)\.[a-zA-Z0-9_]*$/);
           if (match) {
             const tableName = match[1];
-            const table = tables.find(t => t.table_name === tableName);
+            const table = currentTables.find(t => t.table_name === tableName);
             if (table) {
               for (const col of table.columns) {
                 suggestions.push({
@@ -131,11 +119,7 @@ export default function SqlEditor({ value, onChange }: SqlEditorProps) {
         return { suggestions };
       },
     });
-    return () => disposable.dispose();
-  }, [tables]);
-
-  const handleMount: OnMount = (_editor, monaco) => {
-    monacoRef.current = monaco;
+    providerDisposableRef.current = disposable;
   };
 
   return (
