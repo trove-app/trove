@@ -1,7 +1,8 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useRef, useLayoutEffect } from "react";
 import SqlResultTable from "./SqlResultTable";
 import SqlEditor from "./SqlEditor";
+import VisualSqlBuilder from "./VisualSqlBuilder";
 
 export default function SqlBuilder() {
   const [query, setQuery] = useState("");
@@ -9,6 +10,25 @@ export default function SqlBuilder() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showEditor, setShowEditor] = useState(true);
+  const [mode, setMode] = useState<'written' | 'visual'>('written');
+  const contentRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const wrapper = wrapperRef.current;
+    const content = contentRef.current;
+    if (!wrapper || !content) return;
+    const newHeight = content.offsetHeight;
+    wrapper.style.height = wrapper.offsetHeight + 'px';
+    void wrapper.offsetHeight;
+    wrapper.style.transition = 'height 0.3s cubic-bezier(.4,1.2,.6,1)';
+    wrapper.style.height = newHeight + 'px';
+    const handleTransitionEnd = () => {
+      wrapper.style.height = 'auto';
+      wrapper.removeEventListener('transitionend', handleTransitionEnd);
+    };
+    wrapper.addEventListener('transitionend', handleTransitionEnd);
+  }, [mode, loading, error, query]);
 
   const runQuery = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,6 +62,35 @@ export default function SqlBuilder() {
   return (
     <main className="flex flex-col min-h-screen items-center justify-center bg-gradient-to-br from-white via-slate-100 to-slate-200 dark:from-zinc-900 dark:via-zinc-800 dark:to-zinc-950 px-4">
       <div className="w-full flex flex-col items-center">
+        {/* Toggle Tabs - only show when editor is visible */}
+        {showEditor && (
+          <div className="w-full max-w-xl flex justify-center mb-2 mt-6">
+            <div className="inline-flex rounded-xl bg-slate-100 dark:bg-zinc-800 p-1 shadow-sm border border-slate-200 dark:border-zinc-700">
+              <button
+                className={`px-6 py-2 rounded-lg font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:z-10
+                  ${mode === 'written'
+                    ? 'bg-white dark:bg-zinc-900 text-blue-700 dark:text-blue-300 shadow border border-blue-500'
+                    : 'bg-transparent text-slate-500 dark:text-zinc-400 border border-transparent hover:bg-slate-200 dark:hover:bg-zinc-700'}`}
+                onClick={() => setMode('written')}
+                type="button"
+                style={{ zIndex: mode === 'written' ? 1 : 0 }}
+              >
+                Written
+              </button>
+              <button
+                className={`px-6 py-2 rounded-lg font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:z-10
+                  ${mode === 'visual'
+                    ? 'bg-white dark:bg-zinc-900 text-blue-700 dark:text-blue-300 shadow border border-blue-500'
+                    : 'bg-transparent text-slate-500 dark:text-zinc-400 border border-transparent hover:bg-slate-200 dark:hover:bg-zinc-700'}`}
+                onClick={() => setMode('visual')}
+                type="button"
+                style={{ zIndex: mode === 'visual' ? 1 : 0 }}
+              >
+                Visual
+              </button>
+            </div>
+          </div>
+        )}
         <button
           className="fixed bottom-8 right-8 z-50 bg-blue-600 text-white px-5 py-2 rounded-full shadow-lg font-bold hover:bg-blue-700 transition-colors"
           onClick={() => setShowEditor((v) => !v)}
@@ -51,20 +100,33 @@ export default function SqlBuilder() {
         <div
           className={`w-full max-w-xl transition-all duration-300 overflow-hidden ${showEditor ? "max-h-[600px] opacity-100 mt-12 mb-2" : "max-h-0 opacity-0 mb-0 mt-0 pointer-events-none"}`}
         >
-          <section className="w-full bg-white/80 dark:bg-zinc-900/80 rounded-2xl shadow-xl p-8 border border-slate-200 dark:border-zinc-800">
-            <form onSubmit={runQuery} className="flex flex-col gap-4">
-              <label htmlFor="sql" className="font-semibold text-lg text-slate-800 dark:text-zinc-100">SQL Query</label>
-              <SqlEditor value={query} onChange={setQuery} />
-              <button
-                type="submit"
-                className="self-end px-6 py-2 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 disabled:opacity-60"
-                disabled={loading || !query.trim()}
-              >
-                {loading ? "Running..." : "Run Query"}
-              </button>
-              {error && <div className="text-red-600 font-semibold mb-4">{error}</div>}
-            </form>
-          </section>
+          <div style={{ height: 400, overflowY: 'auto' }}>
+            <section className="w-full h-full bg-white/80 dark:bg-zinc-900/80 rounded-2xl shadow-xl p-8 border border-slate-200 dark:border-zinc-800 flex flex-col">
+              {mode === 'written' ? (
+                <form className="flex flex-col gap-4 h-full" onSubmit={e => e.preventDefault()}>
+                  <label htmlFor="sql" className="font-semibold text-lg text-slate-800 dark:text-zinc-100">SQL Query</label>
+                  <SqlEditor value={query} onChange={setQuery} />
+                </form>
+              ) : (
+                <div className="h-full flex flex-col">
+                  <VisualSqlBuilder />
+                </div>
+              )}
+            </section>
+          </div>
+          {/* Shared submit button and error message */}
+          <div className="w-full flex flex-col items-end mt-2">
+            <button
+              onClick={runQuery}
+              className="px-6 py-2 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 disabled:opacity-60"
+              disabled={loading || (mode === 'written' && !query.trim())}
+            >
+              {loading
+                ? (mode === 'written' ? 'Running...' : 'Building & Running...')
+                : (mode === 'written' ? 'Run Query' : 'Build & Run Query')}
+            </button>
+            {error && <div className="text-red-600 font-semibold mb-4 self-start">{error}</div>}
+          </div>
         </div>
         <section className="w-full">
           {result && <SqlResultTable columns={result.columns} rows={result.rows} />}

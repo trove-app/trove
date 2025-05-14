@@ -33,14 +33,15 @@ function getSqlContext(text: string) {
   return null;
 }
 
+// Track if the completion provider has been registered for this Monaco instance
+let monacoSqlProviderRegistered = false;
+
 export default function SqlEditor({ value, onChange }: SqlEditorProps) {
   const { tables } = useSchema();
   type MonacoInstance = typeof import("monaco-editor");
   const monacoRef = useRef<unknown>(null);
   // Ref to always have the latest tables in the provider
   const tablesRef = useRef(tables);
-  // Ref to store the disposable for the completion provider
-  const providerDisposableRef = useRef<{ dispose: () => void } | null>(null);
 
   useEffect(() => {
     tablesRef.current = tables;
@@ -48,62 +49,42 @@ export default function SqlEditor({ value, onChange }: SqlEditorProps) {
 
   const handleMount: OnMount = (_editor, monaco) => {
     monacoRef.current = monaco;
-    // Dispose previous provider if any
-    if (providerDisposableRef.current) {
-      providerDisposableRef.current.dispose();
-    }
-    // Register provider
-    const disposable = monaco.languages.registerCompletionItemProvider("sql", {
-      triggerCharacters: [" ", ".", ","],
-      provideCompletionItems: (
-        model: MonacoType.editor.ITextModel,
-        position: MonacoType.Position
-      ) => {
-        const textUntilPosition = model.getValueInRange({
-          startLineNumber: 1,
-          startColumn: 1,
-          endLineNumber: position.lineNumber,
-          endColumn: position.column,
-        });
-        const context = getSqlContext(textUntilPosition);
-        const word = model.getWordUntilPosition(position);
-        const range = new monaco.Range(
-          position.lineNumber,
-          word.startColumn,
-          position.lineNumber,
-          word.endColumn
-        );
-        const suggestions: MonacoType.languages.CompletionItem[] = [];
-        const currentTables = tablesRef.current;
-        if (context === "table") {
-          for (const table of currentTables) {
-            suggestions.push({
-              label: table.table_name,
-              kind: monaco.languages.CompletionItemKind.Struct,
-              insertText: table.table_name,
-              detail: "table",
-              range,
-            });
-          }
-        } else if (context === "column") {
-          for (const table of currentTables) {
-            for (const col of table.columns) {
+    // Register provider only once per Monaco instance
+    if (!monacoSqlProviderRegistered) {
+      monaco.languages.registerCompletionItemProvider("sql", {
+        triggerCharacters: [" ", ".", ","],
+        provideCompletionItems: (
+          model: MonacoType.editor.ITextModel,
+          position: MonacoType.Position
+        ) => {
+          const textUntilPosition = model.getValueInRange({
+            startLineNumber: 1,
+            startColumn: 1,
+            endLineNumber: position.lineNumber,
+            endColumn: position.column,
+          });
+          const context = getSqlContext(textUntilPosition);
+          const word = model.getWordUntilPosition(position);
+          const range = new monaco.Range(
+            position.lineNumber,
+            word.startColumn,
+            position.lineNumber,
+            word.endColumn
+          );
+          const suggestions: MonacoType.languages.CompletionItem[] = [];
+          const currentTables = tablesRef.current;
+          if (context === "table") {
+            for (const table of currentTables) {
               suggestions.push({
-                label: col.name,
-                kind: monaco.languages.CompletionItemKind.Field,
-                insertText: col.name,
-                detail: `${col.data_type}${col.is_nullable ? ", nullable" : ""} (${table.table_name})`,
+                label: table.table_name,
+                kind: monaco.languages.CompletionItemKind.Struct,
+                insertText: table.table_name,
+                detail: "table",
                 range,
               });
             }
-          }
-        } else if (context === "dot") {
-          // Suggest columns for the table before the dot
-          const match = textUntilPosition.match(/([a-zA-Z0-9_]+)\.[a-zA-Z0-9_]*$/);
-          if (match) {
-            const tableName = match[1];
-            const table = currentTables.find(t => t.table_name === tableName);
-            if (table) {
+          } else if (context === "column") {
+            for (const table of currentTables) {
               for (const col of table.columns) {
                 suggestions.push({
                   label: col.name,
@@ -114,12 +95,39 @@ export default function SqlEditor({ value, onChange }: SqlEditorProps) {
                 });
               }
             }
+          } else if (context === "dot") {
+            // Suggest columns for the table before the dot
+            const match = textUntilPosition.match(/([a-zA-Z0-9_]+)\.[a-zA-Z0-9_]*$/);
+            if (match) {
+              const tableName = match[1];
+              const table = currentTables.find(t => t.table_name === tableName);
+              if (table) {
+                for (const col of table.columns) {
+                  suggestions.push({
+                    label: col.name,
+                    kind: monaco.languages.CompletionItemKind.Field,
+                    insertText: col.name,
+                    detail: `${col.data_type}${col.is_nullable ? ", nullable" : ""} (${table.table_name})`,
+                    range,
+                  });
+                }
+              }
+            }
           }
-        }
-        return { suggestions };
-      },
-    });
-    providerDisposableRef.current = disposable;
+          // Deduplicate suggestions by label
+          const uniqueSuggestions = [];
+          const seen = new Set();
+          for (const s of suggestions) {
+            if (!seen.has(s.label)) {
+              uniqueSuggestions.push(s);
+              seen.add(s.label);
+            }
+          }
+          return { suggestions: uniqueSuggestions };
+        },
+      });
+      monacoSqlProviderRegistered = true;
+    }
   };
 
   return (
