@@ -38,7 +38,6 @@ let monacoSqlProviderRegistered = false;
 
 export default function SqlEditor({ value, onChange }: SqlEditorProps) {
   const { tables } = useSchema();
-  type MonacoInstance = typeof import("monaco-editor");
   const monacoRef = useRef<unknown>(null);
   // Ref to always have the latest tables in the provider
   const tablesRef = useRef(tables);
