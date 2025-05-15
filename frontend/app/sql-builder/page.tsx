@@ -128,15 +128,12 @@ export default function SqlBuilder() {
           {showEditor ? "Hide Query" : "Edit Query"}
         </button>
         <div
-          className={`w-full max-w-xl transition-all duration-300 overflow-hidden ${showEditor ? "max-h-[600px] opacity-100 mt-12 mb-2" : "max-h-0 opacity-0 mb-0 mt-0 pointer-events-none"}`}
+          className={`w-full max-w-3xl transition-all duration-300 overflow-hidden ${showEditor ? "max-h-[800px] opacity-100 mt-12 mb-2" : "max-h-0 opacity-0 mb-0 mt-0 pointer-events-none"}`}
         >
-          <div style={{ height: 400, overflowY: 'auto' }}>
+          <div style={{ height: 500, overflowY: 'auto' }}>
             <section className="w-full h-full bg-white/80 dark:bg-zinc-900/80 rounded-2xl shadow-xl p-8 border border-slate-200 dark:border-zinc-800 flex flex-col">
               {mode === 'written' ? (
-                <form className="flex flex-col gap-4 h-full" onSubmit={e => e.preventDefault()}>
-                  <label htmlFor="sql" className="font-semibold text-lg text-slate-800 dark:text-zinc-100">SQL Query</label>
                   <SqlEditor value={query} onChange={setQuery} />
-                </form>
               ) : (
                 <div className="h-full flex flex-col max-w-full overflow-x-auto">
                   <VisualSqlBuilder
