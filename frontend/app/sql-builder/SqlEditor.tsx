@@ -131,9 +131,9 @@ export default function SqlEditor({ value, onChange }: SqlEditorProps) {
   };
 
   return (
-    <div className="w-full min-h-[120px]">
+    <div className="w-full max-w-full mx-auto bg-white dark:bg-zinc-900 rounded-2xl shadow-xl flex flex-col gap-5 border border-slate-200 dark:border-zinc-800 overflow-x-auto">
       <MonacoEditor
-        height="180px"
+        height="450px"
         defaultLanguage="sql"
         theme="vs-dark"
         value={value}
@@ -147,7 +147,7 @@ export default function SqlEditor({ value, onChange }: SqlEditorProps) {
           lineNumbers: "on",
           automaticLayout: true,
           tabSize: 2,
-          padding: { top: 8, bottom: 8 },
+          padding: { top: 16, bottom: 16 },
         }}
       />
     </div>

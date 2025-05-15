@@ -64,7 +64,7 @@ export default function VisualSqlBuilder({
   };
 
   return (
-    <div className="w-full max-w-full mx-auto bg-white dark:bg-zinc-900 rounded-2xl shadow-xl p-5 flex flex-col gap-5 border border-slate-200 dark:border-zinc-800 overflow-x-auto">
+    <div className="w-full max-w-full mx-auto bg-white dark:bg-zinc-900 rounded-2xl shadow-xl p-5 flex flex-col gap-5 border border-slate-200 dark:border-zinc-800 overflow-x-auto h-[450px]">
       {/* Table selection */}
       <div>
         <label htmlFor="table-select" className="block font-semibold mb-1 text-slate-800 dark:text-zinc-100">Table <span className="text-xs text-slate-400 ml-1">(Choose a table to query)</span></label>
@@ -89,15 +89,16 @@ export default function VisualSqlBuilder({
       <div className="border-t border-slate-200 dark:border-zinc-800 my-1" />
 
       {/* Columns multiselect */}
-      {selectedTable && (
+
+      <div className="flex items-center justify-between mb-1">
+        <label className="font-semibold text-slate-800 dark:text-zinc-100">Columns <span className="text-xs text-slate-400 ml-1">(Pick columns to include)</span></label>
+        <div className="flex gap-2 text-xs">
+          <button type="button" className="underline text-blue-600 dark:text-cyan-400 hover:text-blue-800 dark:hover:text-cyan-300 transition-colors" onClick={handleSelectAll} disabled={(allSelected || !selectedTable)}>Select All</button>
+          <button type="button" className="underline text-slate-500 dark:text-zinc-400 hover:text-slate-700 dark:hover:text-zinc-200 transition-colors" onClick={handleSelectNone} disabled={(selectedColumns.length === 0 || !selectedTable)}>None</button>
+        </div>
+      </div>
+      {selectedTable ? (
         <div>
-          <div className="flex items-center justify-between mb-1">
-            <label className="font-semibold text-slate-800 dark:text-zinc-100">Columns <span className="text-xs text-slate-400 ml-1">(Pick columns to include)</span></label>
-            <div className="flex gap-2 text-xs">
-              <button type="button" className="underline text-blue-600 dark:text-cyan-400 hover:text-blue-800 dark:hover:text-cyan-300 transition-colors" onClick={handleSelectAll} disabled={allSelected}>Select All</button>
-              <button type="button" className="underline text-slate-500 dark:text-zinc-400 hover:text-slate-700 dark:hover:text-zinc-200 transition-colors" onClick={handleSelectNone} disabled={selectedColumns.length === 0}>None</button>
-            </div>
-          </div>
           <div className="flex flex-wrap gap-2">
             {allColumns.map(col => (
               <label
@@ -121,6 +122,8 @@ export default function VisualSqlBuilder({
             ))}
           </div>
         </div>
+      ) : (
+        <span className="text-s text-slate-600">NA</span>
       )}
 
       {/* Divider */}

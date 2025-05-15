@@ -155,11 +155,11 @@ export default function SqlBuilder() {
             <button
               onClick={runQuery}
               className="px-6 py-2 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 disabled:opacity-60"
-              disabled={loading || (mode === 'written' && !query.trim())}
+              disabled={loading || !query.trim()}
             >
               {loading
-                ? (mode === 'written' ? 'Running...' : 'Building & Running...')
-                : (mode === 'written' ? 'Run Query' : 'Build & Run Query')}
+                ? ('Running...')
+                : ('Run Query')}
             </button>
             {error && <div className="text-red-600 font-semibold mb-4 self-start">{error}</div>}
           </div>
