@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useLayoutEffect } from "react";
+import React, { useState, useRef, useLayoutEffect, useEffect } from "react";
 import SqlResultTable from "./SqlResultTable";
 import SqlEditor from "./SqlEditor";
 import VisualSqlBuilder from "./VisualSqlBuilder";
@@ -13,6 +13,36 @@ export default function SqlBuilder() {
   const [mode, setMode] = useState<'written' | 'visual'>('written');
   const contentRef = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
+
+  // Visual builder state
+  const [selectedTable, setSelectedTable] = useState<string>("");
+  const [selectedColumns, setSelectedColumns] = useState<string[]>([]);
+  const [limit, setLimit] = useState<number>(100);
+
+  // Parse SQL to extract table, columns, and limit (simple SELECT parser)
+  function parseSql(sql: string) {
+    // Only handles simple: SELECT col1, col2 FROM table LIMIT n
+    const match = sql.match(/^\s*SELECT\s+([\w\s,\*]+)\s+FROM\s+(\w+)(?:\s+LIMIT\s+(\d+))?/i);
+    if (!match) return { table: "", columns: [], limit: 100 };
+    const [, cols, table, lim] = match;
+    const columns = cols.trim() === "*" ? [] : cols.split(",").map(s => s.trim());
+    return {
+      table: table || "",
+      columns,
+      limit: lim ? Number(lim) : 100,
+    };
+  }
+
+  // When switching to visual mode, parse SQL and update visual state
+  useEffect(() => {
+    if (mode === 'visual') {
+      const parsed = parseSql(query);
+      setSelectedTable(parsed.table);
+      setSelectedColumns(parsed.columns);
+      setLimit(parsed.limit);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode]);
 
   useLayoutEffect(() => {
     const wrapper = wrapperRef.current;
@@ -108,8 +138,17 @@ export default function SqlBuilder() {
                   <SqlEditor value={query} onChange={setQuery} />
                 </form>
               ) : (
-                <div className="h-full flex flex-col">
-                  <VisualSqlBuilder />
+                <div className="h-full flex flex-col max-w-full overflow-x-auto">
+                  <VisualSqlBuilder
+                    value={query}
+                    onChange={setQuery}
+                    selectedTable={selectedTable}
+                    setSelectedTable={setSelectedTable}
+                    selectedColumns={selectedColumns}
+                    setSelectedColumns={setSelectedColumns}
+                    limit={limit}
+                    setLimit={setLimit}
+                  />
                 </div>
               )}
             </section>
