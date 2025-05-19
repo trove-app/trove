@@ -137,7 +137,6 @@ export default function SqlBuilder() {
               ) : (
                 <div className="h-full flex flex-col max-w-full overflow-x-auto">
                   <VisualSqlBuilder
-                    value={query}
                     onChange={setQuery}
                     selectedTable={selectedTable}
                     setSelectedTable={setSelectedTable}

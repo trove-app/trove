@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useSchema } from "../context/SchemaContext";
 
 interface VisualSqlBuilderProps {
-  value: string;
   onChange: (value: string) => void;
   selectedTable: string;
   setSelectedTable: (t: string) => void;
@@ -13,7 +12,6 @@ interface VisualSqlBuilderProps {
 }
 
 export default function VisualSqlBuilder({
-  value,
   onChange,
   selectedTable,
   setSelectedTable,
