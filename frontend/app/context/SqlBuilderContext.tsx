@@ -12,6 +12,8 @@ export type QueryState = {
   columns: { table: string; column: string }[];
   joins: Join[];
   limit: number;
+  filters: { table: string; column: string; op: string; value: string }[];
+  orderBy: { table: string; column: string; direction: 'ASC' | 'DESC' }[];
 };
 
 interface SqlBuilderContextValue {
@@ -33,6 +35,8 @@ export function SqlBuilderProvider({ children }: { children: React.ReactNode }) 
     columns: [],
     joins: [],
     limit: 100,
+    filters: [],
+    orderBy: [],
   });
   const [sql, setSql] = useState<string>("");
 
@@ -63,6 +67,17 @@ export function SqlBuilderProvider({ children }: { children: React.ReactNode }) 
     state.joins.forEach((j) => {
       sql += `LEFT JOIN ${j.table} ${tableAliases[j.table]} ON ${tableAliases[state.table]}.${j.baseColumn} = ${tableAliases[j.table]}.${j.column} `;
     });
+    // WHERE clause
+    if (state.filters && state.filters.length > 0) {
+      sql += 'WHERE ' + state.filters.map(f => {
+        const val = f.op.toUpperCase() === 'LIKE' ? `'%${f.value}%'` : `'${f.value}'`;
+        return `${tableAliases[f.table]}.${f.column} ${f.op} ${val}`;
+      }).join(' AND ') + ' ';
+    }
+    // ORDER BY clause
+    if (state.orderBy && state.orderBy.length > 0) {
+      sql += 'ORDER BY ' + state.orderBy.map(o => `${tableAliases[o.table]}.${o.column} ${o.direction}`).join(', ') + ' ';
+    }
     if (state.limit) sql += `LIMIT ${state.limit}`;
     return sql.trim();
   }, []);
@@ -71,7 +86,7 @@ export function SqlBuilderProvider({ children }: { children: React.ReactNode }) 
   const parseSql = useCallback((sql: string): QueryState => {
     // Only handles: SELECT col1, col2 FROM table LIMIT n
     const match = sql.match(/^\s*SELECT\s+([\w\s,\*]+)\s+FROM\s+(\w+)(?:\s+LIMIT\s+(\d+))?/i);
-    if (!match) return { table: "", columns: [], joins: [], limit: 100 };
+    if (!match) return { table: "", columns: [], joins: [], limit: 100, filters: [], orderBy: [] };
     const [, cols, table, lim] = match;
     const columns = cols.trim() === "*" ? [] : cols.split(",").map(s => ({ table, column: s.trim() }));
     return {
@@ -79,6 +94,8 @@ export function SqlBuilderProvider({ children }: { children: React.ReactNode }) 
       columns,
       joins: [], // Not supported in this basic parser
       limit: lim ? Number(lim) : 100,
+      filters: [],
+      orderBy: [],
     };
   }, []);
 

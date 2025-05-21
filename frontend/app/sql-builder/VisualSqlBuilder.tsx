@@ -1,6 +1,8 @@
 import React, { useEffect, useState, forwardRef, useImperativeHandle, useCallback } from "react";
 import { useSchema } from "../context/SchemaContext";
 import type { QueryState } from "../context/SqlBuilderContext";
+import { useState as useLocalState } from "react";
+import { FaArrowUp, FaArrowDown, FaPlus, FaTrash } from "react-icons/fa";
 
 interface VisualSqlBuilderProps {
   queryState: QueryState;
@@ -159,11 +161,79 @@ const VisualSqlBuilder = forwardRef<VisualSqlBuilderHandle, VisualSqlBuilderProp
     getSql: () => generatedSql,
   }), [generatedSql]);
 
+  // Local UI state for collapsible optionals
+  const [showFilters, setShowFilters] = useLocalState(false);
+  const [showOrderBy, setShowOrderBy] = useLocalState(false);
+  const [showLimit, setShowLimit] = useLocalState(false);
+
+  // Filter logic
+  const handleAddFilter = () => {
+    // Default to first table/column
+    const firstTable = joinedTables[0]?.table_name;
+    const firstCol = tables.find(t => t.table_name === firstTable)?.columns[0]?.name || "";
+    const newFilter = { table: firstTable, column: firstCol, op: "ILIKE", value: "" };
+    const newState = { ...queryState, filters: [...queryState.filters, newFilter] };
+    setQueryState(newState);
+    updateFromVisual(newState);
+  };
+  const handleRemoveFilter = (idx: number) => {
+    const newFilters = queryState.filters.filter((_, i) => i !== idx);
+    const newState = { ...queryState, filters: newFilters };
+    setQueryState(newState);
+    updateFromVisual(newState);
+  };
+  const handleFilterChange = (idx: number, field: string, value: string) => {
+    const newFilters = queryState.filters.map((f, i) =>
+      i === idx ? { ...f, [field]: value } : f
+    );
+    const newState = { ...queryState, filters: newFilters };
+    setQueryState(newState);
+    updateFromVisual(newState);
+  };
+
+  // Order By logic
+  const handleAddOrderBy = () => {
+    const firstTable = joinedTables[0]?.table_name;
+    const firstCol = tables.find(t => t.table_name === firstTable)?.columns[0]?.name || "";
+    const newOrder = { table: firstTable, column: firstCol, direction: "ASC" as "ASC" | "DESC" };
+    const newState = { ...queryState, orderBy: [...queryState.orderBy, newOrder] };
+    setQueryState(newState);
+    updateFromVisual(newState);
+  };
+  const handleRemoveOrderBy = (idx: number) => {
+    const newOrderBy = queryState.orderBy.filter((_, i) => i !== idx);
+    const newState = { ...queryState, orderBy: newOrderBy };
+    setQueryState(newState);
+    updateFromVisual(newState);
+  };
+  const handleToggleOrderByDirection = (idx: number) => {
+    const newOrderBy = queryState.orderBy.map((o, i) =>
+      i === idx ? { ...o, direction: o.direction === "ASC" ? "DESC" : "ASC" } : o
+    ) as { table: string; column: string; direction: "ASC" | "DESC" }[];
+    const newState = { ...queryState, orderBy: newOrderBy };
+    setQueryState(newState);
+    updateFromVisual(newState);
+  };
+  const handleOrderByChange = (idx: number, field: string, value: string) => {
+    const newOrderBy = queryState.orderBy.map((o, i) => {
+      if (i !== idx) return o;
+      if (field === "direction") {
+        return { ...o, direction: (value === "DESC" ? "DESC" : "ASC") as "ASC" | "DESC" };
+      }
+      return { ...o, [field]: value };
+    }) as { table: string; column: string; direction: "ASC" | "DESC" }[];
+    const newState = { ...queryState, orderBy: newOrderBy };
+    setQueryState(newState);
+    updateFromVisual(newState);
+  };
+
   return (
     <div className="w-full max-w-full mx-auto bg-white dark:bg-zinc-900 rounded-2xl shadow-xl p-5 flex flex-col gap-5 border border-slate-200 dark:border-zinc-800 overflow-x-auto h-[450px]">
       {/* Table selection */}
       <div>
-        <label htmlFor="table-select" className="block font-semibold mb-1 text-slate-800 dark:text-zinc-100">Table <span className="text-xs text-slate-400 ml-1">(Choose a table to query)</span></label>
+        <label htmlFor="table-select" className="block font-semibold mb-1 text-slate-800 dark:text-zinc-100">
+          Data Table
+        </label>
         <select
           id="table-select"
           className="w-full rounded-lg border px-3 py-2 bg-white dark:bg-zinc-900 border-slate-300 dark:border-zinc-700 text-slate-800 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
@@ -172,6 +242,8 @@ const VisualSqlBuilder = forwardRef<VisualSqlBuilderHandle, VisualSqlBuilderProp
             setQueryState(prev => ({ ...prev, table: e.target.value }));
           }}
           disabled={loading || !!error || tables.length === 0}
+          aria-label="Select the main data table"
+          title="Pick the main table you want to explore."
         >
           <option value="" disabled>Select a table...</option>
           {tables.map(t => (
@@ -186,26 +258,30 @@ const VisualSqlBuilder = forwardRef<VisualSqlBuilderHandle, VisualSqlBuilderProp
       {/* Joins UI (moved above columns) */}
       <div>
         <div className="flex items-center justify-between mb-1">
-          <label className="font-semibold text-slate-800 dark:text-zinc-100">Joins <span className="text-xs text-slate-400 ml-1">(Optional: add table joins)</span></label>
+          <label className="font-semibold text-slate-800 dark:text-zinc-100">
+            Combine Data From Another Table
+          </label>
           <button
             type="button"
             className="underline text-blue-600 dark:text-cyan-400 hover:text-blue-800 dark:hover:text-cyan-300 text-xs transition-colors"
             onClick={handleAddJoin}
             disabled={!selectedTable || tables.length < 2}
+            aria-label="Add another table to combine"
+            title="Add another table to combine with your main table."
           >
-            + Add Join
+            <FaPlus className="inline mr-1" /> Add Table
           </button>
         </div>
         {joins.length === 0 && (
-          <div className="text-xs text-slate-500 dark:text-zinc-400 mb-2">No joins added.</div>
+          <div className="text-xs text-slate-500 dark:text-zinc-400 mb-2">No tables combined.</div>
         )}
         <div className="flex flex-col gap-2">
           {joins.map((join, idx) => {
             const joinTable = tables.find(t => t.table_name === join.table);
             const baseTable = tables.find(t => t.table_name === selectedTable);
             return (
-              <div key={idx} className="flex flex-wrap items-center gap-2 mb-1">
-                {/* Table to join */}
+              <div key={idx} className="flex flex-wrap items-center gap-2 mb-1 bg-white dark:bg-zinc-900 rounded-lg p-2 shadow-sm border border-slate-200 dark:border-zinc-800">
+                {/* Table to combine */}
                 <select
                   className="rounded-lg border px-3 py-2 bg-white dark:bg-zinc-900 border-slate-300 dark:border-zinc-700 text-slate-800 dark:text-zinc-100 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
                   value={join.table}
@@ -225,27 +301,33 @@ const VisualSqlBuilder = forwardRef<VisualSqlBuilderHandle, VisualSqlBuilderProp
                       )
                     }));
                   }}
+                  aria-label="Select table to combine"
+                  title="Pick another table to combine with your main table."
                 >
                   {tables.filter(t => t.table_name !== selectedTable).map(t => (
                     <option key={t.table_name} value={t.table_name}>{t.table_name}</option>
                   ))}
                 </select>
-                {/* Base table column */}
+                {/* Main table column */}
                 <select
                   className="rounded-lg border px-3 py-2 bg-white dark:bg-zinc-900 border-slate-300 dark:border-zinc-700 text-slate-800 dark:text-zinc-100 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
                   value={join.baseColumn}
                   onChange={e => handleJoinChange(idx, 'baseColumn', e.target.value)}
+                  aria-label="Select column from main table"
+                  title="Pick a column from your main table to match with the other table."
                 >
                   {baseTable?.columns.map(col => (
                     <option key={col.name} value={col.name}>{col.name}</option>
                   ))}
                 </select>
-                <span className="text-slate-500 dark:text-zinc-400 text-xs">=</span>
-                {/* Join table column */}
+                <span className="text-slate-500 dark:text-zinc-400 text-xs">matches</span>
+                {/* Other table column */}
                 <select
                   className="rounded-lg border px-3 py-2 bg-white dark:bg-zinc-900 border-slate-300 dark:border-zinc-700 text-slate-800 dark:text-zinc-100 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
                   value={join.column}
                   onChange={e => handleJoinChange(idx, 'column', e.target.value)}
+                  aria-label="Select column from other table"
+                  title="Pick a column from the other table to match with your main table."
                 >
                   {joinTable?.columns.map(col => (
                     <option key={col.name} value={col.name}>{col.name}</option>
@@ -253,11 +335,12 @@ const VisualSqlBuilder = forwardRef<VisualSqlBuilderHandle, VisualSqlBuilderProp
                 </select>
                 <button
                   type="button"
-                  className="text-xs underline text-red-500 hover:text-red-700 transition-colors ml-2"
+                  className="ml-2 p-1 rounded-full bg-red-100 dark:bg-red-900 hover:bg-red-200 dark:hover:bg-red-700 text-red-600 dark:text-red-300"
                   onClick={() => handleRemoveJoin(idx)}
-                  title="Remove join"
+                  title="Remove this table combination"
+                  aria-label="Remove combine"
                 >
-                  Remove
+                  <FaTrash size={12} />
                 </button>
               </div>
             );
@@ -267,10 +350,12 @@ const VisualSqlBuilder = forwardRef<VisualSqlBuilderHandle, VisualSqlBuilderProp
 
       {/* Columns multiselect (now for all tables, grouped by table) */}
       <div className="flex items-center justify-between mb-1 mt-4">
-        <label className="font-semibold text-slate-800 dark:text-zinc-100">Columns <span className="text-xs text-slate-400 ml-1">(Pick columns to include from any table)</span></label>
+        <label className="font-semibold text-slate-800 dark:text-zinc-100">
+          Columns to Show
+        </label>
         <div className="flex gap-2 text-xs">
-          <button type="button" className="underline text-blue-600 dark:text-cyan-400 hover:text-blue-800 dark:hover:text-cyan-300 transition-colors" onClick={handleSelectAll} disabled={allSelected}>Select All</button>
-          <button type="button" className="underline text-slate-500 dark:text-zinc-400 hover:text-slate-700 dark:hover:text-zinc-200 transition-colors" onClick={handleSelectNone} disabled={selectedColumns.length === 0}>None</button>
+          <button type="button" className="underline text-blue-600 hover:text-blue-800 transition-colors" onClick={handleSelectAll} disabled={allSelected}>Select All</button>
+          <button type="button" className="underline text-slate-500 hover:text-slate-700 transition-colors" onClick={handleSelectNone} disabled={selectedColumns.length === 0}>None</button>
         </div>
       </div>
       {joinedTables.length > 0 ? (
@@ -290,9 +375,9 @@ const VisualSqlBuilder = forwardRef<VisualSqlBuilderHandle, VisualSqlBuilderProp
             const pillColor = pillColors[idx % pillColors.length];
             return (
               <div key={t.table_name} className="mb-1">
-                <div className="mb-1 text-xs font-semibold text-slate-700 dark:text-zinc-200 flex items-center gap-2">
+                <div className="mb-1 text-xs font-semibold text-slate-700 flex items-center gap-2">
                   <span className="uppercase tracking-wide">{t.table_name}</span>
-                  <span className="text-slate-400 dark:text-zinc-500 text-[10px]">({tableAliases[t.table_name]})</span>
+                  <span className="text-slate-400 text-[10px]">({tableAliases[t.table_name]})</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {meta.columns.map(col => {
@@ -307,6 +392,7 @@ const VisualSqlBuilder = forwardRef<VisualSqlBuilderHandle, VisualSqlBuilderProp
                             : 'bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-200 border-slate-300 dark:border-zinc-700 hover:bg-blue-100 dark:hover:bg-zinc-700 hover:border-blue-400'}
                         `}
                         tabIndex={0}
+                        title={checked ? "Column will be shown in your results" : "Click to show this column in your results"}
                       >
                         <input
                           type="checkbox"
@@ -314,6 +400,7 @@ const VisualSqlBuilder = forwardRef<VisualSqlBuilderHandle, VisualSqlBuilderProp
                           onChange={() => handleColumnToggle(colObj)}
                           className="accent-blue-600 rounded focus:ring-2 focus:ring-blue-400"
                           tabIndex={-1}
+                          aria-label={`Show column ${col.name}`}
                         />
                         {col.name}
                       </label>
@@ -331,19 +418,175 @@ const VisualSqlBuilder = forwardRef<VisualSqlBuilderHandle, VisualSqlBuilderProp
       {/* Divider */}
       <div className="border-t border-slate-200 dark:border-zinc-800 my-1" />
 
-      {/* Limit input */}
-      <div className="flex items-center gap-3">
-        <label htmlFor="limit-input" className="font-semibold text-slate-800 dark:text-zinc-100">Limit</label>
-        <input
-          id="limit-input"
-          type="number"
-          min={1}
-          max={10000}
-          className="w-24 rounded-lg border px-3 py-2 bg-white dark:bg-zinc-900 border-slate-300 dark:border-zinc-700 text-slate-800 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-400"
-          value={limit}
-          onChange={e => setQueryState(prev => ({ ...prev, limit: Number(e.target.value) }))}
-        />
-        <span className="text-xs text-slate-400 ml-1" title="Maximum number of rows to return">(max rows)</span>
+      {/* Optional Section */}
+      <div className="mt-6">
+        <div className="mb-2 text-lg font-bold text-slate-800 dark:text-zinc-100">Optional Settings</div>
+        {/* Filters */}
+        <div className="mb-4 bg-slate-50 dark:bg-zinc-800 rounded-xl border border-slate-200 dark:border-zinc-700">
+          <button
+            type="button"
+            className="w-full flex items-center justify-between px-4 py-3 text-left font-semibold text-blue-700 focus:outline-none"
+            onClick={() => setShowFilters(v => !v)}
+          >
+            <span>Filter Your Results (WHERE)</span>
+            <span>{showFilters ? "▲" : "▼"}</span>
+          </button>
+          {showFilters && (
+            <div className="px-4 pb-4">
+              {queryState.filters.length === 0 && (
+                <div className="text-xs text-slate-500 dark:text-zinc-400 mb-2">No filters added.</div>
+              )}
+              {queryState.filters.map((f, idx) => {
+                const tableMeta = tables.find(t => t.table_name === f.table);
+                return (
+                  <div key={idx} className="flex flex-wrap items-center gap-2 mb-2">
+                    <select
+                      className="rounded border px-2 py-1 text-xs bg-white dark:bg-zinc-900 border-slate-300 dark:border-zinc-700"
+                      value={f.table}
+                      onChange={e => handleFilterChange(idx, "table", e.target.value)}
+                    >
+                      {joinedTables.map(t => (
+                        <option key={t.table_name} value={t.table_name}>{t.table_name}</option>
+                      ))}
+                    </select>
+                    <select
+                      className="rounded border px-2 py-1 text-xs bg-white dark:bg-zinc-900 border-slate-300 dark:border-zinc-700"
+                      value={f.column}
+                      onChange={e => handleFilterChange(idx, "column", e.target.value)}
+                    >
+                      {tableMeta?.columns.map(c => (
+                        <option key={c.name} value={c.name}>{c.name}</option>
+                      ))}
+                    </select>
+                    <select
+                      className="rounded border px-2 py-1 text-xs bg-white dark:bg-zinc-900 border-slate-300 dark:border-zinc-700"
+                      value={f.op}
+                      onChange={e => handleFilterChange(idx, "op", e.target.value)}
+                      aria-label="Choose how to compare values"
+                    >
+                      {["=", "!=", "<", ">", "<=", ">=", "ILIKE"].map(op => (
+                        <option key={op} value={op}>{op === "ILIKE" ? "contains" : op}</option>
+                      ))}
+                    </select>
+                    <input
+                      className="rounded border px-2 py-1 text-xs bg-white dark:bg-zinc-900 border-slate-300 dark:border-zinc-700"
+                      value={f.value}
+                      onChange={e => handleFilterChange(idx, "value", e.target.value)}
+                      placeholder="Value"
+                      aria-label="Value to filter by"
+                    />
+                    <button
+                      type="button"
+                      className="text-xs underline text-red-500 hover:text-red-700 ml-2"
+                      onClick={() => handleRemoveFilter(idx)}
+                    >Remove</button>
+                  </div>
+                );
+              })}
+              <button
+                type="button"
+                className="mt-2 px-3 py-1 rounded bg-blue-600 text-white text-xs font-semibold shadow hover:bg-blue-700"
+                onClick={handleAddFilter}
+              >+ Add Filter</button>
+            </div>
+          )}
+        </div>
+        {/* Order By */}
+        <div className="mb-4 bg-slate-50 dark:bg-zinc-800 rounded-xl border border-slate-200 dark:border-zinc-700">
+          <button
+            type="button"
+            className="w-full flex items-center justify-between px-4 py-3 text-left font-semibold text-blue-700 focus:outline-none"
+            onClick={() => setShowOrderBy(v => !v)}
+          >
+            <span>Sort Results (Order By)</span>
+            <span>{showOrderBy ? "▲" : "▼"}</span>
+          </button>
+          {showOrderBy && (
+            <div className="px-4 pb-4">
+              {queryState.orderBy.length === 0 && (
+                <div className="text-xs text-slate-500 dark:text-zinc-400 mb-2">No order by clauses.</div>
+              )}
+              {queryState.orderBy.map((o, idx) => {
+                const tableMeta = tables.find(t => t.table_name === o.table);
+                return (
+                  <div key={idx} className="flex flex-wrap items-center gap-2 mb-2">
+                    <select
+                      className="rounded border px-2 py-1 text-xs bg-white dark:bg-zinc-900 border-slate-300 dark:border-zinc-700"
+                      value={o.table}
+                      onChange={e => handleOrderByChange(idx, "table", e.target.value)}
+                    >
+                      {joinedTables.map(t => (
+                        <option key={t.table_name} value={t.table_name}>{t.table_name}</option>
+                      ))}
+                    </select>
+                    <select
+                      className="rounded border px-2 py-1 text-xs bg-white dark:bg-zinc-900 border-slate-300 dark:border-zinc-700"
+                      value={o.column}
+                      onChange={e => handleOrderByChange(idx, "column", e.target.value)}
+                    >
+                      {tableMeta?.columns.map(c => (
+                        <option key={c.name} value={c.name}>{c.name}</option>
+                      ))}
+                    </select>
+                    <select
+                      className="rounded border px-2 py-1 text-xs bg-white dark:bg-zinc-900 border-slate-300 dark:border-zinc-700"
+                      value={o.direction}
+                      onChange={e => handleOrderByChange(idx, "direction", e.target.value)}
+                    >
+                      {["ASC", "DESC"].map(dir => (
+                        <option key={dir} value={dir}>{dir}</option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      className={`ml-2 p-1 rounded-full ${o.direction === "ASC" ? "bg-blue-100 dark:bg-blue-900" : "bg-yellow-100 dark:bg-yellow-900"} hover:bg-blue-200 dark:hover:bg-blue-700 text-blue-600 dark:text-blue-300 transition-colors`}
+                      onClick={() => handleToggleOrderByDirection(idx)}
+                      aria-label={o.direction === "ASC" ? "Sort ascending" : "Sort descending"}
+                    >
+                      {o.direction === "ASC" ? <FaArrowUp size={14} /> : <FaArrowDown size={14} />}
+                    </button>
+                    <button
+                      type="button"
+                      className="text-xs underline text-red-500 hover:text-red-700 ml-2"
+                      onClick={() => handleRemoveOrderBy(idx)}
+                    >Remove</button>
+                  </div>
+                );
+              })}
+              <button
+                type="button"
+                className="mt-2 px-3 py-1 rounded bg-blue-600 text-white text-xs font-semibold shadow hover:bg-blue-700"
+                onClick={handleAddOrderBy}
+              >+ Add Order By</button>
+            </div>
+          )}
+        </div>
+        {/* Limit */}
+        <div className="mb-4 bg-slate-50 dark:bg-zinc-800 rounded-xl border border-slate-200 dark:border-zinc-700">
+          <button
+            type="button"
+            className="w-full flex items-center justify-between px-4 py-3 text-left font-semibold text-blue-700 focus:outline-none"
+            onClick={() => setShowLimit(v => !v)}
+          >
+            <span>Limit Results</span>
+            <span>{showLimit ? "▲" : "▼"}</span>
+          </button>
+          {showLimit && (
+            <div className="px-4 pb-4 flex items-center gap-3">
+              <input
+                id="limit-input"
+                type="number"
+                min={1}
+                max={10000}
+                className="w-24 rounded-lg border px-3 py-2 bg-white dark:bg-zinc-900 border-slate-300 dark:border-zinc-700 text-slate-800 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                value={limit}
+                onChange={e => setQueryState(prev => ({ ...prev, limit: Number(e.target.value) }))}
+                aria-label="Set maximum number of rows"
+              />
+              <span className="text-xs text-slate-400 ml-1" title="Maximum number of rows to return">(max rows)</span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* SQL Preview Modal Trigger */}
@@ -351,7 +594,7 @@ const VisualSqlBuilder = forwardRef<VisualSqlBuilderHandle, VisualSqlBuilderProp
         <div className="flex justify-end mt-1">
           <button
             type="button"
-            className="text-xs text-blue-700 dark:text-blue-300 underline hover:text-blue-900 dark:hover:text-cyan-200 focus:outline-none"
+            className="text-xs text-blue-700 underline hover:text-blue-900 focus:outline-none"
             onClick={() => setShowSqlModal(true)}
           >
             Show SQL
@@ -365,7 +608,7 @@ const VisualSqlBuilder = forwardRef<VisualSqlBuilderHandle, VisualSqlBuilderProp
           <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-2xl p-6 border border-slate-200 dark:border-zinc-700 max-w-lg w-full relative overflow-x-auto">
             <button
               type="button"
-              className="absolute top-3 right-3 text-slate-400 hover:text-blue-600 dark:hover:text-cyan-300 text-lg font-bold focus:outline-none"
+              className="absolute top-3 right-3 text-slate-400 hover:text-blue-600 text-lg font-bold focus:outline-none"
               onClick={() => setShowSqlModal(false)}
               aria-label="Close"
             >
