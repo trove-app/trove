@@ -1,4 +1,4 @@
-import React, { useEffect, useState, forwardRef, useImperativeHandle } from "react";
+import React, { useEffect, useState, forwardRef, useImperativeHandle, useCallback } from "react";
 import { useSchema } from "../context/SchemaContext";
 import type { QueryState } from "../context/SqlBuilderContext";
 
@@ -120,7 +120,7 @@ const VisualSqlBuilder = forwardRef<VisualSqlBuilderHandle, VisualSqlBuilderProp
   };
 
   // Generate SQL from current selections
-  function buildSql(table: string, columns: { table: string; column: string }[], limit: number, joins: Join[]) {
+  const buildSql = useCallback((table: string, columns: { table: string; column: string }[], limit: number, joins: Join[]) => {
     if (!table) return "";
     // SELECT clause
     const cols =
@@ -139,14 +139,14 @@ const VisualSqlBuilder = forwardRef<VisualSqlBuilderHandle, VisualSqlBuilderProp
     });
     if (limit) sql += `LIMIT ${limit}`;
     return sql.trim();
-  }
+  }, [tableAliases]);
 
   // Update generated SQL and notify parent on any change
   useEffect(() => {
     const sql = buildSql(selectedTable, selectedColumns, limit, joins);
     setGeneratedSql(sql);
     // No onChange, parent is updated via updateFromVisual
-  }, [selectedTable, selectedColumns, limit, joins]);
+  }, [selectedTable, selectedColumns, limit, joins, buildSql]);
 
   // Copy to clipboard
   const handleCopy = () => {

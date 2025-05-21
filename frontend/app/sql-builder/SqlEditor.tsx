@@ -73,11 +73,6 @@ export default function SqlEditor({ value, onChange }: SqlEditorProps) {
     }
   };
 
-  // Format on blur
-  const handleBlur = () => {
-    onChange(formatSql(value));
-  };
-
   const handleMount: OnMount = (editor, monaco) => {
     monacoRef.current = monaco;
     // Register provider only once per Monaco instance

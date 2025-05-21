@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useLayoutEffect, useEffect } from "react";
+import React, { useState, useRef, useLayoutEffect } from "react";
 import SqlResultTable from "./SqlResultTable";
 import SqlEditor from "./SqlEditor";
 import VisualSqlBuilder from "./VisualSqlBuilder";
@@ -15,7 +15,7 @@ function SqlBuilderInner() {
   const [mode, setMode] = useState<'written' | 'visual'>('written');
   const contentRef = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const { sql, setSql, queryState, setQueryState, updateFromVisual, updateFromSql } = useSqlBuilder();
+  const { sql, setSql, queryState, setQueryState, updateFromVisual } = useSqlBuilder();
 
   // Ref to access VisualSqlBuilder's latest SQL
   const visualBuilderRef = useRef<VisualSqlBuilderHandle>(null);
