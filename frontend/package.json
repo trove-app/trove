@@ -20,7 +20,8 @@
     "monaco-editor": "^0.52.2",
     "next": "15.3.2",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "sql-formatter": "^15.6.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

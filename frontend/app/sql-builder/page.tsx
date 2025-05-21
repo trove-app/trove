@@ -5,6 +5,7 @@ import SqlEditor from "./SqlEditor";
 import VisualSqlBuilder from "./VisualSqlBuilder";
 import { SqlBuilderProvider, useSqlBuilder } from "../context/SqlBuilderContext";
 import type { VisualSqlBuilderHandle } from "./VisualSqlBuilder";
+import { format as sqlFormatter } from "sql-formatter";
 
 function SqlBuilderInner() {
   const [result, setResult] = useState<{ columns: string[]; rows: Record<string, unknown>[] } | null>(null);
@@ -79,7 +80,8 @@ function SqlBuilderInner() {
                 onClick={() => {
                   // When switching to written mode, set query to latest SQL from visual builder
                   if (visualBuilderRef.current && visualBuilderRef.current.getSql) {
-                    setSql(visualBuilderRef.current.getSql());
+                    const rawSql = visualBuilderRef.current.getSql();
+                    setSql(sqlFormatter(rawSql, { language: "sql", keywordCase: "upper" }));
                   }
                   setMode('written');
                 }}
