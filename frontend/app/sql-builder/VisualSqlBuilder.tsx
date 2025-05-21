@@ -5,11 +5,18 @@ interface VisualSqlBuilderProps {
   onChange: (value: string) => void;
   selectedTable: string;
   setSelectedTable: (t: string) => void;
-  selectedColumns: string[];
-  setSelectedColumns: (cols: string[]) => void;
+  selectedColumns: { table: string; column: string }[];
+  setSelectedColumns: (cols: { table: string; column: string }[]) => void;
   limit: number;
   setLimit: (n: number) => void;
 }
+
+type Join = {
+  type: string;
+  table: string;
+  baseColumn: string;
+  column: string;
+};
 
 export default function VisualSqlBuilder({
   onChange,
@@ -24,35 +31,108 @@ export default function VisualSqlBuilder({
   const [generatedSql, setGeneratedSql] = useState<string>("");
   const [showSqlModal, setShowSqlModal] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [joins, setJoins] = useState<Join[]>([]);
 
   const table = tables.find(t => t.table_name === selectedTable);
-  const allColumns = table ? table.columns.map(col => col.name) : [];
-  const allSelected = allColumns.length > 0 && selectedColumns.length === allColumns.length;
+  // Build a list of all tables in the query (base + joins)
+  const joinedTables = [
+    ...(selectedTable ? [{ table_name: selectedTable }] : []),
+    ...joins.map(j => ({ table_name: j.table })),
+  ];
+  // Assign aliases: t0, t1, ...
+  const tableAliases: Record<string, string> = {};
+  joinedTables.forEach((t, i) => {
+    tableAliases[t.table_name] = `t${i}`;
+  });
+  // Build all columns from all tables
+  const allTableColumns = joinedTables
+    .map(t => {
+      const meta = tables.find(tab => tab.table_name === t.table_name);
+      return meta
+        ? meta.columns.map(col => ({ table: t.table_name, column: col.name }))
+        : [];
+    })
+    .flat();
+  const allSelected =
+    allTableColumns.length > 0 &&
+    selectedColumns.length === allTableColumns.length;
 
-  const handleSelectAll = () => setSelectedColumns(allColumns);
+  const handleSelectAll = () => setSelectedColumns(allTableColumns);
   const handleSelectNone = () => setSelectedColumns([]);
-  const handleColumnToggle = (col: string) => {
-    if (selectedColumns.includes(col)) {
-      setSelectedColumns(selectedColumns.filter(c => c !== col));
+  const handleColumnToggle = (colObj: { table: string; column: string }) => {
+    const exists = selectedColumns.some(
+      c => c.table === colObj.table && c.column === colObj.column
+    );
+    if (exists) {
+      setSelectedColumns(
+        selectedColumns.filter(
+          c => !(c.table === colObj.table && c.column === colObj.column)
+        )
+      );
     } else {
-      setSelectedColumns([...selectedColumns, col]);
+      setSelectedColumns([...selectedColumns, colObj]);
     }
   };
 
+  // Only LEFT JOIN supported for now
+
+  // Add a new join row
+  const handleAddJoin = () => {
+    // Default to first available table that's not the base table
+    const joinTable = tables.find(t => t.table_name !== selectedTable);
+    if (!joinTable || !table) return;
+    setJoins([
+      ...joins,
+      {
+        type: 'LEFT',
+        table: joinTable.table_name,
+        baseColumn: table.columns[0]?.name || '',
+        column: joinTable.columns[0]?.name || '',
+      },
+    ]);
+  };
+
+  // Remove a join row
+  const handleRemoveJoin = (idx: number) => {
+    setJoins(joins.filter((_, i) => i !== idx));
+  };
+
+  // Update a join field
+  const handleJoinChange = (idx: number, field: string, value: string) => {
+    setJoins(joins.map((j, i) =>
+      i === idx ? { ...j, [field]: value } : j
+    ));
+  };
+
   // Generate SQL from current selections
-  function buildSql(table: string, columns: string[], limit: number) {
+  function buildSql(table: string, columns: { table: string; column: string }[], limit: number, joins: Join[]) {
     if (!table) return "";
-    const cols = columns.length > 0 ? columns.join(", ") : "*";
-    return `SELECT ${cols} FROM ${table}${limit ? ` LIMIT ${limit}` : ""}`;
+    // SELECT clause
+    const cols =
+      columns.length > 0
+        ? columns
+            .map(
+              c =>
+                `${tableAliases[c.table]}.${c.column} AS ${c.table}_${c.column}`
+            )
+            .join(", ")
+        : "*";
+    // FROM and JOINs
+    let sql = `SELECT ${cols} FROM ${table} ${tableAliases[table]} `;
+    joins.forEach((j: Join) => {
+      sql += `LEFT JOIN ${j.table} ${tableAliases[j.table]} ON ${tableAliases[table]}.${j.baseColumn} = ${tableAliases[j.table]}.${j.column} `;
+    });
+    if (limit) sql += `LIMIT ${limit}`;
+    return sql.trim();
   }
 
   // Update generated SQL and notify parent on any change
   useEffect(() => {
-    const sql = buildSql(selectedTable, selectedColumns, limit);
+    const sql = buildSql(selectedTable, selectedColumns, limit, joins);
     setGeneratedSql(sql);
     onChange(sql);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedTable, selectedColumns, limit]);
+  }, [selectedTable, selectedColumns, limit, joins]);
 
   // Copy to clipboard
   const handleCopy = () => {
@@ -86,39 +166,123 @@ export default function VisualSqlBuilder({
       {/* Divider */}
       <div className="border-t border-slate-200 dark:border-zinc-800 my-1" />
 
-      {/* Columns multiselect */}
-
-      <div className="flex items-center justify-between mb-1">
-        <label className="font-semibold text-slate-800 dark:text-zinc-100">Columns <span className="text-xs text-slate-400 ml-1">(Pick columns to include)</span></label>
-        <div className="flex gap-2 text-xs">
-          <button type="button" className="underline text-blue-600 dark:text-cyan-400 hover:text-blue-800 dark:hover:text-cyan-300 transition-colors" onClick={handleSelectAll} disabled={(allSelected || !selectedTable)}>Select All</button>
-          <button type="button" className="underline text-slate-500 dark:text-zinc-400 hover:text-slate-700 dark:hover:text-zinc-200 transition-colors" onClick={handleSelectNone} disabled={(selectedColumns.length === 0 || !selectedTable)}>None</button>
+      {/* Joins UI (moved above columns) */}
+      <div>
+        <div className="flex items-center justify-between mb-1">
+          <label className="font-semibold text-slate-800 dark:text-zinc-100">Joins <span className="text-xs text-slate-400 ml-1">(Optional: add table joins)</span></label>
+          <button
+            type="button"
+            className="underline text-blue-600 dark:text-cyan-400 hover:text-blue-800 dark:hover:text-cyan-300 text-xs transition-colors"
+            onClick={handleAddJoin}
+            disabled={!selectedTable || tables.length < 2}
+          >
+            + Add Join
+          </button>
+        </div>
+        {joins.length === 0 && (
+          <div className="text-xs text-slate-500 dark:text-zinc-400 mb-2">No joins added.</div>
+        )}
+        <div className="flex flex-col gap-2">
+          {joins.map((join, idx) => {
+            const joinTable = tables.find(t => t.table_name === join.table);
+            const baseTable = tables.find(t => t.table_name === selectedTable);
+            return (
+              <div key={idx} className="flex flex-wrap items-center gap-2 mb-1">
+                {/* Table to join */}
+                <select
+                  className="rounded-lg border px-3 py-2 bg-white dark:bg-zinc-900 border-slate-300 dark:border-zinc-700 text-slate-800 dark:text-zinc-100 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
+                  value={join.table}
+                  onChange={e => {
+                    const newTable = e.target.value;
+                    const newJoinTable = tables.find(t => t.table_name === newTable);
+                    setJoins(joins.map((j, i) =>
+                      i === idx
+                        ? {
+                            ...j,
+                            table: newTable,
+                            column: newJoinTable?.columns[0]?.name || ''
+                          }
+                        : j
+                    ));
+                  }}
+                >
+                  {tables.filter(t => t.table_name !== selectedTable).map(t => (
+                    <option key={t.table_name} value={t.table_name}>{t.table_name}</option>
+                  ))}
+                </select>
+                {/* Base table column */}
+                <select
+                  className="rounded-lg border px-3 py-2 bg-white dark:bg-zinc-900 border-slate-300 dark:border-zinc-700 text-slate-800 dark:text-zinc-100 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
+                  value={join.baseColumn}
+                  onChange={e => handleJoinChange(idx, 'baseColumn', e.target.value)}
+                >
+                  {baseTable?.columns.map(col => (
+                    <option key={col.name} value={col.name}>{col.name}</option>
+                  ))}
+                </select>
+                <span className="text-slate-500 dark:text-zinc-400 text-xs">=</span>
+                {/* Join table column */}
+                <select
+                  className="rounded-lg border px-3 py-2 bg-white dark:bg-zinc-900 border-slate-300 dark:border-zinc-700 text-slate-800 dark:text-zinc-100 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
+                  value={join.column}
+                  onChange={e => handleJoinChange(idx, 'column', e.target.value)}
+                >
+                  {joinTable?.columns.map(col => (
+                    <option key={col.name} value={col.name}>{col.name}</option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  className="text-xs underline text-red-500 hover:text-red-700 transition-colors ml-2"
+                  onClick={() => handleRemoveJoin(idx)}
+                  title="Remove join"
+                >
+                  Remove
+                </button>
+              </div>
+            );
+          })}
         </div>
       </div>
-      {selectedTable ? (
-        <div>
-          <div className="flex flex-wrap gap-2">
-            {allColumns.map(col => (
-              <label
-                key={col}
-                className={`flex items-center gap-2 px-3 py-1 rounded-full border text-xs font-mono cursor-pointer select-none transition-all
-                  ${selectedColumns.includes(col)
-                    ? 'bg-blue-600 text-white border-blue-600 shadow'
-                    : 'bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-200 border-slate-300 dark:border-zinc-700 hover:bg-blue-100 dark:hover:bg-zinc-700 hover:border-blue-400'}
-                `}
-                tabIndex={0}
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedColumns.includes(col)}
-                  onChange={() => handleColumnToggle(col)}
-                  className="accent-blue-600 rounded focus:ring-2 focus:ring-blue-400"
-                  tabIndex={-1}
-                />
-                {col}
-              </label>
-            ))}
-          </div>
+
+      {/* Columns multiselect (now for all tables) */}
+      <div className="flex items-center justify-between mb-1 mt-4">
+        <label className="font-semibold text-slate-800 dark:text-zinc-100">Columns <span className="text-xs text-slate-400 ml-1">(Pick columns to include from any table)</span></label>
+        <div className="flex gap-2 text-xs">
+          <button type="button" className="underline text-blue-600 dark:text-cyan-400 hover:text-blue-800 dark:hover:text-cyan-300 transition-colors" onClick={handleSelectAll} disabled={allSelected}>Select All</button>
+          <button type="button" className="underline text-slate-500 dark:text-zinc-400 hover:text-slate-700 dark:hover:text-zinc-200 transition-colors" onClick={handleSelectNone} disabled={selectedColumns.length === 0}>None</button>
+        </div>
+      </div>
+      {joinedTables.length > 0 ? (
+        <div className="flex flex-wrap gap-2">
+          {joinedTables.map(t => {
+            const meta = tables.find(tab => tab.table_name === t.table_name);
+            if (!meta) return null;
+            return meta.columns.map(col => {
+              const colObj = { table: t.table_name, column: col.name };
+              const checked = selectedColumns.some(c => c.table === t.table_name && c.column === col.name);
+              return (
+                <label
+                  key={`${t.table_name}.${col.name}`}
+                  className={`flex items-center gap-2 px-3 py-1 rounded-full border text-xs font-mono cursor-pointer select-none transition-all
+                    ${checked
+                      ? 'bg-blue-600 text-white border-blue-600 shadow'
+                      : 'bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-200 border-slate-300 dark:border-zinc-700 hover:bg-blue-100 dark:hover:bg-zinc-700 hover:border-blue-400'}
+                  `}
+                  tabIndex={0}
+                >
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={() => handleColumnToggle(colObj)}
+                    className="accent-blue-600 rounded focus:ring-2 focus:ring-blue-400"
+                    tabIndex={-1}
+                  />
+                  {t.table_name}.{col.name}
+                </label>
+              );
+            });
+          })}
         </div>
       ) : (
         <span className="text-s text-slate-600">NA</span>
