@@ -16,7 +16,7 @@ export default function SqlBuilder() {
 
   // Visual builder state
   const [selectedTable, setSelectedTable] = useState<string>("");
-  const [selectedColumns, setSelectedColumns] = useState<string[]>([]);
+  const [selectedColumns, setSelectedColumns] = useState<{ table: string; column: string }[]>([]);
   const [limit, setLimit] = useState<number>(100);
 
   // Parse SQL to extract table, columns, and limit (simple SELECT parser)
@@ -38,7 +38,7 @@ export default function SqlBuilder() {
     if (mode === 'visual') {
       const parsed = parseSql(query);
       setSelectedTable(parsed.table);
-      setSelectedColumns(parsed.columns);
+      setSelectedColumns(parsed.columns.map(column => ({ table: parsed.table, column })));
       setLimit(parsed.limit);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -141,7 +141,7 @@ export default function SqlBuilder() {
                     selectedTable={selectedTable}
                     setSelectedTable={setSelectedTable}
                     selectedColumns={selectedColumns}
-                    setSelectedColumns={setSelectedColumns}
+                    setSelectedColumns={(columns) => setSelectedColumns(columns)}
                     limit={limit}
                     setLimit={setLimit}
                   />

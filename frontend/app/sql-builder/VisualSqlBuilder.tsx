@@ -245,7 +245,7 @@ export default function VisualSqlBuilder({
         </div>
       </div>
 
-      {/* Columns multiselect (now for all tables) */}
+      {/* Columns multiselect (now for all tables, grouped by table) */}
       <div className="flex items-center justify-between mb-1 mt-4">
         <label className="font-semibold text-slate-800 dark:text-zinc-100">Columns <span className="text-xs text-slate-400 ml-1">(Pick columns to include from any table)</span></label>
         <div className="flex gap-2 text-xs">
@@ -254,34 +254,54 @@ export default function VisualSqlBuilder({
         </div>
       </div>
       {joinedTables.length > 0 ? (
-        <div className="flex flex-wrap gap-2">
-          {joinedTables.map(t => {
+        <div className="flex flex-col gap-4">
+          {joinedTables.map((t, idx) => {
             const meta = tables.find(tab => tab.table_name === t.table_name);
             if (!meta) return null;
-            return meta.columns.map(col => {
-              const colObj = { table: t.table_name, column: col.name };
-              const checked = selectedColumns.some(c => c.table === t.table_name && c.column === col.name);
-              return (
-                <label
-                  key={`${t.table_name}.${col.name}`}
-                  className={`flex items-center gap-2 px-3 py-1 rounded-full border text-xs font-mono cursor-pointer select-none transition-all
-                    ${checked
-                      ? 'bg-blue-600 text-white border-blue-600 shadow'
-                      : 'bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-200 border-slate-300 dark:border-zinc-700 hover:bg-blue-100 dark:hover:bg-zinc-700 hover:border-blue-400'}
-                  `}
-                  tabIndex={0}
-                >
-                  <input
-                    type="checkbox"
-                    checked={checked}
-                    onChange={() => handleColumnToggle(colObj)}
-                    className="accent-blue-600 rounded focus:ring-2 focus:ring-blue-400"
-                    tabIndex={-1}
-                  />
-                  {t.table_name}.{col.name}
-                </label>
-              );
-            });
+            // Color palette for pills
+            const pillColors = [
+              'bg-blue-600 text-white border-blue-600', // base
+              'bg-green-600 text-white border-green-600', // join 1
+              'bg-yellow-500 text-white border-yellow-500', // join 2
+              'bg-purple-600 text-white border-purple-600', // join 3
+              'bg-pink-600 text-white border-pink-600', // join 4
+              'bg-cyan-600 text-white border-cyan-600', // join 5
+            ];
+            const pillColor = pillColors[idx % pillColors.length];
+            return (
+              <div key={t.table_name} className="mb-1">
+                <div className="mb-1 text-xs font-semibold text-slate-700 dark:text-zinc-200 flex items-center gap-2">
+                  <span className="uppercase tracking-wide">{t.table_name}</span>
+                  <span className="text-slate-400 dark:text-zinc-500 text-[10px]">({tableAliases[t.table_name]})</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {meta.columns.map(col => {
+                    const colObj = { table: t.table_name, column: col.name };
+                    const checked = selectedColumns.some(c => c.table === t.table_name && c.column === col.name);
+                    return (
+                      <label
+                        key={`${t.table_name}.${col.name}`}
+                        className={`flex items-center gap-2 px-3 py-1 rounded-full border text-xs font-mono cursor-pointer select-none transition-all
+                          ${checked
+                            ? pillColor
+                            : 'bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-200 border-slate-300 dark:border-zinc-700 hover:bg-blue-100 dark:hover:bg-zinc-700 hover:border-blue-400'}
+                        `}
+                        tabIndex={0}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => handleColumnToggle(colObj)}
+                          className="accent-blue-600 rounded focus:ring-2 focus:ring-blue-400"
+                          tabIndex={-1}
+                        />
+                        {col.name}
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            );
           })}
         </div>
       ) : (
