@@ -1,14 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, forwardRef, useImperativeHandle } from "react";
 import { useSchema } from "../context/SchemaContext";
+import type { QueryState } from "../context/SqlBuilderContext";
 
 interface VisualSqlBuilderProps {
-  onChange: (value: string) => void;
-  selectedTable: string;
-  setSelectedTable: (t: string) => void;
-  selectedColumns: { table: string; column: string }[];
-  setSelectedColumns: (cols: { table: string; column: string }[]) => void;
-  limit: number;
-  setLimit: (n: number) => void;
+  queryState: QueryState;
+  setQueryState: React.Dispatch<React.SetStateAction<QueryState>>;
+  updateFromVisual: (state: QueryState) => void;
 }
 
 type Join = {
@@ -18,20 +15,20 @@ type Join = {
   column: string;
 };
 
-export default function VisualSqlBuilder({
-  onChange,
-  selectedTable,
-  setSelectedTable,
-  selectedColumns,
-  setSelectedColumns,
-  limit,
-  setLimit,
-}: VisualSqlBuilderProps) {
+export type VisualSqlBuilderHandle = {
+  getSql: () => string;
+};
+
+const VisualSqlBuilder = forwardRef<VisualSqlBuilderHandle, VisualSqlBuilderProps>(function VisualSqlBuilder({
+  queryState,
+  setQueryState,
+  updateFromVisual,
+}, ref) {
   const { tables, loading, error } = useSchema();
   const [generatedSql, setGeneratedSql] = useState<string>("");
   const [showSqlModal, setShowSqlModal] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [joins, setJoins] = useState<Join[]>([]);
+  const { table: selectedTable, columns: selectedColumns, joins, limit } = queryState;
 
   const table = tables.find(t => t.table_name === selectedTable);
   // Build a list of all tables in the query (base + joins)
@@ -57,31 +54,40 @@ export default function VisualSqlBuilder({
     allTableColumns.length > 0 &&
     selectedColumns.length === allTableColumns.length;
 
-  const handleSelectAll = () => setSelectedColumns(allTableColumns);
-  const handleSelectNone = () => setSelectedColumns([]);
+  const handleSelectAll = () => {
+    const newState = { ...queryState, columns: allTableColumns };
+    setQueryState(newState);
+    updateFromVisual(newState);
+  };
+  const handleSelectNone = () => {
+    const newState = { ...queryState, columns: [] };
+    setQueryState(newState);
+    updateFromVisual(newState);
+  };
   const handleColumnToggle = (colObj: { table: string; column: string }) => {
     const exists = selectedColumns.some(
       c => c.table === colObj.table && c.column === colObj.column
     );
+    let newColumns;
     if (exists) {
-      setSelectedColumns(
-        selectedColumns.filter(
-          c => !(c.table === colObj.table && c.column === colObj.column)
-        )
+      newColumns = selectedColumns.filter(
+        c => !(c.table === colObj.table && c.column === colObj.column)
       );
     } else {
-      setSelectedColumns([...selectedColumns, colObj]);
+      newColumns = [...selectedColumns, colObj];
     }
+    const newState = { ...queryState, columns: newColumns };
+    setQueryState(newState);
+    updateFromVisual(newState);
   };
 
   // Only LEFT JOIN supported for now
 
   // Add a new join row
   const handleAddJoin = () => {
-    // Default to first available table that's not the base table
     const joinTable = tables.find(t => t.table_name !== selectedTable);
     if (!joinTable || !table) return;
-    setJoins([
+    const newJoins = [
       ...joins,
       {
         type: 'LEFT',
@@ -89,19 +95,28 @@ export default function VisualSqlBuilder({
         baseColumn: table.columns[0]?.name || '',
         column: joinTable.columns[0]?.name || '',
       },
-    ]);
+    ];
+    const newState = { ...queryState, joins: newJoins };
+    setQueryState(newState);
+    updateFromVisual(newState);
   };
 
   // Remove a join row
   const handleRemoveJoin = (idx: number) => {
-    setJoins(joins.filter((_, i) => i !== idx));
+    const newJoins = joins.filter((_, i) => i !== idx);
+    const newState = { ...queryState, joins: newJoins };
+    setQueryState(newState);
+    updateFromVisual(newState);
   };
 
   // Update a join field
   const handleJoinChange = (idx: number, field: string, value: string) => {
-    setJoins(joins.map((j, i) =>
+    const newJoins = joins.map((j, i) =>
       i === idx ? { ...j, [field]: value } : j
-    ));
+    );
+    const newState = { ...queryState, joins: newJoins };
+    setQueryState(newState);
+    updateFromVisual(newState);
   };
 
   // Generate SQL from current selections
@@ -130,8 +145,7 @@ export default function VisualSqlBuilder({
   useEffect(() => {
     const sql = buildSql(selectedTable, selectedColumns, limit, joins);
     setGeneratedSql(sql);
-    onChange(sql);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // No onChange, parent is updated via updateFromVisual
   }, [selectedTable, selectedColumns, limit, joins]);
 
   // Copy to clipboard
@@ -140,6 +154,10 @@ export default function VisualSqlBuilder({
     setCopied(true);
     setTimeout(() => setCopied(false), 1200);
   };
+
+  useImperativeHandle(ref, () => ({
+    getSql: () => generatedSql,
+  }), [generatedSql]);
 
   return (
     <div className="w-full max-w-full mx-auto bg-white dark:bg-zinc-900 rounded-2xl shadow-xl p-5 flex flex-col gap-5 border border-slate-200 dark:border-zinc-800 overflow-x-auto h-[450px]">
@@ -151,8 +169,7 @@ export default function VisualSqlBuilder({
           className="w-full rounded-lg border px-3 py-2 bg-white dark:bg-zinc-900 border-slate-300 dark:border-zinc-700 text-slate-800 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
           value={selectedTable}
           onChange={e => {
-            setSelectedTable(e.target.value);
-            setSelectedColumns([]);
+            setQueryState(prev => ({ ...prev, table: e.target.value }));
           }}
           disabled={loading || !!error || tables.length === 0}
         >
@@ -195,15 +212,18 @@ export default function VisualSqlBuilder({
                   onChange={e => {
                     const newTable = e.target.value;
                     const newJoinTable = tables.find(t => t.table_name === newTable);
-                    setJoins(joins.map((j, i) =>
-                      i === idx
-                        ? {
-                            ...j,
-                            table: newTable,
-                            column: newJoinTable?.columns[0]?.name || ''
-                          }
-                        : j
-                    ));
+                    setQueryState(prev => ({
+                      ...prev,
+                      joins: prev.joins.map((j, i) =>
+                        i === idx
+                          ? {
+                              ...j,
+                              table: newTable,
+                              column: newJoinTable?.columns[0]?.name || ''
+                            }
+                          : j
+                      )
+                    }));
                   }}
                 >
                   {tables.filter(t => t.table_name !== selectedTable).map(t => (
@@ -321,7 +341,7 @@ export default function VisualSqlBuilder({
           max={10000}
           className="w-24 rounded-lg border px-3 py-2 bg-white dark:bg-zinc-900 border-slate-300 dark:border-zinc-700 text-slate-800 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-400"
           value={limit}
-          onChange={e => setLimit(Number(e.target.value))}
+          onChange={e => setQueryState(prev => ({ ...prev, limit: Number(e.target.value) }))}
         />
         <span className="text-xs text-slate-400 ml-1" title="Maximum number of rows to return">(max rows)</span>
       </div>
@@ -372,4 +392,6 @@ export default function VisualSqlBuilder({
       {error && <div className="text-red-600 font-semibold">{error}</div>}
     </div>
   );
-} 
+});
+
+export default VisualSqlBuilder; 

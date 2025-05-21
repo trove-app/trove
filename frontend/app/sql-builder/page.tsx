@@ -3,9 +3,10 @@ import React, { useState, useRef, useLayoutEffect, useEffect } from "react";
 import SqlResultTable from "./SqlResultTable";
 import SqlEditor from "./SqlEditor";
 import VisualSqlBuilder from "./VisualSqlBuilder";
+import { SqlBuilderProvider, useSqlBuilder } from "../context/SqlBuilderContext";
+import type { VisualSqlBuilderHandle } from "./VisualSqlBuilder";
 
-export default function SqlBuilder() {
-  const [query, setQuery] = useState("");
+function SqlBuilderInner() {
   const [result, setResult] = useState<{ columns: string[]; rows: Record<string, unknown>[] } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -13,36 +14,10 @@ export default function SqlBuilder() {
   const [mode, setMode] = useState<'written' | 'visual'>('written');
   const contentRef = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const { sql, setSql, queryState, setQueryState, updateFromVisual, updateFromSql } = useSqlBuilder();
 
-  // Visual builder state
-  const [selectedTable, setSelectedTable] = useState<string>("");
-  const [selectedColumns, setSelectedColumns] = useState<{ table: string; column: string }[]>([]);
-  const [limit, setLimit] = useState<number>(100);
-
-  // Parse SQL to extract table, columns, and limit (simple SELECT parser)
-  function parseSql(sql: string) {
-    // Only handles simple: SELECT col1, col2 FROM table LIMIT n
-    const match = sql.match(/^\s*SELECT\s+([\w\s,\*]+)\s+FROM\s+(\w+)(?:\s+LIMIT\s+(\d+))?/i);
-    if (!match) return { table: "", columns: [], limit: 100 };
-    const [, cols, table, lim] = match;
-    const columns = cols.trim() === "*" ? [] : cols.split(",").map(s => s.trim());
-    return {
-      table: table || "",
-      columns,
-      limit: lim ? Number(lim) : 100,
-    };
-  }
-
-  // When switching to visual mode, parse SQL and update visual state
-  useEffect(() => {
-    if (mode === 'visual') {
-      const parsed = parseSql(query);
-      setSelectedTable(parsed.table);
-      setSelectedColumns(parsed.columns.map(column => ({ table: parsed.table, column })));
-      setLimit(parsed.limit);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode]);
+  // Ref to access VisualSqlBuilder's latest SQL
+  const visualBuilderRef = useRef<VisualSqlBuilderHandle>(null);
 
   useLayoutEffect(() => {
     const wrapper = wrapperRef.current;
@@ -58,7 +33,7 @@ export default function SqlBuilder() {
       wrapper.removeEventListener('transitionend', handleTransitionEnd);
     };
     wrapper.addEventListener('transitionend', handleTransitionEnd);
-  }, [mode, loading, error, query]);
+  }, [mode, loading, error, sql]);
 
   const runQuery = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,7 +44,7 @@ export default function SqlBuilder() {
       const res = await fetch("/api/query", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query }),
+        body: JSON.stringify({ query: sql }),
       });
       if (!res.ok) {
         const data = await res.json();
@@ -101,7 +76,13 @@ export default function SqlBuilder() {
                   ${mode === 'written'
                     ? 'bg-white dark:bg-zinc-900 text-blue-700 dark:text-blue-300 shadow border border-blue-500'
                     : 'bg-transparent text-slate-500 dark:text-zinc-400 border border-transparent hover:bg-slate-200 dark:hover:bg-zinc-700'}`}
-                onClick={() => setMode('written')}
+                onClick={() => {
+                  // When switching to written mode, set query to latest SQL from visual builder
+                  if (visualBuilderRef.current && visualBuilderRef.current.getSql) {
+                    setSql(visualBuilderRef.current.getSql());
+                  }
+                  setMode('written');
+                }}
                 type="button"
                 style={{ zIndex: mode === 'written' ? 1 : 0 }}
               >
@@ -133,17 +114,13 @@ export default function SqlBuilder() {
           <div style={{ height: 500, overflowY: 'auto' }}>
             <section className="w-full h-full bg-white/80 dark:bg-zinc-900/80 rounded-2xl shadow-xl p-8 border border-slate-200 dark:border-zinc-800 flex flex-col">
               {mode === 'written' ? (
-                  <SqlEditor value={query} onChange={setQuery} />
+                  <SqlEditor value={sql} onChange={setSql} />
               ) : (
                 <div className="h-full flex flex-col max-w-full overflow-x-auto">
                   <VisualSqlBuilder
-                    onChange={setQuery}
-                    selectedTable={selectedTable}
-                    setSelectedTable={setSelectedTable}
-                    selectedColumns={selectedColumns}
-                    setSelectedColumns={(columns) => setSelectedColumns(columns)}
-                    limit={limit}
-                    setLimit={setLimit}
+                    queryState={queryState}
+                    setQueryState={setQueryState}
+                    updateFromVisual={updateFromVisual}
                   />
                 </div>
               )}
@@ -154,7 +131,7 @@ export default function SqlBuilder() {
             <button
               onClick={runQuery}
               className="px-6 py-2 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 disabled:opacity-60"
-              disabled={loading || !query.trim()}
+              disabled={loading || !sql.trim()}
             >
               {loading
                 ? ('Running...')
@@ -168,5 +145,13 @@ export default function SqlBuilder() {
         </section>
       </div>
     </main>
+  );
+}
+
+export default function SqlBuilder() {
+  return (
+    <SqlBuilderProvider>
+      <SqlBuilderInner />
+    </SqlBuilderProvider>
   );
 }
