@@ -2,8 +2,7 @@ import React, {
   useEffect,
   useState,
   forwardRef,
-  useImperativeHandle,
-  useCallback,
+  useImperativeHandle
 } from "react";
 import { useSchema } from "../context/SchemaContext";
 import { useSqlBuilder, type QueryState } from "../context/SqlBuilderContext";
