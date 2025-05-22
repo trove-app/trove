@@ -6,7 +6,7 @@ import React, {
   useCallback,
 } from "react";
 import { useSchema } from "../context/SchemaContext";
-import type { QueryState } from "../context/SqlBuilderContext";
+import { useSqlBuilder, type QueryState } from "../context/SqlBuilderContext";
 import { useState as useLocalState } from "react";
 import { FaArrowUp, FaArrowDown, FaPlus, FaTrash } from "react-icons/fa";
 
@@ -15,13 +15,6 @@ interface VisualSqlBuilderProps {
   setQueryState: React.Dispatch<React.SetStateAction<QueryState>>;
   updateFromVisual: (state: QueryState) => void;
 }
-
-type Join = {
-  type: string;
-  table: string;
-  baseColumn: string;
-  column: string;
-};
 
 export type VisualSqlBuilderHandle = {
   getSql: () => string;
@@ -38,6 +31,7 @@ const VisualSqlBuilder = forwardRef<
   const [generatedSql, setGeneratedSql] = useState<string>("");
   const [showSqlModal, setShowSqlModal] = useState(false);
   const [copied, setCopied] = useState(false);
+  const { generateSql} = useSqlBuilder();
   const {
     table: selectedTable,
     columns: selectedColumns,
@@ -134,46 +128,12 @@ const VisualSqlBuilder = forwardRef<
     updateFromVisual(newState);
   };
 
-  // Generate SQL from current selections
-  const buildSql = useCallback(
-    (
-      table: string,
-      columns: { table: string; column: string }[],
-      limit: number,
-      joins: Join[]
-    ) => {
-      if (!table) return "";
-      // SELECT clause
-      const cols =
-        columns.length > 0
-          ? columns
-              .map(
-                (c) =>
-                  `${tableAliases[c.table]}.${c.column} AS ${c.table}_${
-                    c.column
-                  }`
-              )
-              .join(", ")
-          : "*";
-      // FROM and JOINs
-      let sql = `SELECT ${cols} FROM ${table} ${tableAliases[table]} `;
-      joins.forEach((j: Join) => {
-        sql += `LEFT JOIN ${j.table} ${tableAliases[j.table]} ON ${
-          tableAliases[table]
-        }.${j.baseColumn} = ${tableAliases[j.table]}.${j.column} `;
-      });
-      if (limit) sql += `LIMIT ${limit}`;
-      return sql.trim();
-    },
-    [tableAliases]
-  );
-
   // Update generated SQL and notify parent on any change
   useEffect(() => {
-    const sql = buildSql(selectedTable, selectedColumns, limit, joins);
+    const sql = generateSql(queryState);
     setGeneratedSql(sql);
     // No onChange, parent is updated via updateFromVisual
-  }, [selectedTable, selectedColumns, limit, joins, buildSql]);
+  }, [queryState, generateSql]);
 
   // Copy to clipboard
   const handleCopy = () => {
