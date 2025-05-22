@@ -21,7 +21,7 @@ function SqlBuilderInner() {
   const [mode, setMode] = useState<"written" | "visual">("written");
   const contentRef = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const { sql, setSql, queryState, setQueryState, updateFromVisual } =
+  const { sql, queryState, setQueryState, updateFromVisual, updateFromSql } =
     useSqlBuilder();
 
   // Ref to access VisualSqlBuilder's latest SQL
@@ -93,7 +93,7 @@ function SqlBuilderInner() {
                     visualBuilderRef.current.getSql
                   ) {
                     const rawSql = visualBuilderRef.current.getSql();
-                    setSql(
+                    updateFromSql(
                       sqlFormatter(rawSql, {
                         language: "sql",
                         keywordCase: "upper",
@@ -139,7 +139,7 @@ function SqlBuilderInner() {
           <div style={{ height: 600, overflowY: "auto" }}>
             <section className="w-full h-full bg-white/80 dark:bg-zinc-900/80 rounded-2xl shadow-xl p-8 border border-slate-200 dark:border-zinc-800 flex flex-col">
               {mode === "written" ? (
-                <SqlEditor value={sql} onChange={setSql} />
+                <SqlEditor value={sql} onChange={updateFromSql} />
               ) : (
                 <div className="h-full flex flex-col max-w-full overflow-x-auto">
                   <VisualSqlBuilder
