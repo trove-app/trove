@@ -2,6 +2,7 @@ import MonacoEditor, { OnMount } from "@monaco-editor/react";
 import type * as MonacoType from "monaco-editor";
 import React, { useEffect, useRef } from "react";
 import { useSchema } from "../context/SchemaContext";
+import { format as sqlFormatter } from "sql-formatter";
 
 interface SqlEditorProps {
   value: string;
@@ -46,7 +47,33 @@ export default function SqlEditor({ value, onChange }: SqlEditorProps) {
     tablesRef.current = tables;
   }, [tables]);
 
-  const handleMount: OnMount = (_editor, monaco) => {
+  // Format SQL using sql-formatter
+  const formatSql = (sql: string) => {
+    try {
+      return sqlFormatter(sql, { language: "sql", keywordCase: "upper" });
+    } catch {
+      return sql; // fallback if formatting fails
+    }
+  };
+
+  // Format initial value on mount
+  useEffect(() => {
+    if (value && value !== formatSql(value)) {
+      onChange(formatSql(value));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Only update value on change, do not format
+  const handleChange = (v: string | undefined) => {
+    if (typeof v === "string") {
+      onChange(v);
+    } else {
+      onChange("");
+    }
+  };
+
+  const handleMount: OnMount = (editor, monaco) => {
     monacoRef.current = monaco;
     // Register provider only once per Monaco instance
     if (!monacoSqlProviderRegistered) {
@@ -127,6 +154,10 @@ export default function SqlEditor({ value, onChange }: SqlEditorProps) {
       });
       monacoSqlProviderRegistered = true;
     }
+    // Attach blur event to format SQL
+    editor.onDidBlurEditorWidget(() => {
+      onChange(formatSql(editor.getValue()));
+    });
   };
 
   return (
@@ -136,7 +167,7 @@ export default function SqlEditor({ value, onChange }: SqlEditorProps) {
         defaultLanguage="sql"
         theme="vs-dark"
         value={value}
-        onChange={v => onChange(v || "")}
+        onChange={handleChange}
         onMount={handleMount}
         options={{
           fontSize: 16,
