@@ -47,21 +47,19 @@ rollback_service() {
     
     echo "Rolling back $service to version ${IMAGE_TAG}"
     
-    # Stop the current container
-    if docker ps -q -f name="$container" &>/dev/null; then
+    # Check if container exists and stop it if running
+    local container_id
+    container_id=$(docker ps -q -f name="$container")
+    if [[ -n "$container_id" ]]; then
         echo "Stopping current $container..."
-        docker stop "$container" || true
-    fi
-    
-    # Remove the container
-    if docker ps -aq -f name="$container" &>/dev/null; then
+        docker stop "$container_id" || true
         echo "Removing $container container..."
-        docker rm -f "$container" || true
+        docker rm -f "$container_id" || true
     fi
     
     # Start the service using docker-compose
     echo "Starting $service with version ${IMAGE_TAG}..."
-    docker-compose up -d "$container"
+    docker-compose up -d "$service"
     
     # Wait for service to be healthy
     local max_attempts=30
@@ -79,7 +77,7 @@ rollback_service() {
     done
     
     echo "Error: $container failed to become healthy after rollback"
-    docker-compose logs "$container"
+    docker-compose logs "$service"
     return 1
 }
 

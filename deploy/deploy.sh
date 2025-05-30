@@ -1,6 +1,26 @@
 #!/bin/bash
 set -euo pipefail
 
+# Function to check if a command exists
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+# Check required commands
+required_commands=(
+    "docker"
+    "docker-compose"
+    "curl"
+    "certbot"
+)
+
+for cmd in "${required_commands[@]}"; do
+    if ! command_exists "$cmd"; then
+        echo "Error: Required command '$cmd' is not installed"
+        exit 1
+    fi
+done
+
 # Source environment variables if .env exists
 if [[ -f .env ]]; then
     source .env
@@ -35,6 +55,18 @@ wait_for_health() {
     local max_attempts=30
     local attempt=1
 
+    # Check if container exists
+    if ! docker inspect "$container_name" >/dev/null 2>&1; then
+        echo "Error: Container $container_name does not exist"
+        return 1
+    fi
+
+    # Check if container has health check
+    if ! docker inspect --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "$container_name" >/dev/null 2>&1; then
+        echo "Error: Container $container_name does not have a health check configured"
+        return 1
+    fi
+
     echo "Waiting for $container_name to be healthy..."
     while [[ $attempt -le $max_attempts ]]; do
         if docker inspect --format='{{.State.Health.Status}}' "$container_name" 2>/dev/null | grep -q "healthy"; then
@@ -59,6 +91,14 @@ docker pull "${GCR_HOSTNAME}/${GCP_PROJECT_ID}/trove-backend:${IMAGE_TAG}"
 # Check if SSL certificates exist, if not initialize them
 if [[ ! -d "/etc/letsencrypt/live/${DOMAIN}" ]]; then
     echo "Initializing SSL certificates..."
+    if [[ ! -f "./init-letsencrypt.sh" ]]; then
+        echo "Error: init-letsencrypt.sh script not found in current directory"
+        exit 1
+    fi
+    if [[ ! -x "./init-letsencrypt.sh" ]]; then
+        echo "Error: init-letsencrypt.sh is not executable"
+        exit 1
+    fi
     ./init-letsencrypt.sh
 fi
 
