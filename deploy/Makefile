@@ -1,10 +1,10 @@
-# Deployment-specific Makefile
+# Deployment Makefile for Trove
+# This Makefile contains deployment-specific commands and targets
 
-# Variables
 SHELL := /bin/bash
 ENV_FILE := .env
 
-# Load environment variables if file exists
+# Load environment variables if .env exists
 ifneq (,$(wildcard $(ENV_FILE)))
     include $(ENV_FILE)
     export
@@ -12,58 +12,84 @@ endif
 
 .PHONY: help check-env init-ssl build push deploy-local deploy-prod clean logs restart status
 
-help: ## Show deployment-related help
-	@echo 'Usage: make [target]'
-	@echo
-	@echo 'Deployment Targets:'
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+help: ## Show this help message
+	@echo "Deployment Targets:"
+	@echo "  check-env     - Check required environment variables"
+	@echo "  init-ssl      - Initialize SSL certificates"
+	@echo "  build         - Build Docker images locally"
+	@echo "  push          - Push images to Artifact Registry"
+	@echo "  deploy-local  - Deploy to local/demo environment"
+	@echo "  deploy-prod   - Deploy to production environment"
+	@echo "  clean         - Clean up old images and containers"
+	@echo "  logs          - Show service logs"
+	@echo "  restart       - Restart all services"
+	@echo "  status        - Show deployment status"
 
-check-env: ## Verify required environment variables are set
-	@test -f $(ENV_FILE) || (echo "Error: $(ENV_FILE) not found. Copy env.example to .env first." && exit 1)
-	@test -n "$(DOMAIN)" || (echo "Error: DOMAIN not set in $(ENV_FILE)" && exit 1)
-	@test -n "$(EMAIL)" || (echo "Error: EMAIL not set in $(ENV_FILE)" && exit 1)
-	@test -n "$(DB_PASSWORD)" || (echo "Error: DB_PASSWORD not set in $(ENV_FILE)" && exit 1)
-	@test -n "$(GCP_PROJECT_ID)" || (echo "Error: GCP_PROJECT_ID not set in $(ENV_FILE)" && exit 1)
+check-env: ## Check if required environment variables are set
+	@echo "Checking required environment variables..."
+	@test -n "$(DOMAIN)" || (echo "ERROR: DOMAIN is not set" && exit 1)
+	@test -n "$(EMAIL)" || (echo "ERROR: EMAIL is not set" && exit 1)
+	@test -n "$(DB_PASSWORD)" || (echo "ERROR: DB_PASSWORD is not set" && exit 1)
+	@test -n "$(GCP_PROJECT_ID)" || (echo "ERROR: GCP_PROJECT_ID is not set" && exit 1)
+	@test -n "$(GCR_HOSTNAME)" || (echo "ERROR: GCR_HOSTNAME is not set" && exit 1)
+	@test -n "$(REPO_NAME)" || (echo "ERROR: REPO_NAME is not set" && exit 1)
+	@test -n "$(IMAGE_TAG)" || (echo "ERROR: IMAGE_TAG is not set" && exit 1)
+	@echo "All required environment variables are set ✓"
 
-init-ssl: check-env ## Initialize SSL certificates
+init-ssl: check-env ## Initialize SSL certificates with Let's Encrypt
 	@echo "Initializing SSL certificates..."
-	@chmod +x init-letsencrypt.sh && ./init-letsencrypt.sh
+	@chmod +x ./init-letsencrypt.sh
+	@./init-letsencrypt.sh
 
-build: check-env ## Build all Docker images locally
+build: check-env ## Build Docker images locally
 	@echo "Building Docker images..."
-	docker compose build
+	@docker build -f ../frontend/prod.Dockerfile -t $(GCR_HOSTNAME)/$(GCP_PROJECT_ID)/$(REPO_NAME)/trove-frontend:$(IMAGE_TAG) ../frontend/
+	@docker build -t $(GCR_HOSTNAME)/$(GCP_PROJECT_ID)/$(REPO_NAME)/trove-backend:$(IMAGE_TAG) ../backend/
+	@echo "Images built successfully ✓"
 
-push: check-env ## Push images to Google Container Registry
-	@echo "Pushing images to GCR..."
-	docker compose push
+push: check-env ## Push images to Artifact Registry
+	@echo "Authenticating with Artifact Registry..."
+	@gcloud auth configure-docker $(GCR_HOSTNAME) --quiet
+	@echo "Pushing images to Artifact Registry..."
+	@docker push $(GCR_HOSTNAME)/$(GCP_PROJECT_ID)/$(REPO_NAME)/trove-frontend:$(IMAGE_TAG)
+	@docker push $(GCR_HOSTNAME)/$(GCP_PROJECT_ID)/$(REPO_NAME)/trove-backend:$(IMAGE_TAG)
+	@docker tag $(GCR_HOSTNAME)/$(GCP_PROJECT_ID)/$(REPO_NAME)/trove-frontend:$(IMAGE_TAG) $(GCR_HOSTNAME)/$(GCP_PROJECT_ID)/$(REPO_NAME)/trove-frontend:latest
+	@docker tag $(GCR_HOSTNAME)/$(GCP_PROJECT_ID)/$(REPO_NAME)/trove-backend:$(IMAGE_TAG) $(GCR_HOSTNAME)/$(GCP_PROJECT_ID)/$(REPO_NAME)/trove-backend:latest
+	@docker push $(GCR_HOSTNAME)/$(GCP_PROJECT_ID)/$(REPO_NAME)/trove-frontend:latest
+	@docker push $(GCR_HOSTNAME)/$(GCP_PROJECT_ID)/$(REPO_NAME)/trove-backend:latest
+	@echo "Images pushed successfully ✓"
 
-deploy-local: check-env ## Deploy stack locally
-	@echo "Deploying locally..."
-	docker compose up -d
+deploy-local: check-env ## Deploy to local/demo environment
+	@echo "Deploying to local environment..."
+	@chmod +x ./deploy.sh
+	@./deploy.sh
 
-deploy-prod: check-env ## Deploy to production (triggers GitHub Actions workflow)
-	@echo "Triggering production deployment..."
-	cd .. && gh workflow run deploy.yml
+deploy-prod: check-env ## Deploy to production environment
+	@echo "Deploying to production environment..."
+	@chmod +x ./deploy.sh
+	@./deploy.sh
 
-clean: ## Stop and remove all containers, volumes
-	@echo "Cleaning up..."
-	docker compose down -v
-	docker system prune -f
+clean: ## Clean up old images and containers
+	@echo "Cleaning up old images and containers..."
+	@docker system prune -af --filter "until=168h"
+	@echo "Cleanup completed ✓"
 
-logs: ## View logs from all containers or specific service (use service=name)
-	@if [ "$(service)" ]; then \
-		docker compose logs -f $(service); \
-	else \
-		docker compose logs -f; \
-	fi
+logs: ## Show service logs
+	@docker-compose logs -f
 
-restart: ## Restart all services or specific service (use service=name)
-	@if [ "$(service)" ]; then \
-		docker compose restart $(service); \
-	else \
-		docker compose restart; \
-	fi
+restart: ## Restart all services
+	@echo "Restarting all services..."
+	@docker-compose restart
+	@echo "Services restarted ✓"
 
-status: ## Check status of all services
-	@echo "Checking service status..."
-	docker compose ps 
+status: ## Show deployment status
+	@echo "=== Deployment Status ==="
+	@docker-compose ps
+	@echo ""
+	@echo "=== Service URLs ==="
+	@echo "Frontend: http://$(DOMAIN)"
+	@echo "Backend API: http://$(DOMAIN)/api"
+	@if [ -f "./certbot/conf/live/$(DOMAIN)/fullchain.pem" ]; then \
+		echo "HTTPS Frontend: https://$(DOMAIN)"; \
+		echo "HTTPS Backend API: https://$(DOMAIN)/api"; \
+	fi 
