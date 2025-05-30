@@ -33,6 +33,7 @@ required_vars=(
     "DB_PASSWORD"
     "GCP_PROJECT_ID"
     "GCR_HOSTNAME"
+    "REPO_NAME"
     "IMAGE_TAG"
 )
 
@@ -85,8 +86,8 @@ wait_for_health() {
 
 # Pull latest images
 echo "Pulling latest images..."
-docker pull "${GCR_HOSTNAME}/${GCP_PROJECT_ID}/trove-frontend:${IMAGE_TAG}"
-docker pull "${GCR_HOSTNAME}/${GCP_PROJECT_ID}/trove-backend:${IMAGE_TAG}"
+docker pull "${GCR_HOSTNAME}/${GCP_PROJECT_ID}/${REPO_NAME}/trove-frontend:${IMAGE_TAG}"
+docker pull "${GCR_HOSTNAME}/${GCP_PROJECT_ID}/${REPO_NAME}/trove-backend:${IMAGE_TAG}"
 
 # Check if SSL certificates exist, if not initialize them
 if [[ ! -d "/etc/letsencrypt/live/${DOMAIN}" ]]; then

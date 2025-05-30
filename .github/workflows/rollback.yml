@@ -13,7 +13,8 @@ on:
 
 env:
   GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-  GCR_HOSTNAME: gcr.io
+  GCR_HOSTNAME: us-central1-docker.pkg.dev
+  REPO_NAME: trove-repo
   DOMAIN: ${{ secrets.DOMAIN }}
 
 jobs:
@@ -47,7 +48,7 @@ jobs:
         run: |
           IFS=',' read -ra SERVICES <<< "${{ github.event.inputs.services }}"
           for SERVICE in "${SERVICES[@]}"; do
-            gcloud container images describe ${{ env.GCR_HOSTNAME }}/${{ env.GCP_PROJECT_ID }}/trove-${SERVICE}:${{ github.event.inputs.rollback_tag }} \
+            gcloud container images describe ${{ env.GCR_HOSTNAME }}/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/trove-${SERVICE}:${{ github.event.inputs.rollback_tag }} \
               || { echo "Image trove-${SERVICE}:${{ github.event.inputs.rollback_tag }} not found"; exit 1; }
           done
 
@@ -65,6 +66,7 @@ jobs:
             echo 'DB_PASSWORD=${{ env.DB_PASSWORD }}' >> .env && \
             echo 'GCP_PROJECT_ID=${{ env.GCP_PROJECT_ID }}' >> .env && \
             echo 'GCR_HOSTNAME=${{ env.GCR_HOSTNAME }}' >> .env && \
+            echo 'REPO_NAME=${{ env.REPO_NAME }}' >> .env && \
             echo 'IMAGE_TAG=${{ env.ROLLBACK_TAG }}' >> .env && \
             make deploy-local
           "

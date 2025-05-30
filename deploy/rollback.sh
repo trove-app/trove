@@ -13,6 +13,7 @@ required_vars=(
     "DB_PASSWORD"
     "GCP_PROJECT_ID"
     "GCR_HOSTNAME"
+    "REPO_NAME"
     "IMAGE_TAG"
 )
 
@@ -30,7 +31,7 @@ IFS=',' read -ra SERVICE_ARRAY <<< "$SERVICES"
 # Function to verify image exists
 verify_image() {
     local service="$1"
-    local image="${GCR_HOSTNAME}/${GCP_PROJECT_ID}/trove-${service}:${IMAGE_TAG}"
+    local image="${GCR_HOSTNAME}/${GCP_PROJECT_ID}/${REPO_NAME}/trove-${service}:${IMAGE_TAG}"
     
     echo "Verifying image exists: $image"
     if ! docker pull "$image" &>/dev/null; then
