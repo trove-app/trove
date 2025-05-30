@@ -12,7 +12,8 @@ on:
 
 env:
   GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-  GCR_HOSTNAME: gcr.io
+  GCR_HOSTNAME: us-central1-docker.pkg.dev
+  REPO_NAME: trove-repo
   DOMAIN: ${{ secrets.DOMAIN }}
   IMAGE_TAG: ${{ github.sha }}
 
@@ -35,25 +36,25 @@ jobs:
           service_account_key: ${{ secrets.GCP_SA_KEY }}
           export_default_credentials: true
 
-      - name: Configure Docker for GCR
+      - name: Configure Docker for Artifact Registry
         run: |
           gcloud auth configure-docker ${{ env.GCR_HOSTNAME }} --quiet
 
       - name: Build and push frontend image
         run: |
-          docker build -f frontend/prod.Dockerfile -t ${{ env.GCR_HOSTNAME }}/${{ env.GCP_PROJECT_ID }}/trove-frontend:${{ env.IMAGE_TAG }} frontend/
-          docker push ${{ env.GCR_HOSTNAME }}/${{ env.GCP_PROJECT_ID }}/trove-frontend:${{ env.IMAGE_TAG }}
-          docker tag ${{ env.GCR_HOSTNAME }}/${{ env.GCP_PROJECT_ID }}/trove-frontend:${{ env.IMAGE_TAG }} \
-                    ${{ env.GCR_HOSTNAME }}/${{ env.GCP_PROJECT_ID }}/trove-frontend:latest
-          docker push ${{ env.GCR_HOSTNAME }}/${{ env.GCP_PROJECT_ID }}/trove-frontend:latest
+          docker build -f frontend/prod.Dockerfile -t ${{ env.GCR_HOSTNAME }}/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/trove-frontend:${{ env.IMAGE_TAG }} frontend/
+          docker push ${{ env.GCR_HOSTNAME }}/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/trove-frontend:${{ env.IMAGE_TAG }}
+          docker tag ${{ env.GCR_HOSTNAME }}/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/trove-frontend:${{ env.IMAGE_TAG }} \
+                    ${{ env.GCR_HOSTNAME }}/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/trove-frontend:latest
+          docker push ${{ env.GCR_HOSTNAME }}/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/trove-frontend:latest
 
       - name: Build and push backend image
         run: |
-          docker build -t ${{ env.GCR_HOSTNAME }}/${{ env.GCP_PROJECT_ID }}/trove-backend:${{ env.IMAGE_TAG }} backend/
-          docker push ${{ env.GCR_HOSTNAME }}/${{ env.GCP_PROJECT_ID }}/trove-backend:${{ env.IMAGE_TAG }}
-          docker tag ${{ env.GCR_HOSTNAME }}/${{ env.GCP_PROJECT_ID }}/trove-backend:${{ env.IMAGE_TAG }} \
-                    ${{ env.GCR_HOSTNAME }}/${{ env.GCP_PROJECT_ID }}/trove-backend:latest
-          docker push ${{ env.GCR_HOSTNAME }}/${{ env.GCP_PROJECT_ID }}/trove-backend:latest
+          docker build -t ${{ env.GCR_HOSTNAME }}/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/trove-backend:${{ env.IMAGE_TAG }} backend/
+          docker push ${{ env.GCR_HOSTNAME }}/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/trove-backend:${{ env.IMAGE_TAG }}
+          docker tag ${{ env.GCR_HOSTNAME }}/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/trove-backend:${{ env.IMAGE_TAG }} \
+                    ${{ env.GCR_HOSTNAME }}/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/trove-backend:latest
+          docker push ${{ env.GCR_HOSTNAME }}/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/trove-backend:latest
 
       - name: Set up SSH
         run: |
@@ -75,6 +76,7 @@ jobs:
             echo 'DB_PASSWORD=${{ env.DB_PASSWORD }}' >> .env && \
             echo 'GCP_PROJECT_ID=${{ env.GCP_PROJECT_ID }}' >> .env && \
             echo 'GCR_HOSTNAME=${{ env.GCR_HOSTNAME }}' >> .env && \
+            echo 'REPO_NAME=${{ env.REPO_NAME }}' >> .env && \
             echo 'IMAGE_TAG=${{ env.IMAGE_TAG }}' >> .env && \
             make deploy-local
           "

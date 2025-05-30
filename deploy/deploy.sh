@@ -1,123 +1,251 @@
 #!/bin/bash
+
+# Deploy script for Trove demo environment
+# This script handles the deployment of the Trove application using Docker Compose
+
 set -euo pipefail
 
-# Function to check if a command exists
-command_exists() {
-    command -v "$1" >/dev/null 2>&1
+# Configuration
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ENV_FILE="${SCRIPT_DIR}/.env"
+COMPOSE_FILE="${SCRIPT_DIR}/docker-compose.yml"
+BACKUP_DIR="${SCRIPT_DIR}/backups"
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Logging functions
+log_info() {
+    echo -e "${BLUE}[INFO]${NC} $1"
 }
 
-# Check required commands
-required_commands=(
-    "docker"
-    "docker-compose"
-    "curl"
-    "certbot"
-)
-
-for cmd in "${required_commands[@]}"; do
-    if ! command_exists "$cmd"; then
-        echo "Error: Required command '$cmd' is not installed"
-        exit 1
-    fi
-done
-
-# Source environment variables if .env exists
-if [[ -f .env ]]; then
-    source .env
-fi
-
-# Validate required environment variables
-required_vars=(
-    "DOMAIN"
-    "EMAIL"
-    "DB_PASSWORD"
-    "GCP_PROJECT_ID"
-    "GCR_HOSTNAME"
-    "IMAGE_TAG"
-)
-
-for var in "${required_vars[@]}"; do
-    if [[ -z "${!var:-}" ]]; then
-        echo "Error: Required environment variable $var is not set"
-        exit 1
-    fi
-done
-
-# Function to check if a container is running
-container_running() {
-    local container_name="$1"
-    docker ps --format '{{.Names}}' | grep -q "^${container_name}$"
+log_success() {
+    echo -e "${GREEN}[SUCCESS]${NC} $1"
 }
 
-# Function to wait for a container to be healthy
-wait_for_health() {
-    local container_name="$1"
-    local max_attempts=30
-    local attempt=1
+log_warning() {
+    echo -e "${YELLOW}[WARNING]${NC} $1"
+}
 
-    # Check if container exists
-    if ! docker inspect "$container_name" >/dev/null 2>&1; then
-        echo "Error: Container $container_name does not exist"
-        return 1
-    fi
+log_error() {
+    echo -e "${RED}[ERROR]${NC} $1"
+}
 
-    # Check if container has health check
-    if ! docker inspect --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "$container_name" >/dev/null 2>&1; then
-        echo "Error: Container $container_name does not have a health check configured"
-        return 1
-    fi
-
-    echo "Waiting for $container_name to be healthy..."
-    while [[ $attempt -le $max_attempts ]]; do
-        if docker inspect --format='{{.State.Health.Status}}' "$container_name" 2>/dev/null | grep -q "healthy"; then
-            echo "$container_name is healthy"
-            return 0
+# Check if required environment variables are set
+check_env_vars() {
+    local required_vars=("DOMAIN" "EMAIL" "DB_PASSWORD" "GCP_PROJECT_ID" "GCR_HOSTNAME" "REPO_NAME" "IMAGE_TAG")
+    local missing_vars=()
+    
+    for var in "${required_vars[@]}"; do
+        if [[ -z "${!var:-}" ]]; then
+            missing_vars+=("$var")
         fi
-        echo "Attempt $attempt/$max_attempts: $container_name is not yet healthy"
-        sleep 2
-        ((attempt++))
     done
     
-    echo "Error: $container_name failed to become healthy after $max_attempts attempts"
-    docker logs "$container_name"
-    return 1
+    if [[ ${#missing_vars[@]} -gt 0 ]]; then
+        log_error "Missing required environment variables: ${missing_vars[*]}"
+        log_error "Please check your .env file or environment setup"
+        exit 1
+    fi
+}
+
+# Load environment variables
+load_env() {
+    if [[ -f "$ENV_FILE" ]]; then
+        log_info "Loading environment variables from $ENV_FILE"
+        set -a
+        source "$ENV_FILE"
+        set +a
+    else
+        log_error "Environment file not found: $ENV_FILE"
+        log_error "Please create the .env file with required variables"
+        exit 1
+    fi
+}
+
+# Authenticate with Google Cloud Registry
+authenticate_gcr() {
+    log_info "Authenticating with Google Container Registry..."
+    if ! gcloud auth configure-docker "$GCR_HOSTNAME" --quiet; then
+        log_error "Failed to authenticate with GCR"
+        exit 1
+    fi
+    log_success "GCR authentication successful"
 }
 
 # Pull latest images
-echo "Pulling latest images..."
-docker pull "${GCR_HOSTNAME}/${GCP_PROJECT_ID}/trove-frontend:${IMAGE_TAG}"
-docker pull "${GCR_HOSTNAME}/${GCP_PROJECT_ID}/trove-backend:${IMAGE_TAG}"
+pull_images() {
+    log_info "Pulling latest images..."
+    
+    local images=(
+        "${GCR_HOSTNAME}/${GCP_PROJECT_ID}/${REPO_NAME}/trove-frontend:${IMAGE_TAG}"
+        "${GCR_HOSTNAME}/${GCP_PROJECT_ID}/${REPO_NAME}/trove-backend:${IMAGE_TAG}"
+    )
+    
+    for image in "${images[@]}"; do
+        log_info "Pulling $image"
+        if ! docker pull "$image"; then
+            log_error "Failed to pull image: $image"
+            exit 1
+        fi
+    done
+    
+    log_success "All images pulled successfully"
+}
 
-# Check if SSL certificates exist, if not initialize them
-if [[ ! -d "/etc/letsencrypt/live/${DOMAIN}" ]]; then
-    echo "Initializing SSL certificates..."
-    if [[ ! -f "./init-letsencrypt.sh" ]]; then
-        echo "Error: init-letsencrypt.sh script not found in current directory"
+# Create backup of current deployment
+create_backup() {
+    log_info "Creating backup of current deployment..."
+    
+    mkdir -p "$BACKUP_DIR"
+    local backup_file="${BACKUP_DIR}/backup-$(date +%Y%m%d-%H%M%S).tar.gz"
+    
+    # Backup database if running
+    if docker ps --format "table {{.Names}}" | grep -q "trove-db"; then
+        log_info "Backing up database..."
+        docker exec trove-db pg_dump -U postgres trove > "${BACKUP_DIR}/db-backup-$(date +%Y%m%d-%H%M%S).sql"
+    fi
+    
+    # Backup current docker-compose state
+    if [[ -f "$COMPOSE_FILE" ]]; then
+        tar -czf "$backup_file" -C "$SCRIPT_DIR" docker-compose.yml .env 2>/dev/null || true
+        log_success "Backup created: $backup_file"
+    fi
+}
+
+# Deploy the application
+deploy() {
+    log_info "Starting deployment..."
+    
+    # Stop existing containers gracefully
+    if docker-compose -f "$COMPOSE_FILE" ps -q | grep -q .; then
+        log_info "Stopping existing containers..."
+        docker-compose -f "$COMPOSE_FILE" down --timeout 30
+    fi
+    
+    # Start new deployment
+    log_info "Starting new deployment..."
+    if ! docker-compose -f "$COMPOSE_FILE" up -d; then
+        log_error "Deployment failed"
         exit 1
     fi
-    if [[ ! -x "./init-letsencrypt.sh" ]]; then
-        echo "Error: init-letsencrypt.sh is not executable"
+    
+    log_success "Deployment started successfully"
+}
+
+# Health check
+health_check() {
+    log_info "Performing health checks..."
+    
+    local max_attempts=30
+    local attempt=1
+    
+    while [[ $attempt -le $max_attempts ]]; do
+        log_info "Health check attempt $attempt/$max_attempts"
+        
+        # Check if all containers are running
+        local running_containers=$(docker-compose -f "$COMPOSE_FILE" ps -q | wc -l)
+        local expected_containers=4  # frontend, backend, db, nginx
+        
+        if [[ $running_containers -eq $expected_containers ]]; then
+            # Check if services are responding
+            if curl -f -s "http://localhost:80" > /dev/null 2>&1; then
+                log_success "All services are healthy and responding"
+                return 0
+            fi
+        fi
+        
+        if [[ $attempt -eq $max_attempts ]]; then
+            log_error "Health check failed after $max_attempts attempts"
+            log_error "Deployment may have issues. Check logs with: docker-compose -f $COMPOSE_FILE logs"
+            return 1
+        fi
+        
+        sleep 10
+        ((attempt++))
+    done
+}
+
+# Cleanup old images
+cleanup() {
+    log_info "Cleaning up old images..."
+    
+    # Remove dangling images
+    docker image prune -f
+    
+    # Remove old trove images (keep last 3 versions)
+    local old_images=$(docker images --format "table {{.Repository}}:{{.Tag}}" | grep "trove-" | tail -n +4)
+    if [[ -n "$old_images" ]]; then
+        echo "$old_images" | xargs docker rmi -f 2>/dev/null || true
+    fi
+    
+    log_success "Cleanup completed"
+}
+
+# Show deployment status
+show_status() {
+    log_info "Deployment Status:"
+    docker-compose -f "$COMPOSE_FILE" ps
+    
+    log_info "Service URLs:"
+    echo "  Frontend: http://${DOMAIN}"
+    echo "  Backend API: http://${DOMAIN}/api"
+    
+    if [[ -f "${SCRIPT_DIR}/certbot/conf/live/${DOMAIN}/fullchain.pem" ]]; then
+        echo "  HTTPS Frontend: https://${DOMAIN}"
+        echo "  HTTPS Backend API: https://${DOMAIN}/api"
+    fi
+}
+
+# Main deployment function
+main() {
+    log_info "Starting Trove deployment process..."
+    
+    load_env
+    check_env_vars
+    authenticate_gcr
+    create_backup
+    pull_images
+    deploy
+    
+    if health_check; then
+        cleanup
+        show_status
+        log_success "Deployment completed successfully!"
+    else
+        log_error "Deployment completed but health checks failed"
+        log_error "Please check the application logs and status"
         exit 1
     fi
-    ./init-letsencrypt.sh
-fi
+}
 
-# Start or update services using docker-compose
-echo "Deploying services..."
-docker-compose pull
-docker-compose up -d --remove-orphans
-
-# Wait for services to be healthy
-services=("trove-backend" "trove-frontend")
-for service in "${services[@]}"; do
-    if ! wait_for_health "$service"; then
-        echo "Error: Service $service failed to start properly"
-        docker-compose logs "$service"
+# Handle script arguments
+case "${1:-deploy}" in
+    "deploy")
+        main
+        ;;
+    "status")
+        load_env
+        show_status
+        ;;
+    "health")
+        load_env
+        health_check
+        ;;
+    "cleanup")
+        load_env
+        cleanup
+        ;;
+    *)
+        echo "Usage: $0 [deploy|status|health|cleanup]"
+        echo "  deploy  - Full deployment process (default)"
+        echo "  status  - Show current deployment status"
+        echo "  health  - Run health checks only"
+        echo "  cleanup - Clean up old images only"
         exit 1
-    fi
-done
-
-echo "Deployment completed successfully!"
-
-# Print service status
-docker-compose ps 
+        ;;
+esac 
