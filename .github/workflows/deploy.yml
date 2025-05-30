@@ -84,13 +84,14 @@ jobs:
             echo 'GCR_HOSTNAME=${{ env.GCR_HOSTNAME }}' >> .env && \
             echo 'REPO_NAME=${{ env.REPO_NAME }}' >> .env && \
             echo 'IMAGE_TAG=${{ env.IMAGE_TAG }}' >> .env && \
-            make deploy-local
+            chmod +x ./deploy.sh && \
+            ./deploy.sh
           "
 
       - name: Verify Deployment
         run: |
           ssh -i ~/.ssh/deploy_key ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "
-            cd ~/deploy && make status
+            cd ~/deploy && ./deploy.sh status
           "
 
       - name: Cleanup old images (if successful)
