@@ -70,7 +70,7 @@ jobs:
       - name: Copy deployment files
         uses: google-github-actions/ssh-compute@v0
         with:
-          instance_name: ${{ secrets.DEPLOY_HOST }}
+          instance_name: ${{ secrets.DEPLOY_INSTANCE_NAME }}
           zone: ${{ secrets.GCP_ZONE }}
           ssh_private_key: ${{ secrets.DEPLOY_SSH_KEY }}
           command: |
@@ -83,7 +83,7 @@ jobs:
       - name: Set environment variables
         uses: google-github-actions/ssh-compute@v0
         with:
-          instance_name: ${{ secrets.DEPLOY_HOST }}
+          instance_name: ${{ secrets.DEPLOY_INSTANCE_NAME }}
           zone: ${{ secrets.GCP_ZONE }}
           ssh_private_key: ${{ secrets.DEPLOY_SSH_KEY }}
           command: |
@@ -98,7 +98,7 @@ jobs:
       - name: Deploy application
         uses: google-github-actions/ssh-compute@v0
         with:
-          instance_name: ${{ secrets.DEPLOY_HOST }}
+          instance_name: ${{ secrets.DEPLOY_INSTANCE_NAME }}
           zone: ${{ secrets.GCP_ZONE }}
           ssh_private_key: ${{ secrets.DEPLOY_SSH_KEY }}
           command: |
@@ -109,7 +109,7 @@ jobs:
       - name: Verify Deployment
         uses: google-github-actions/ssh-compute@v0
         with:
-          instance_name: ${{ secrets.DEPLOY_HOST }}
+          instance_name: ${{ secrets.DEPLOY_INSTANCE_NAME }}
           zone: ${{ secrets.GCP_ZONE }}
           ssh_private_key: ${{ secrets.DEPLOY_SSH_KEY }}
           command: |
@@ -119,7 +119,7 @@ jobs:
         if: success()
         uses: google-github-actions/ssh-compute@v0
         with:
-          instance_name: ${{ secrets.DEPLOY_HOST }}
+          instance_name: ${{ secrets.DEPLOY_INSTANCE_NAME }}
           zone: ${{ secrets.GCP_ZONE }}
           ssh_private_key: ${{ secrets.DEPLOY_SSH_KEY }}
           command: |
