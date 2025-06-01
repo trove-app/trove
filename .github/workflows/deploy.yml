@@ -62,41 +62,65 @@ jobs:
                     ${{ env.GCR_HOSTNAME }}/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/trove-backend:latest
           docker push ${{ env.GCR_HOSTNAME }}/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/trove-backend:latest
 
-      - name: Set up SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
 
-      - name: Deploy to instance
-        env:
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          EMAIL: ${{ secrets.DEPLOY_EMAIL }}
+      - name: Copy deployment files
+        uses: google-github-actions/ssh-compute@v0
+        with:
+          instance_name: ${{ secrets.DEPLOY_HOST }}
+          zone: ${{ secrets.GCP_ZONE }}
+          ssh_private_key: ${{ secrets.DEPLOY_SSH_KEY }}
+          command: |
+            mkdir -p ~/deploy/
+
+      - name: Upload deployment files to instance
         run: |
-          scp -i ~/.ssh/deploy_key -r deploy/* ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:~/deploy/
-          ssh -i ~/.ssh/deploy_key ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "
+          gcloud compute scp --recurse deploy/* ${{ secrets.DEPLOY_HOST }}:~/deploy/ --zone=${{ secrets.GCP_ZONE }}
+
+      - name: Set environment variables
+        uses: google-github-actions/ssh-compute@v0
+        with:
+          instance_name: ${{ secrets.DEPLOY_HOST }}
+          zone: ${{ secrets.GCP_ZONE }}
+          ssh_private_key: ${{ secrets.DEPLOY_SSH_KEY }}
+          command: |
+            echo 'DOMAIN=${{ env.DOMAIN }}' > ~/deploy/.env
+            echo 'EMAIL=${{ secrets.DEPLOY_EMAIL }}' >> ~/deploy/.env
+            echo 'DB_PASSWORD=${{ secrets.DB_PASSWORD }}' >> ~/deploy/.env
+            echo 'GCP_PROJECT_ID=${{ env.GCP_PROJECT_ID }}' >> ~/deploy/.env
+            echo 'GCR_HOSTNAME=${{ env.GCR_HOSTNAME }}' >> ~/deploy/.env
+            echo 'REPO_NAME=${{ env.REPO_NAME }}' >> ~/deploy/.env
+            echo 'IMAGE_TAG=${{ env.IMAGE_TAG }}' >> ~/deploy/.env
+
+      - name: Deploy application
+        uses: google-github-actions/ssh-compute@v0
+        with:
+          instance_name: ${{ secrets.DEPLOY_HOST }}
+          zone: ${{ secrets.GCP_ZONE }}
+          ssh_private_key: ${{ secrets.DEPLOY_SSH_KEY }}
+          command: |
             cd ~/deploy && \
-            echo 'DOMAIN=${{ env.DOMAIN }}' > .env && \
-            echo 'EMAIL=${{ env.EMAIL }}' >> .env && \
-            echo 'DB_PASSWORD=${{ env.DB_PASSWORD }}' >> .env && \
-            echo 'GCP_PROJECT_ID=${{ env.GCP_PROJECT_ID }}' >> .env && \
-            echo 'GCR_HOSTNAME=${{ env.GCR_HOSTNAME }}' >> .env && \
-            echo 'REPO_NAME=${{ env.REPO_NAME }}' >> .env && \
-            echo 'IMAGE_TAG=${{ env.IMAGE_TAG }}' >> .env && \
             chmod +x ./deploy.sh && \
             ./deploy.sh
-          "
 
       - name: Verify Deployment
-        run: |
-          ssh -i ~/.ssh/deploy_key ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "
+        uses: google-github-actions/ssh-compute@v0
+        with:
+          instance_name: ${{ secrets.DEPLOY_HOST }}
+          zone: ${{ secrets.GCP_ZONE }}
+          ssh_private_key: ${{ secrets.DEPLOY_SSH_KEY }}
+          command: |
             cd ~/deploy && ./deploy.sh status
-          "
 
-      - name: Cleanup old images (if successful)
+      - name: Cleanup old images
         if: success()
-        run: |
-          ssh -i ~/.ssh/deploy_key ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "
-            docker system prune -af --filter 'until=168h'
-          " 
+        uses: google-github-actions/ssh-compute@v0
+        with:
+          instance_name: ${{ secrets.DEPLOY_HOST }}
+          zone: ${{ secrets.GCP_ZONE }}
+          ssh_private_key: ${{ secrets.DEPLOY_SSH_KEY }}
+          command: |
+            docker system prune -af --filter 'until=168h' 
