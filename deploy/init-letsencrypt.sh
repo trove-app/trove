@@ -23,5 +23,8 @@ docker compose run --rm --entrypoint "\
   --force-renewal \
   -d $DOMAIN" certbot
 
+echo "SSL certificates obtained successfully!"
+echo "You can now update your nginx.conf to enable HTTPS and redeploy."
+
 # Start the stack
 docker compose up -d 
