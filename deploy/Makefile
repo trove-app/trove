@@ -10,12 +10,11 @@ ifneq (,$(wildcard $(ENV_FILE)))
     export
 endif
 
-.PHONY: help check-env init-ssl build push deploy-local deploy-prod clean logs restart status
+.PHONY: help check-env build push deploy-local deploy-prod clean logs restart status
 
 help: ## Show this help message
 	@echo "Deployment Targets:"
 	@echo "  check-env     - Check required environment variables"
-	@echo "  init-ssl      - Initialize SSL certificates"
 	@echo "  build         - Build Docker images locally"
 	@echo "  push          - Push images to Artifact Registry"
 	@echo "  deploy-local  - Deploy to local/demo environment"
@@ -35,11 +34,6 @@ check-env: ## Check if required environment variables are set
 	@test -n "$(REPO_NAME)" || (echo "ERROR: REPO_NAME is not set" && exit 1)
 	@test -n "$(IMAGE_TAG)" || (echo "ERROR: IMAGE_TAG is not set" && exit 1)
 	@echo "All required environment variables are set ✓"
-
-init-ssl: check-env ## Initialize SSL certificates with Let's Encrypt
-	@echo "Initializing SSL certificates..."
-	@chmod +x ./init-letsencrypt.sh
-	@./init-letsencrypt.sh
 
 build: check-env ## Build Docker images locally
 	@echo "Building Docker images..."
@@ -88,8 +82,4 @@ status: ## Show deployment status
 	@echo ""
 	@echo "=== Service URLs ==="
 	@echo "Frontend: http://$(DOMAIN)"
-	@echo "Backend API: http://$(DOMAIN)/api"
-	@if [ -f "./certbot/conf/live/$(DOMAIN)/fullchain.pem" ]; then \
-		echo "HTTPS Frontend: https://$(DOMAIN)"; \
-		echo "HTTPS Backend API: https://$(DOMAIN)/api"; \
-	fi 
+	@echo "Backend API: http://$(DOMAIN)/api" 

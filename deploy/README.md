@@ -13,7 +13,7 @@ This directory contains the configuration and scripts for deploying Trove to a d
    - Compute Instance Admin
    - IAP-secured Tunnel User
 
-3. A domain name pointed to your GCP instance's IP address
+3. A domain name pointed to your GCP instance's IP address (optional for demo)
 
 ## Directory Structure
 
@@ -21,11 +21,10 @@ This directory contains the configuration and scripts for deploying Trove to a d
 deploy/
 ├── docker-compose.yml    # Production Docker Compose configuration
 ├── nginx.conf           # Nginx reverse proxy configuration
-├── init-letsencrypt.sh  # Let's Encrypt SSL setup script
-├── env.example          # Example environment variables
-└── certbot/             # SSL certificate storage (created by init-letsencrypt.sh)
-    ├── conf/           # Let's Encrypt configuration
-    └── www/            # Let's Encrypt webroot
+├── deploy.sh            # Main deployment script
+├── rollback.sh          # Rollback script
+├── Makefile             # Deployment commands
+└── env.example          # Example environment variables
 ```
 
 ## Initial Setup
@@ -42,12 +41,6 @@ deploy/
    EMAIL=your-email@example.com
    DB_PASSWORD=secure_password_here
    GCP_PROJECT_ID=your-project-id
-   ```
-
-3. Initialize SSL certificates:
-   ```bash
-   chmod +x init-letsencrypt.sh
-   ./init-letsencrypt.sh
    ```
 
 ## Deployment
@@ -90,13 +83,6 @@ docker compose logs -f [service]
 docker compose exec nginx nginx -t
 ```
 
-### SSL Certificates
-
-Certificates auto-renew every 12 hours. To force renewal:
-```bash
-docker compose run --rm certbot renew
-```
-
 ### Database
 
 The database is ephemeral and recreated on each deployment. Important notes:
@@ -106,13 +92,7 @@ The database is ephemeral and recreated on each deployment. Important notes:
 
 ### Troubleshooting
 
-1. SSL Issues:
-   ```bash
-   # Check certificate status
-   docker compose exec nginx openssl x509 -in /etc/letsencrypt/live/$DOMAIN/fullchain.pem -text -noout
-   ```
-
-2. Container Issues:
+1. Container Issues:
    ```bash
    # Check container logs
    docker compose logs [service]
@@ -121,7 +101,7 @@ The database is ephemeral and recreated on each deployment. Important notes:
    docker compose restart [service]
    ```
 
-3. Nginx Issues:
+2. Nginx Issues:
    ```bash
    # Test configuration
    docker compose exec nginx nginx -t

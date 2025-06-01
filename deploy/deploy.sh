@@ -194,11 +194,6 @@ show_status() {
     log_info "Service URLs:"
     echo "  Frontend: http://${DOMAIN}"
     echo "  Backend API: http://${DOMAIN}/api"
-    
-    if [[ -f "${SCRIPT_DIR}/certbot/conf/live/${DOMAIN}/fullchain.pem" ]]; then
-        echo "  HTTPS Frontend: https://${DOMAIN}"
-        echo "  HTTPS Backend API: https://${DOMAIN}/api"
-    fi
 }
 
 # Main deployment function
