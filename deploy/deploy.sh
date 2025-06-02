@@ -97,25 +97,6 @@ pull_images() {
     log_success "All images pulled successfully"
 }
 
-# Create backup of current deployment
-create_backup() {
-    log_info "Creating backup of current deployment..."
-    
-    mkdir -p "$BACKUP_DIR"
-    local backup_file="${BACKUP_DIR}/backup-$(date +%Y%m%d-%H%M%S).tar.gz"
-    
-    # Backup database if running
-    if docker ps --format "table {{.Names}}" | grep -q "trove-db"; then
-        log_info "Backing up database..."
-        docker exec trove-db pg_dump -U postgres trove > "${BACKUP_DIR}/db-backup-$(date +%Y%m%d-%H%M%S).sql"
-    fi
-    
-    # Backup current docker-compose state
-    if [[ -f "$COMPOSE_FILE" ]]; then
-        tar -czf "$backup_file" -C "$SCRIPT_DIR" docker-compose.yml .env 2>/dev/null || true
-        log_success "Backup created: $backup_file"
-    fi
-}
 
 # Deploy the application
 deploy() {
@@ -203,7 +184,6 @@ main() {
     load_env
     check_env_vars
     authenticate_gcr
-    create_backup
     pull_images
     deploy
     
