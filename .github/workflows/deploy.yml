@@ -16,6 +16,7 @@ env:
   REPO_NAME: trove-repo
   DOMAIN: ${{ secrets.DOMAIN }}
   IMAGE_TAG: ${{ github.sha }}
+  BACKEND_URL: http://backend:8000
 
 jobs:
   deploy:
