@@ -20,9 +20,8 @@ This directory contains the configuration and scripts for deploying Trove to a d
 ```
 deploy/
 ├── docker-compose.yml    # Production Docker Compose configuration
-├── nginx.conf           # Nginx reverse proxy configuration
+├── Caddyfile            # Caddy reverse proxy configuration
 ├── deploy.sh            # Main deployment script
-├── rollback.sh          # Rollback script
 ├── Makefile             # Deployment commands
 └── env.example          # Example environment variables
 ```
@@ -79,8 +78,8 @@ docker compose ps
 # View logs
 docker compose logs -f [service]
 
-# Check Nginx configuration
-docker compose exec nginx nginx -t
+# Check Caddy configuration
+docker compose exec caddy caddy validate
 ```
 
 ### Database
@@ -101,13 +100,13 @@ The database is ephemeral and recreated on each deployment. Important notes:
    docker compose restart [service]
    ```
 
-2. Nginx Issues:
+2. Caddy Issues:
    ```bash
    # Test configuration
-   docker compose exec nginx nginx -t
+   docker compose exec caddy caddy validate
 
    # Reload configuration
-   docker compose exec nginx nginx -s reload
+   docker compose exec caddy caddy reload
    ```
 
 ## Security Notes

@@ -5,12 +5,9 @@
 - `.github/workflows/deploy.yml` - Main GitHub Actions workflow file for CI/CD pipeline
 - `.github/workflows/rollback.yml` - GitHub Actions workflow for manual rollback process
 - `deploy/docker-compose.yml` - Docker Compose configuration for the demo environment ✅
-- `deploy/nginx.conf` - Nginx reverse proxy configuration ✅
-- `deploy/init-letsencrypt.sh` - Script to initialize Let's Encrypt SSL certificates ✅
+- `deploy/Caddyfile` - Caddy reverse proxy configuration ✅
 - `deploy/deploy.sh` - Main deployment script to be run on the GCE instance ✅
-- `deploy/rollback.sh` - Script for manual rollback procedures ✅
 - `deploy/health-check.sh` - Script for monitoring service health ✅
-- `deploy/renew-ssl.sh` - Script for automating SSL certificate renewal ✅
 - `deploy/cleanup.sh` - Script for cleaning up old images and containers ✅
 - `deploy/README.md` - Documentation for the deployment setup and processes ✅
 - `deploy/Makefile` - Contains deployment-specific commands and targets ✅
@@ -38,7 +35,7 @@
   - [x] 2.1 Install Docker on the instance
   - [x] 2.2 Install Docker Compose
   - [x] 2.3 Configure Docker to use GCR
-  - [x] 2.4 Install Nginx
+  - [x] 2.4 Install Caddy
   - [x] 2.5 Configure basic system monitoring
   - [x] 2.6 Set up instance SSH keys for GitHub Actions
 
@@ -52,10 +49,9 @@
 - [x] 4.0 Base Deployment Configuration (AI)
   - [x] 4.1 Create deployment directory structure
   - [x] 4.2 Create or update Docker Compose configuration for demo environment
-  - [x] 4.3 Create Nginx reverse proxy configuration
-  - [x] 4.4 Create Let's Encrypt initialization script
-  - [x] 4.5 Create deployment documentation
-  - [x] 4.6 Create .env.example file with required variables
+  - [x] 4.3 Create Caddy reverse proxy configuration
+  - [x] 4.4 Create deployment documentation
+  - [x] 4.5 Create .env.example file with required variables
 
 - [x] 5.0 Makefile and Local Development Setup (AI)
   - [x] 5.1 Create Makefile with common commands
@@ -77,9 +73,8 @@
   - [x] 7.1 Create main deployment script
   - [x] 7.2 Create rollback script
   - [x] 7.3 Create health check script
-  - [x] 7.4 Create SSL certificate renewal automation
-  - [x] 7.5 Create cleanup script for old images
-  - [x] 7.6 Ensure scripts work with both manual and automated deployment
+  - [x] 7.4 Create cleanup script for old images
+  - [x] 7.5 Ensure scripts work with both manual and automated deployment
 
 - [ ] 8.0 Testing and Validation (SHARED)
   - [ ] 8.1 Test manual deployment process (USER)
