@@ -1,14 +1,17 @@
 version: "3.8"
 
 services:
-  nginx:
-    image: nginx:alpine
-    container_name: trove-nginx
+  caddy:
+    image: caddy:alpine
+    container_name: trove-caddy
     restart: unless-stopped
     ports:
       - "80:80"
+      - "443:443"
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
     depends_on:
       - frontend
       - backend
@@ -63,9 +66,13 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+    env_file:
+    - .env
 
 volumes:
   postgres_data:
+  caddy_data:
+  caddy_config:
 
 networks:
   trove-network:

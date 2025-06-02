@@ -16,6 +16,7 @@ env:
   REPO_NAME: trove-repo
   DOMAIN: ${{ secrets.DOMAIN }}
   IMAGE_TAG: ${{ github.sha }}
+  BACKEND_URL: http://backend:8000
 
 jobs:
   deploy:
@@ -86,6 +87,7 @@ jobs:
             echo 'GCR_HOSTNAME=${{ env.GCR_HOSTNAME }}' >> ~/deploy/.env
             echo 'REPO_NAME=${{ env.REPO_NAME }}' >> ~/deploy/.env
             echo 'IMAGE_TAG=${{ env.IMAGE_TAG }}' >> ~/deploy/.env
+            echo 'BACKEND_URL=${{ env.BACKEND_URL }}' >> ~/deploy/.env
 
       - name: Deploy application
         uses: google-github-actions/ssh-compute@v0
