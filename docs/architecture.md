@@ -131,4 +131,4 @@ graph LR
 
 ## Next Steps
 
-See our [GitHub Issues](https://github.com/hr23232323/trove/issues) for planned features and improvements. 
+See our [GitHub Issues](https://github.com/trove-app/trove/issues) for planned features and improvements. 

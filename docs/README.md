@@ -19,26 +19,10 @@ Welcome to trove's documentation! This guide will help you understand, set up, a
   - Database Setup
   - Contributing Guidelines
 
-- [User Guide](./user-guide.md)
-  - Features Overview
-  - Query Interface
-  - Data Exploration
-  - Best Practices
-
-- [API Reference](./api-reference.md)
-  - Backend API Endpoints
-  - Query API
-  - Authentication
-
-- [Deployment](./deployment.md)
-  - Production Setup
-  - Environment Variables
-  - Docker Deployment
-  - Scaling Guidelines
 
 ## Quick Links
 
-- [GitHub Repository](https://github.com/hr23232323/trove)
-- [Issue Tracker](https://github.com/hr23232323/trove/issues)
+- [GitHub Repository](https://github.com/trove-app/trove)
+- [Issue Tracker](https://github.com/trove-app/trove/issues)
 - [Contributing Guidelines](../CONTRIBUTING.md)
 - [License](../LICENSE) 

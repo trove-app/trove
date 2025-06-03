@@ -16,7 +16,7 @@ This guide will help you set up your local development environment and start con
 
 1. **Clone the Repository**
 ```bash
-git clone https://github.com/hr23232323/trove.git
+git clone https://github.com/trove-app/trove.git
 cd trove
 ```
 

@@ -8,7 +8,7 @@ The fastest way to get started with trove is using Docker Compose:
 
 ```bash
 # Clone the repository
-git clone https://github.com/hr23232323/trove.git
+git clone https://github.com/trove-app/trove.git
 cd trove
 
 # Start all services
