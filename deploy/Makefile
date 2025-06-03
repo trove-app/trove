@@ -17,8 +17,7 @@ help: ## Show this help message
 	@echo "  check-env     - Check required environment variables"
 	@echo "  build         - Build Docker images locally"
 	@echo "  push          - Push images to Artifact Registry"
-	@echo "  deploy-local  - Deploy to local/demo environment"
-	@echo "  deploy-prod   - Deploy to production environment"
+	@echo "  deploy-prod   - Deploy to demo environment"
 	@echo "  clean         - Clean up old images and containers"
 	@echo "  logs          - Show service logs"
 	@echo "  restart       - Restart all services"
@@ -52,11 +51,6 @@ push: check-env ## Push images to Artifact Registry
 	@docker push $(GCR_HOSTNAME)/$(GCP_PROJECT_ID)/$(REPO_NAME)/trove-frontend:latest
 	@docker push $(GCR_HOSTNAME)/$(GCP_PROJECT_ID)/$(REPO_NAME)/trove-backend:latest
 	@echo "Images pushed successfully ✓"
-
-deploy-local: check-env ## Deploy to local/demo environment
-	@echo "Deploying to local environment..."
-	@chmod +x ./deploy.sh
-	@./deploy.sh
 
 deploy-prod: check-env ## Deploy to production environment
 	@echo "Deploying to production environment..."
