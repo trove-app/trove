@@ -1,53 +1,84 @@
-[![CI](https://github.com/hr23232323/trove/actions/workflows/ci.yml/badge.svg)](https://github.com/hr23232323/trove/actions/workflows/ci.yml)
+![Banner](./assets/trove-readme-header-thin-v2.jpg)
+
+
+[![CI](https://github.com/trove-app/trove/actions/workflows/ci.yml/badge.svg)](https://github.com/trove-app/trove/actions/workflows/ci.yml)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
-[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/hr23232323/trove/releases)
+[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/trove-app/trove/releases)
 
-# trove
+# 🔑 trove
 
-**trove** is an open source data exploration and observability tool designed for everyone at small, scrappy startups who need to pull, explore, and use data—PMs, EMs, marketing, partner success, and more. trove is focused on making data discovery and exploration easy, intuitive, and collaborative, without the complexity or per-seat pricing of traditional BI tools.
+**Trove** is a treasure chest for your startup's data. It's an open source data exploration and observability tool made for *everyone*—PMs, EMs, marketers, partner teams, and engineers alike.
 
-**trove** currently only works with Postgres databases. We'll be adding new connectors soon.
+Forget per-seat pricing, clunky dashboards, and gatekeeping. With Trove, your whole crew can pull, explore, and share insights from your data—fast, friendly, and free.
 
-## Demo
-
-<video controls src="./assets/Trove-demo.mp4" title="Trove - demo"></video>
-
-[![Watch the video](https://github.com/hr23232323/trove/blob/main/assets/thumbnail.png)](https://github.com/hr23232323/trove/blob/main/assets/Trove-demo.mp4)
-
-## Existing Features
-
-- DB explorer - Schema and table discovery
-- SQL Editor - Query and explore data
-- Simple, modern UI for non-technical and technical users alike
-
-## Upcoming Features
-
-- SQL Query Builder - Query without knowing SQL
-- Query history and sharing
-- AI-powered data exploration and insights
-- Integrate with dbt projects to enrich warehouse metadata
-
-## Getting Started
-
-### Run the Full Stack with Docker Compose
-
-```bash
-docker-compose up --build
-```
-
-- Frontend: [http://localhost:3000](http://localhost:3000)
-- Backend: [http://localhost:8000](http://localhost:8000)
-- Sample PostgreSQL DB: [localhost:5432](localhost:5432)
-
-See [frontend/README.md](frontend/README.md), [backend/README.md](backend/README.md), [db/README.md](db/README.md) for more details on each service.
-
-## License
-
-This project is licensed under the Apache License 2.0. See [LICENSE](LICENSE) for details.
-
-A hosted version may be offered in the future, but the open source project is and will remain Apache 2.0 licensed.
+> **💡 Built for startups.**  
+> No heavy setup, no complex roles (unless you want that), just data when and where you need it.
 
 ---
 
-_trove is in early development. Contributions and feedback are welcome!_
+## ✨ What trove does
+
+- 🔍 **Explore your data** – Navigate schemas and tables like a map.
+- 🧾 **Query with SQL** – Or don't! You can always use the visual query builder or ask AI 😉
+- 🧑‍🤝‍🧑 **Made for teams** – Built for cross-functional folks, not just data engineers.
+- 💻 **Clean, modern UI** – Feels good for everyone, tech or not.
+- 🛠️ **Open source & extensible** – Apache 2.0 licensed and ready to hack.
+
+---
+
+## 🧭 Demo
+
+<p align="center">
+  <a href="https://demo.gettrove.app/" target="_blank">
+    <img src="./assets/thumbnail.png" alt="trove demo website">
+  </a>
+</p>
+
+
+
+---
+
+## 📚 Documentation
+
+> **🔨 Coming Soon.**  
+> Our docs are undergoing some TLC - check back soon.
+
+
+
+
+---
+
+## 🗺️ Roadmap
+
+**Currently Available**
+- Schema and table discovery
+- SQL editor with results viewer
+- Postgres connector
+- Visual query builder
+
+**Coming Soon**
+- Query history, saving, and sharing
+- AI-assisted data questions
+- dbt metadata integration
+- More database connectors (BigQuery, Snowflake, etc.)
+
+---
+
+## 🤝 Contributing
+
+Trove is in early development—and growing fast. If you're excited about making data easier for teams, we'd love your help!
+
+Check out [CONTRIBUTING.md](CONTRIBUTING.md) to get started.
+
+---
+
+## 📄 License
+
+Trove is [Apache 2.0 licensed](LICENSE). It's free to use, fork, and modify.  
+We may offer a hosted version in the future—but the open source core will always stay open.
+
+---
+
+**Dig into your data. Share what you find.**  
+**This is your trove.**
