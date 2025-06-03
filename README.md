@@ -30,8 +30,8 @@ Forget per-seat pricing, clunky dashboards, and gatekeeping. With Trove, your wh
 ## 🧭 Demo
 
 <p align="center">
-  <a href="https://demo.gettrove.app/">
-    <img src="./assets/thumbnail.png" alt="trove Demonstration">
+  <a href="https://demo.gettrove.app/" target="_blank">
+    <img src="./assets/thumbnail.png" alt="trove demo website">
   </a>
 </p>
 
