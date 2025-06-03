@@ -63,8 +63,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    environment:
-      BACKEND_URL: http://backend:8000
+    env_file:
+      - ./frontend/.env
 
 volumes:
   db_data:
