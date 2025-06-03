@@ -35,17 +35,16 @@ Forget per-seat pricing, clunky dashboards, and gatekeeping. With Trove, your wh
   </a>
 </p>
 
-
-
 ---
 
 ## 📚 Documentation
 
-> **🔨 Coming Soon.**  
-> Our docs are undergoing some TLC - check back soon.
-
-
-
+Check out our [comprehensive documentation](./docs/README.md) to learn more about:
+- Getting Started Guide
+- Architecture Overview
+- Development Guide
+- API Reference
+- Deployment Instructions
 
 ---
 
