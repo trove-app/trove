@@ -2,7 +2,8 @@
 // Export all typography-related components
 
 // Base text component with size variants
-// export { Text } from './Text';
+export { Text } from './Text';
+export type { TextProps } from './Text';
 
 // Heading components (h1-h6)
 // export { Heading } from './Heading';
