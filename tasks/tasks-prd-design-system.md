@@ -1,17 +1,6 @@
 ## Relevant Files
 
-- `frontend/app/types/theme.ts` - Theme type definitions and interfaces
-- `frontend/app/styles/theme.ts` - Theme configuration with colors, typography, and other design tokens
-- `frontend/app/styles/globals.css` - Global CSS and theme CSS custom properties
-- `frontend/app/context/ThemeContext.tsx` - Theme context provider for dynamic theme updates
-- `frontend/app/utils/theme.ts` - Theme utility functions for accessing theme values
-- `frontend/tailwind.config.ts` - Tailwind configuration extended with theme values
-- `frontend/app/components/ui/README.md` - Component library documentation and guidelines
-- `frontend/app/components/ui/typography/index.ts` - Typography components exports
-- `frontend/app/components/ui/inputs/index.ts` - Input components exports
-- `frontend/app/components/ui/layout/index.ts` - Layout components exports
-- `frontend/app/components/ui/interactive/index.ts` - Interactive components exports
-- `frontend/app/components/ui/data-display/index.ts` - Data display components exports
+- `frontend/app/globals.css` - Global CSS and theme CSS custom properties
 - `frontend/app/components/` - Existing components to be migrated
 
 ### Notes
@@ -25,20 +14,20 @@
 
 ## Tasks
 
-- [x] 1.0 Setup Theme System Foundation
-  - [x] 1.1 Create theme configuration types in `types/theme.ts`
-  - [x] 1.2 Define color palette and variants in `styles/theme.ts`
-  - [x] 1.3 Setup typography scale and font families
-  - [x] 1.4 Define spacing and sizing scales
-  - [x] 1.5 Configure border radius and shadow values
-  - [x] 1.6 Setup animation/transition timing variables
-  - [x] 1.7 Create ThemeContext and provider
-  - [x] 1.8 Implement dark mode color variants
-  - [x] 1.9 Update Tailwind configuration with theme values
-  - [x] 1.10 Add theme utility functions for common operations
+- [ ] 1.0 Setup Theme System Foundation
+  - [ ] 1.1 Create theme configuration types in `types/theme.ts`
+  - [ ] 1.2 Define color palette and variants in `styles/theme.ts`
+  - [ ] 1.3 Setup typography scale and font families
+  - [ ] 1.4 Define spacing and sizing scales
+  - [ ] 1.5 Configure border radius and shadow values
+  - [ ] 1.6 Setup animation/transition timing variables
+  - [ ] 1.7 Create ThemeContext and provider
+  - [ ] 1.8 Implement dark mode color variants
+  - [ ] 1.9 Update Tailwind configuration with theme values
+  - [ ] 1.10 Add theme utility functions for common operations
 
 - [ ] 2.0 Create Base Component Library Structure
-  - [x] 2.1 Setup component directory structure in `components/ui`
+  - [ ] 2.1 Setup component directory structure in `components/ui`
   - [ ] 2.2 Create base component types and interfaces
   - [ ] 2.3 Setup shared component utilities
   - [ ] 2.4 Create component development guidelines document
