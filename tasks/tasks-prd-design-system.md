@@ -2,8 +2,14 @@
 
 - `frontend/app/globals.css` - Global CSS with Tailwind v4 @theme configuration and brand colors
 - `frontend/postcss.config.mjs` - PostCSS configuration with Tailwind v4 plugin
-- `frontend/package.json` - Project dependencies including Tailwind v4 and typography plugin
+- `frontend/package.json` - Project dependencies including Tailwind v4, typography plugin, clsx, and tailwind-merge
 - `frontend/app/components/` - Current component library (SidebarLayout, Sidebar, TroveGradientTitle)
+- `frontend/app/components/ui/` - New UI component library structure with organized directories
+- `frontend/app/components/ui/index.ts` - Main export file for UI components
+- `frontend/app/components/ui/types.ts` - Shared TypeScript interfaces and types for components
+- `frontend/app/components/ui/utils/cn.ts` - Class name utility for combining Tailwind classes
+- `frontend/app/components/ui/utils/tailwind-utils.ts` - Shared Tailwind utility patterns and component base classes
+- `frontend/app/components/ui/README.md` - Component library documentation and guidelines
 - `frontend/app/layout.tsx` - Root layout component
 - `frontend/app/page.tsx` - Homepage component
 - `frontend/app/sql-builder/` - SQL builder section
@@ -45,9 +51,9 @@
   - [x] 1.9 Document theme customization approach
 
 - [ ] 2.0 Create Base Component Library Structure
-  - [ ] 2.1 Setup component directory structure in `app/components/ui`
-  - [ ] 2.2 Create TypeScript interfaces for component props
-  - [ ] 2.3 Setup shared Tailwind utility classes and component patterns
+  - [x] 2.1 Setup component directory structure in `app/components/ui`
+  - [x] 2.2 Create TypeScript interfaces for component props (sufficient base types already created)
+  - [x] 2.3 Setup shared Tailwind utility classes and component patterns
   - [ ] 2.4 Create component development guidelines focusing on Tailwind v4 usage
   - [ ] 2.5 Document component composition patterns
 
@@ -133,4 +139,4 @@
   - [ ] 9.5 Document dark mode usage with @media queries
   - [ ] 9.6 Add contribution guidelines
 
-Ready to start with the next incomplete task: **2.1 Setup component directory structure in `app/components/ui`**. This will create the organized foundation for our component library with proper TypeScript structure. 
+Ready to start with the next incomplete task: **2.4 Create component development guidelines focusing on Tailwind v4 usage**. This will create the organized foundation for our component library with proper Tailwind utility classes and component patterns. 
