@@ -1,17 +1,22 @@
 ## Relevant Files
 
-- `frontend/app/globals.css` - Global CSS and theme variables
-- `frontend/tailwind.config.js` - Tailwind configuration and theme customization
-- `frontend/postcss.config.mjs` - PostCSS configuration for Tailwind processing
-- `frontend/package.json` - Project dependencies including Tailwind and plugins
-- `frontend/app/components/` - Component library
+- `frontend/app/globals.css` - Global CSS with Tailwind v4 @theme configuration and brand colors
+- `frontend/postcss.config.mjs` - PostCSS configuration with Tailwind v4 plugin
+- `frontend/package.json` - Project dependencies including Tailwind v4 and typography plugin
+- `frontend/app/components/` - Current component library (SidebarLayout, Sidebar, TroveGradientTitle)
+- `frontend/app/layout.tsx` - Root layout component
+- `frontend/app/page.tsx` - Homepage component
+- `frontend/app/sql-builder/` - SQL builder section
+- `frontend/app/db-explorer/` - Database explorer section
 
 ### Notes
 
+- Project is already using **Tailwind CSS v4** with @theme directive in globals.css
+- Brand colors from style guide are already defined in the @theme configuration
 - Components should be organized in subdirectories by type (e.g., `ui/typography`, `ui/inputs`, etc.)
 - Each component should be a Tailwind-first implementation with minimal custom CSS
 - Prefer Tailwind's utility classes over custom CSS whenever possible
-- Use Tailwind's configuration to extend theme values (colors, spacing, etc.)
+- Use Tailwind v4's @theme configuration to extend theme values (colors, spacing, etc.)
 - Follow mobile-first responsive design patterns
 - Migration follows a "build, test, migrate, validate" cycle for each component type:
   1. Build new component using Tailwind
@@ -21,27 +26,27 @@
   5. Clean up old implementation only after successful validation
 - Keep existing components functional until their replacements are fully validated
 - Document Tailwind patterns and compositions for each component type
-- Maintain dark mode support through Tailwind's dark: variant
+- Maintain dark mode support through Tailwind's dark: variant and @media (prefers-color-scheme: dark)
 - FULLY follow the [style guide](../assets/style-guide.md) for all the feel, vibe, colors etc. etc.
 
 ## Tasks
 
-- [ ] 1.0 Setup Tailwind Theme Foundation
-  - [x] 1.1 Create tailwind.config.js with extended theme configuration
-  - [x] 1.2 Define color palette and variants using Tailwind's extend feature
-  - [ ] 1.3 Configure typography settings via Tailwind Typography plugin
-  - [ ] 1.4 Setup spacing and sizing scales in Tailwind config
-  - [ ] 1.5 Define border radius and shadow presets
-  - [ ] 1.6 Configure animation classes for transitions
-  - [ ] 1.7 Setup dark mode strategy using Tailwind dark: variant
-  - [ ] 1.8 Create CSS custom properties for non-Tailwind values only
+- [x] 1.0 Setup Tailwind Theme Foundation ✅ (Already completed - v4 is set up)
+  - [x] 1.1 Tailwind v4 is already installed and configured
+  - [x] 1.2 Brand color palette is defined in @theme configuration
+  - [x] 1.3 Typography plugin is installed (@tailwindcss/typography)
+  - [x] 1.4 Custom spacing scales are defined in @theme
+  - [x] 1.5 Border radius and shadow presets are configured
+  - [x] 1.6 Dark mode strategy is implemented using @media (prefers-color-scheme: dark)
+  - [x] 1.7 CSS custom properties are set up in @theme directive
+  - [x] 1.8 Review and optimize current @theme configuration for style guide compliance
   - [ ] 1.9 Document theme customization approach
 
 - [ ] 2.0 Create Base Component Library Structure
-  - [ ] 2.1 Setup component directory structure in `components/ui`
+  - [ ] 2.1 Setup component directory structure in `app/components/ui`
   - [ ] 2.2 Create TypeScript interfaces for component props
-  - [ ] 2.3 Setup shared Tailwind utility classes
-  - [ ] 2.4 Create component development guidelines focusing on Tailwind usage
+  - [ ] 2.3 Setup shared Tailwind utility classes and component patterns
+  - [ ] 2.4 Create component development guidelines focusing on Tailwind v4 usage
   - [ ] 2.5 Document component composition patterns
 
 - [ ] 3.0 Typography System Implementation
@@ -119,11 +124,11 @@
   - [ ] 8.6 Responsive design validation
 
 - [ ] 9.0 Documentation
-  - [ ] 9.1 Create Tailwind usage guidelines
-  - [ ] 9.2 Document theme customization
+  - [ ] 9.1 Create Tailwind v4 usage guidelines
+  - [ ] 9.2 Document theme customization using @theme directive
   - [ ] 9.3 Add component prop documentation
   - [ ] 9.4 Create example implementations
-  - [ ] 9.5 Document dark mode usage
+  - [ ] 9.5 Document dark mode usage with @media queries
   - [ ] 9.6 Add contribution guidelines
 
-I have generated the high-level tasks based on the PRD, now including migration steps. Ready to generate the sub-tasks? Respond with 'Go' to proceed. 
+Ready to start with the first incomplete task: **1.9 Document theme customization approach**. This will ensure we have a clear understanding of how to customize the theme and maintain consistency with the Trove style guide. 
