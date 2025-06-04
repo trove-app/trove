@@ -2,7 +2,8 @@
 // This file exports all UI components for easy importing
 
 // Typography Components
-export * from './typography';
+export { Text } from './typography/Text';
+export { Heading } from './typography/Heading';
 
 // Input Components  
 export * from './inputs';
@@ -11,7 +12,7 @@ export * from './inputs';
 export * from './interactive';
 
 // Layout Components
-export * from './layout';
+export { Card } from './Card';
 
 // Data Display Components
 export * from './data-display';

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Text, Heading } from '../components/ui';
+import { Text, Heading, Card } from '../components/ui';
 
 export default function DesignPage() {
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -295,12 +295,140 @@ export default function DesignPage() {
           </div>
         </section>
 
+        {/* Card Components Section */}
+        <section className="space-y-6">
+          <Heading level={2} variant="primary" spacing="lg">Card Components</Heading>
+          <Text variant="muted">
+            Foundational layout components for grouping content with consistent styling and behavior.
+          </Text>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Default Card */}
+            <div className="space-y-3">
+              <Text size="lg" weight="semibold">Default Card</Text>
+              <Card variant="default" padding="md">
+                <Heading level={3} spacing="sm">Sales Data</Heading>
+                <Text variant="muted">Monthly revenue: $24,500</Text>
+                <Text size="sm" variant="success">↗ +12% from last month</Text>
+              </Card>
+            </div>
+
+            {/* Glass Card */}
+            <div className="space-y-3">
+              <Text size="lg" weight="semibold">Glass Card</Text>
+              <Card variant="glass" padding="md">
+                <Heading level={3} spacing="sm">Active Connections</Heading>
+                <Text variant="muted">Database connections: 3/5</Text>
+                <Text size="sm" variant="info">All systems operational</Text>
+              </Card>
+            </div>
+
+            {/* Elevated Card */}
+            <div className="space-y-3">
+              <Text size="lg" weight="semibold">Elevated Card</Text>
+              <Card variant="elevated" padding="md">
+                <Heading level={3} spacing="sm">Query Performance</Heading>
+                <Text variant="muted">Avg execution: 2.3ms</Text>
+                <Text size="sm" variant="success">Excellent performance</Text>
+              </Card>
+            </div>
+
+            {/* Outlined Card */}
+            <div className="space-y-3">
+              <Text size="lg" weight="semibold">Outlined Card</Text>
+              <Card variant="outlined" padding="md">
+                <Heading level={3} spacing="sm">Data Insights</Heading>
+                <Text variant="muted">New nuggets available</Text>
+                <Text size="sm" variant="warning">Requires attention</Text>
+              </Card>
+            </div>
+
+            {/* Clickable Card */}
+            <div className="space-y-3">
+              <Text size="lg" weight="semibold">Clickable Card</Text>
+              <Card variant="glass" padding="md" clickable>
+                <Heading level={3} spacing="sm">Interactive Dashboard</Heading>
+                <Text variant="muted">Click to explore data</Text>
+                <Text size="sm" variant="primary">Hover for preview →</Text>
+              </Card>
+            </div>
+
+            {/* Different Sizes */}
+            <div className="space-y-3">
+              <Text size="lg" weight="semibold">Size Variants</Text>
+              <div className="space-y-3">
+                <Card variant="default" size="sm" padding="sm">
+                  <Text size="sm">Small card</Text>
+                </Card>
+                <Card variant="default" size="md" padding="md">
+                  <Text>Medium card (default)</Text>
+                </Card>
+                <Card variant="default" size="lg" padding="lg">
+                  <Text>Large card with more content space</Text>
+                </Card>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Real-World Card Usage Examples */}
+        <section className="space-y-6">
+          <Heading level={2} variant="accent" spacing="lg">Real-World Card Usage</Heading>
+          
+          {/* Data Dashboard Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card variant="glass" padding="md" clickable>
+              <div className="text-center space-y-2">
+                <Text size="xl" weight="bold" variant="primary">24.5K</Text>
+                <Text variant="muted">Total Records</Text>
+                <Text size="sm" variant="success">📈 +8.2% this week</Text>
+              </div>
+            </Card>
+            
+            <Card variant="elevated" padding="md" clickable>
+              <div className="text-center space-y-2">
+                <Text size="xl" weight="bold" variant="accent">127ms</Text>
+                <Text variant="muted">Avg Query Time</Text>
+                <Text size="sm" variant="info">⚡ Optimized performance</Text>
+              </div>
+            </Card>
+            
+            <Card variant="default" padding="md" clickable>
+              <div className="text-center space-y-2">
+                <Text size="xl" weight="bold" variant="secondary">5/7</Text>
+                <Text variant="muted">Data Sources</Text>
+                <Text size="sm" variant="warning">🔗 2 pending connections</Text>
+              </div>
+            </Card>
+          </div>
+
+          {/* Content Cards */}
+          <div className="space-y-4">
+            <Card variant="glass" padding="lg">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Heading level={3}>Recent Query Results</Heading>
+                  <Text size="sm" variant="muted">2 minutes ago</Text>
+                </div>
+                <Text variant="secondary">
+                  Found 1,247 records matching your search criteria for "customer transactions" 
+                  in the sales database. Data spans from Jan 2024 to present.
+                </Text>
+                <div className="flex space-x-2">
+                  <Text size="sm" variant="success">✓ Query successful</Text>
+                  <Text size="sm" variant="info">🔍 View results</Text>
+                </div>
+              </div>
+            </Card>
+          </div>
+        </section>
+
         {/* Real-world Examples */}
         <section>
           <Heading level={2} spacing="lg">🏗️ Real-world Usage Examples</Heading>
           
           {/* Data Card Example with new variants */}
-          <div className="bg-white dark:bg-card rounded-lg p-6 shadow-sm border border-secondary-200 dark:border-border mb-6">
+          <Card variant="default" padding="lg" className="mb-6">
             <Text variant="nugget" size="lg" className="mb-2">
               ✨ Sales Data Nugget
             </Text>
@@ -318,10 +446,10 @@ export default function DesignPage() {
             <Text variant="link" size="sm" className="mt-3 inline-block">
               Click to explore the full dataset →
             </Text>
-          </div>
+          </Card>
 
           {/* Trove Data Dashboard Example */}
-          <div className="bg-white dark:bg-card rounded-lg p-6 shadow-sm border border-secondary-200 dark:border-border mb-6">
+          <Card variant="elevated" padding="lg" className="mb-6">
             <Heading level={3} variant="gold" spacing="sm">🏆 Top Performing Tables</Heading>
             <Text variant="muted" className="mb-4">Discover your most valuable data sources</Text>
             
@@ -339,33 +467,33 @@ export default function DesignPage() {
                 <Text variant="muted">📦 Moderate usage</Text>
               </div>
             </div>
-          </div>
+          </Card>
 
           {/* Status Messages with enhanced variants */}
           <div className="space-y-3">
-            <div className="p-4 bg-success-50 dark:bg-success-950/20 rounded-lg border border-success-200 dark:border-success-800">
+            <Card variant="default" padding="md" className="bg-success-50 dark:bg-success-950/20 border-success-200 dark:border-success-800">
               <Text variant="success" weight="medium">✅ Database connection established</Text>
               <Text variant="subtle" size="sm" className="mt-1">All 247 tables are now accessible for exploration</Text>
-            </div>
+            </Card>
             
-            <div className="p-4 bg-warning-50 dark:bg-warning-950/20 rounded-lg border border-warning-200 dark:border-warning-800">
+            <Card variant="default" padding="md" className="bg-warning-50 dark:bg-warning-950/20 border-warning-200 dark:border-warning-800">
               <Text variant="warning" weight="medium">⚠️ Large dataset detected</Text>
               <Text variant="subtle" size="sm" className="mt-1">Processing 2.3M records - this may take a few moments</Text>
-            </div>
+            </Card>
             
-            <div className="p-4 bg-error-50 dark:bg-error-950/20 rounded-lg border border-error-200 dark:border-error-800">
+            <Card variant="default" padding="md" className="bg-error-50 dark:bg-error-950/20 border-error-200 dark:border-error-800">
               <Text variant="error" weight="medium">❌ Query execution failed</Text>
               <Text variant="subtle" size="sm" className="mt-1">Syntax error on line 23. <Text variant="link" as="span">View details →</Text></Text>
-            </div>
+            </Card>
 
-            <div className="p-4 bg-info-50 dark:bg-info-950/20 rounded-lg border border-info-200 dark:border-info-800">
+            <Card variant="default" padding="md" className="bg-info-50 dark:bg-info-950/20 border-info-200 dark:border-info-800">
               <Text variant="info" weight="medium">ℹ️ Query optimization suggestion</Text>
               <Text variant="subtle" size="sm" className="mt-1">Adding an index on 'created_at' could improve performance by 40%</Text>
-            </div>
+            </Card>
           </div>
 
           {/* Interactive Data Exploration */}
-          <div className="mt-6 bg-white dark:bg-card rounded-lg p-6 shadow-sm border border-secondary-200 dark:border-border">
+          <Card variant="glass" padding="lg" className="mt-6">
             <Heading level={3} variant="brown" spacing="sm">🔍 Interactive Data Explorer</Heading>
             <Text variant="muted" className="mb-4">Hover over elements to see interactive states</Text>
             
@@ -387,7 +515,7 @@ export default function DesignPage() {
                 <Text variant="light" size="sm">Discoveries</Text>
               </div>
             </div>
-          </div>
+          </Card>
         </section>
 
         {/* Footer */}

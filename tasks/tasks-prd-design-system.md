@@ -1,6 +1,6 @@
 ## Relevant Files
 
-- `frontend/app/globals.css` - Global CSS with Tailwind v4 @theme configuration and brand colors
+- `frontend/app/globals.css` - Global CSS with Tailwind v4 @theme configuration and brand colors (includes working dark mode)
 - `frontend/postcss.config.mjs` - PostCSS configuration with Tailwind v4 plugin
 - `frontend/package.json` - Project dependencies including Tailwind v4, typography plugin, clsx, and tailwind-merge
 - `frontend/app/components/` - Current component library (SidebarLayout, Sidebar, TroveGradientTitle)
@@ -15,9 +15,10 @@
 - `frontend/app/components/ui/typography/Text.tsx` - Base Text component with size variants, color variants, and Trove brand styling
 - `frontend/app/components/ui/typography/Heading.tsx` - Heading component (h1-h6) with responsive typography and Trove styling
 - `frontend/app/components/ui/typography/index.ts` - Typography components export file
-- `frontend/app/design/page.tsx` - Design system showcase page with Text and Heading component examples
+- `frontend/app/design/page.tsx` - Design system showcase page with Text and Heading component examples (includes working dark mode toggle)
 - `frontend/app/layout.tsx` - Root layout component
-- `frontend/app/page.tsx` - Homepage component
+- `frontend/app/page.tsx` - Homepage component (ANALYZED: uses list items with inline text styling)
+- `frontend/app/components/TroveGradientTitle.tsx` - Special gradient title component (ANALYZED: uses h1 with gradient effect)
 - `frontend/app/sql-builder/` - SQL builder section
 - `frontend/app/db-explorer/` - Database explorer section
 - `frontend/README.md` - Project overview with design system quick start
@@ -67,9 +68,9 @@
   - [x] 3.1 Create base Text component with size variants using Tailwind
   - [x] 3.2 Implement Heading component (h1-h6) using Tailwind classes
   - [x] 3.3 Build Code block component with proper font settings (SKIPPED - not needed for current product vision)
-  - [x] 3.4 Add theme-aware color variants via Tailwind classes
-  - [ ] 3.5 Identify typography usage in homepage
-  - [ ] 3.6 Migrate homepage typography to new components
+  - [x] 3.4 Add theme-aware color variants via Tailwind classes (COMPLETED: includes working dark mode)
+  - [x] 3.5 Identify typography usage in homepage (COMPLETED: findings documented below)
+  - [x] 3.6 Migrate homepage typography to new components
   - [ ] 3.7 Migrate SQL builder typography components
   - [ ] 3.8 Migrate DB explorer typography components
   - [ ] 3.9 Document typography usage patterns
@@ -145,4 +146,143 @@
   - [ ] 9.5 Document dark mode usage with @media queries
   - [ ] 9.6 Add contribution guidelines
 
-Ready to start with the next incomplete task: **3.5 Identify typography usage in homepage**. This will begin building our actual component library with typography components. 
+Ready to start with the next incomplete task: **3.7 Create component development guidelines**. This will begin building our actual component library with typography components. 
+
+## 📋 Task 3.5 Findings: Homepage Typography Analysis
+
+### Current Typography Usage in Homepage (`frontend/app/page.tsx`):
+
+1. **TroveGradientTitle Component** (`frontend/app/components/TroveGradientTitle.tsx`):
+   - **Element**: `<h1>` with gradient text effect
+   - **Current styling**: `text-7xl sm:text-9xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-fuchsia-500 to-amber-400 dark:from-cyan-400 dark:via-pink-500 dark:to-yellow-300`
+   - **Special features**: Gradient animation, hover scale effect, responsive sizing
+   - **Migration notes**: This is a specialized component that may need to remain separate or be enhanced with our Heading component as a base
+
+2. **Feature List Items**:
+   - **Element**: `<li>` elements in a `<ul>`
+   - **Current styling**: `text-lg text-slate-700 dark:text-zinc-200`
+   - **Content**: Feature descriptions with emoji icons
+   - **Migration target**: Can be migrated to Text component with size="lg" and appropriate color variant
+
+3. **Commented Out Heading**:
+   - **Element**: Commented `<h2>` with "What can Trove do for you?"
+   - **Current styling**: `text-2xl sm:text-3xl font-bold mb-4 text-slate-800 dark:text-zinc-100 text-center`
+   - **Migration target**: Perfect candidate for Heading component level={2}
+
+### Migration Strategy for Task 3.6:
+1. **Keep TroveGradientTitle** as-is (specialized component)
+2. **Migrate list items** to Text component with appropriate variants
+3. **Consider uncommenting and migrating the h2** using Heading component
+4. **Update color schemes** to use our theme colors (gold/brown) instead of slate/zinc 
+
+## Progress Status: 
+**Current Task: [x] 3.6 - Migrate homepage typography to new components**  
+**Next Task: [ ] 3.7 - Create component development guidelines**
+
+## 3. Component Library Development
+
+### 3.1 Create Text Component with Theme Integration
+- [x] Base Text component with size variants (xs, sm, base, lg, xl, 2xl)  
+- [x] Color variants using CSS custom properties  
+- [x] as prop for semantic flexibility (span, p, div, etc.)  
+
+### 3.2 Create Heading Component with Theme Integration  
+- [x] Heading levels (h1-h6) with proper semantic markup  
+- [x] Size variants independent of semantic level  
+- [x] Color variants using CSS custom properties  
+- [x] Spacing options (tight, normal, relaxed)  
+- [x] Alignment options (left, center, right)  
+
+### 3.3 Add Theme-Aware Color Variants  
+- [x] Primary text using brand gold/brown  
+- [x] Secondary/muted variants  
+- [x] Success, warning, error semantic colors  
+- [x] Ensure proper contrast in both light/dark modes  
+
+### 3.4 Add Comprehensive Theme-Aware Color Variants  
+- [x] Comprehensive color variant system with primary, secondary, muted, accent, success, warning, error, info variants  
+- [x] All variants working in both light and dark modes  
+- [x] Real-world examples section showing practical usage in data exploration contexts  
+
+### 3.5 Identify Typography Usage in Homepage
+- [x] Analyze homepage for current typography patterns
+- [x] Document findings for migration planning
+
+### 3.6 Migrate Homepage Typography to New Components
+- [x] Replace list items with Text components (size="lg")
+- [x] Uncomment and migrate h2 to Heading component
+- [x] Update color scheme to use brand colors (gold/brown)
+- [x] Keep TroveGradientTitle as specialized component
+- [x] Create foundational Card component with variants
+- [x] Fix Card component light mode styling for proper contrast
+- [x] Migrate design page examples to use Card component consistently
+
+### 3.7 Create Component Development Guidelines
+- [ ] Document Tailwind v4 usage patterns
+- [ ] Component composition best practices
+- [ ] Theme integration guidelines
+- [ ] Documentation standards for component library
+
+### 3.8 Create Layout Components
+- [x] **Card component for content grouping** (completed ahead of schedule)
+  - [x] Multiple variants (default, outlined, elevated, glass)
+  - [x] Size options (sm, md, lg, xl)
+  - [x] Padding variants (none, sm, md, lg, xl)
+  - [x] Clickable behavior with hover effects
+- [ ] Container with responsive max-widths
+- [ ] Stack for vertical spacing
+- [ ] Grid systems for data display
+- [ ] Responsive utilities
+
+### 3.9 Create Data Display Components  
+- [ ] ~~Card component for data nuggets~~ (completed in 3.8)
+- [ ] Table component for structured data
+- [ ] Badge/Tag components for metadata
+- [ ] Progress indicators
+
+### 3.10 Create Interactive Components
+- [ ] Button variants (primary, secondary, ghost, etc.)
+- [ ] Form input components
+- [ ] Loading states and skeletons
+- [ ] Modal/Dialog components
+
+## Typography Analysis Findings
+
+### Current Homepage Typography Usage:
+
+1. **TroveGradientTitle Component**:
+   - Element: `<h1>` with gradient text effect
+   - Current styling: `text-7xl sm:text-9xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-fuchsia-500 to-amber-400 dark:from-cyan-400 dark:via-pink-500 dark:to-yellow-300`
+   - Special features: Gradient animation, hover scale effect, responsive sizing
+   - Migration notes: This component may need to remain separate or be enhanced with Heading component as base
+
+2. **Feature List Items**:
+   - Element: `<li>` elements in `<ul>`
+   - Current styling: `text-lg text-slate-700 dark:text-zinc-200`
+   - Content: Feature descriptions with emoji icons
+   - Migration target: Can be migrated to Text component with size="lg" and appropriate color variant
+
+3. **Commented Out Heading**:
+   - Element: Commented `<h2>` with "What can Trove do for you?"
+   - Current styling: `text-2xl sm:text-3xl font-bold mb-4 text-slate-800 dark:text-zinc-100 text-center`
+   - Migration target: Suitable for migration to Heading component level={2}
+
+### Migration Strategy for Task 3.6:
+1. Keep TroveGradientTitle as-is
+2. Migrate list items to Text component with appropriate variants  
+3. Uncomment and migrate h2 using Heading component
+4. Update color schemes to use brand colors (gold/brown) instead of slate/zinc
+
+## Relevant Files
+
+- `frontend/app/globals.css` - Global CSS with Tailwind v4 @theme configuration and brand colors (FIXED: proper hex color values)
+- `frontend/app/page.tsx` - Homepage component, now using Card and Text/Heading components (MIGRATED)
+- `frontend/app/components/TroveGradientTitle.tsx` - Special gradient title component (h1 with gradient effect)
+- `frontend/app/components/ui/Text.tsx` - Reusable Text component with theme-aware variants
+- `frontend/app/components/ui/Heading.tsx` - Reusable Heading component with semantic levels  
+- `frontend/app/components/ui/Card.tsx` - **NEW: Foundational Card component with multiple variants and behaviors**
+- `frontend/app/components/ui/index.ts` - Component library exports (updated with Card)
+- `frontend/app/design/page.tsx` - Design system showcase page with examples and dark mode toggle (includes Card examples)
+- `frontend/app/layout.tsx` - Root layout with theme provider and font configuration
+- `frontend/app/components/ThemeToggle.tsx` - Dark mode toggle component using class-based approach
+- `tasks/tasks-prd-design-system.md` - This task tracking file 

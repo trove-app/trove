@@ -82,21 +82,21 @@
 
   /* === BASE COLORS (Trove Theme) === */
   /* Light mode - Cream background with charcoal text */
-  --color-background: 45 100% 96.5%; /* #FFF7EC cream */
-  --color-foreground: 0 0% 16.5%; /* #2A2A2A charcoal */
-  --color-card: 45 100% 98%;
-  --color-card-foreground: 0 0% 16.5%;
-  --color-popover: 45 100% 96.5%;
-  --color-popover-foreground: 0 0% 16.5%;
-  --color-muted: 40 60% 92%;
-  --color-muted-foreground: 0 0% 45%;
-  --color-accent: 40 100% 48%; /* Treasure Gold */
-  --color-accent-foreground: 0 0% 16.5%;
-  --color-destructive: 0 84.2% 60.2%;
-  --color-destructive-foreground: 0 0% 98%;
-  --color-border: 40 30% 85%;
-  --color-input: 40 30% 88%;
-  --color-ring: 40 100% 48%; /* Treasure Gold focus ring */
+  --color-background: #FFF7EC; /* Cream from style guide */
+  --color-foreground: #2A2A2A; /* Charcoal from style guide */
+  --color-card: #FFFFFF;
+  --color-card-foreground: #2A2A2A;
+  --color-popover: #FFF7EC;
+  --color-popover-foreground: #2A2A2A;
+  --color-muted: #f8f4ea;
+  --color-muted-foreground: #6b6b6b;
+  --color-accent: #F4B100; /* Treasure Gold */
+  --color-accent-foreground: #2A2A2A;
+  --color-destructive: #ef4444;
+  --color-destructive-foreground: #ffffff;
+  --color-border: #e5dcc9;
+  --color-input: #f0ead6;
+  --color-ring: #F4B100; /* Treasure Gold focus ring */
 
   /* === CUSTOM SPACING (Trove Scale) === */
   --spacing: 0.25rem; /* Base spacing unit */
@@ -149,19 +149,19 @@
 /* === DARK MODE THEME (Override CSS variables) === */
 .dark {
   /* Dark mode - Deep navy background with cream text */
-  --color-background: 0 0% 10.2%; /* #1A1A1A deep navy/black */
-  --color-foreground: 45 100% 96.5%; /* #FFF7EC cream */
-  --color-card: 0 0% 12%;
-  --color-card-foreground: 45 100% 96.5%;
-  --color-popover: 0 0% 10.2%;
-  --color-popover-foreground: 45 100% 96.5%;
-  --color-muted: 0 0% 18%;
-  --color-muted-foreground: 0 0% 65%;
-  --color-accent: 40 100% 48%; /* Keep treasure gold */
-  --color-accent-foreground: 0 0% 10.2%;
-  --color-border: 0 0% 20%;
-  --color-input: 0 0% 18%;
-  --color-ring: 40 100% 48%; /* Treasure Gold focus ring */
+  --color-background: #1A1A1A; /* Deep navy/black from style guide */
+  --color-foreground: #FFF7EC; /* Cream from style guide */
+  --color-card: #2A2A2A;
+  --color-card-foreground: #FFF7EC;
+  --color-popover: #1A1A1A;
+  --color-popover-foreground: #FFF7EC;
+  --color-muted: #3A3A3A;
+  --color-muted-foreground: #a0a0a0;
+  --color-accent: #F4B100; /* Keep treasure gold */
+  --color-accent-foreground: #1A1A1A;
+  --color-border: #4A4A4A;
+  --color-input: #3A3A3A;
+  --color-ring: #F4B100; /* Treasure Gold focus ring */
   
   /* Adjust shadows for dark mode */
   --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.3);
@@ -171,20 +171,20 @@
 }
 
 body {
-  color: hsl(var(--color-foreground));
-  background: hsl(var(--color-background));
+  color: var(--color-foreground);
+  background: var(--color-background);
   font-family: var(--font-sans);
   line-height: 1.6;
 }
 
 @layer base {
   * {
-    border-color: hsl(var(--color-border));
+    border-color: var(--color-border);
   }
   
   body {
-    background-color: hsl(var(--color-background));
-    color: hsl(var(--color-foreground));
+    background-color: var(--color-background);
+    color: var(--color-foreground);
     font-feature-settings: "rlig" 1, "calt" 1;
   }
   
@@ -195,7 +195,7 @@ body {
   
   /* Focus styles using treasure gold */
   :focus-visible {
-    outline: 2px solid hsl(var(--color-ring));
+    outline: 2px solid var(--color-ring);
     outline-offset: 2px;
   }
 }
