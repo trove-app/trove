@@ -1,7 +1,9 @@
 ## Relevant Files
 
-- `frontend/app/globals.css` - Global CSS and Tailwind customizations
+- `frontend/app/globals.css` - Global CSS and theme variables
 - `frontend/tailwind.config.js` - Tailwind configuration and theme customization
+- `frontend/postcss.config.mjs` - PostCSS configuration for Tailwind processing
+- `frontend/package.json` - Project dependencies including Tailwind and plugins
 - `frontend/app/components/` - Component library
 
 ### Notes
@@ -20,12 +22,13 @@
 - Keep existing components functional until their replacements are fully validated
 - Document Tailwind patterns and compositions for each component type
 - Maintain dark mode support through Tailwind's dark: variant
+- FULLY follow the [style guide](../assets/style-guide.md) for all the feel, vibe, colors etc. etc.
 
 ## Tasks
 
 - [ ] 1.0 Setup Tailwind Theme Foundation
-  - [ ] 1.1 Create tailwind.config.js with extended theme configuration
-  - [ ] 1.2 Define color palette and variants using Tailwind's extend feature
+  - [x] 1.1 Create tailwind.config.js with extended theme configuration
+  - [x] 1.2 Define color palette and variants using Tailwind's extend feature
   - [ ] 1.3 Configure typography settings via Tailwind Typography plugin
   - [ ] 1.4 Setup spacing and sizing scales in Tailwind config
   - [ ] 1.5 Define border radius and shadow presets
