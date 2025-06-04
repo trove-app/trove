@@ -2,41 +2,40 @@
 
 import React, { useState, useEffect } from 'react';
 import { Text, Heading, Card } from '../components/ui';
+import ThemeToggle from '../components/ThemeToggle';
 
 export default function DesignPage() {
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  // Initialize theme based on system preference and apply to document
+  // Initialize theme based on system preference - just for status display
   useEffect(() => {
-    // Check if user has a saved preference, otherwise use system preference
     const savedTheme = localStorage.getItem('theme');
     const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     
     const initialDarkMode = savedTheme === 'dark' || (!savedTheme && systemPrefersDark);
     setIsDarkMode(initialDarkMode);
-    
-    // Apply theme immediately
-    if (initialDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
   }, []);
 
-  // Apply theme changes
+  // Listen for theme changes to update status display
   useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  }, [isDarkMode]);
+    const handleThemeChange = () => {
+      const currentTheme = localStorage.getItem('theme');
+      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const currentDarkMode = currentTheme === 'dark' || (!currentTheme && systemPrefersDark);
+      setIsDarkMode(currentDarkMode);
+    };
 
-  const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode);
-  };
+    // Listen for storage changes (when theme is changed in other components)
+    window.addEventListener('storage', handleThemeChange);
+    
+    // Check periodically for theme changes (since localStorage doesn't trigger storage event on same page)
+    const interval = setInterval(handleThemeChange, 100);
+
+    return () => {
+      window.removeEventListener('storage', handleThemeChange);
+      clearInterval(interval);
+    };
+  }, []);
 
   return (
     <div className="p-8 bg-background min-h-screen transition-colors duration-300">
@@ -50,15 +49,7 @@ export default function DesignPage() {
               {isDarkMode ? 'Dark Mode Active' : 'Light Mode Active'}
             </Text>
           </div>
-          <button
-            onClick={toggleTheme}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-border bg-card hover:bg-accent/10 transition-all duration-200 shadow-sm hover:shadow-md"
-          >
-            <span className="text-lg">{isDarkMode ? '🌙' : '☀️'}</span>
-            <Text size="sm" weight="medium">
-              Switch to {isDarkMode ? 'Light' : 'Dark'}
-            </Text>
-          </button>
+          <ThemeToggle />
         </div>
 
         {/* Quick Dark Mode Test Section */}

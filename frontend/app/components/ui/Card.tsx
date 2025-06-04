@@ -17,10 +17,10 @@ export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const cardVariants = {
-  default: "bg-white dark:bg-zinc-800 border border-amber-200 dark:border-zinc-700 shadow-sm",
-  outlined: "bg-amber-50 dark:bg-transparent border-2 border-amber-300 dark:border-amber-600",
-  elevated: "bg-white dark:bg-zinc-800 border border-amber-200 dark:border-zinc-700 shadow-lg hover:shadow-xl transition-shadow",
-  glass: "bg-white/95 dark:bg-zinc-800/95 backdrop-blur-sm border border-amber-200 dark:border-zinc-700 shadow-lg"
+  default: "bg-card border border-border shadow-sm",
+  outlined: "bg-muted border-2 border-accent",
+  elevated: "bg-card border border-border shadow-lg hover:shadow-xl transition-shadow",
+  glass: "bg-card/95 backdrop-blur-sm border border-border shadow-lg"
 };
 
 const cardSizes = {
