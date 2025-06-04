@@ -6,7 +6,8 @@ export { Text } from './Text';
 export type { TextProps } from './Text';
 
 // Heading components (h1-h6)
-// export { Heading } from './Heading';
+export { Heading } from './Heading';
+export type { HeadingProps } from './Heading';
 
 // Code block component
 // export { CodeBlock } from './CodeBlock';

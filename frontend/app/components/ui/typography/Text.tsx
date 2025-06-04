@@ -27,16 +27,42 @@ const sizeVariants = {
   xl: 'text-xl leading-8',      // 20px
 };
 
-// Color variant styles based on Trove brand colors
+// Color variant styles based on Trove brand colors and data contexts
 const colorVariants = {
-  default: 'text-foreground',              // Uses theme foreground color
-  primary: 'text-foreground',              // Uses theme foreground color  
-  secondary: 'text-secondary-600',         // Chest Brown from theme
-  success: 'text-success-600',            // Success color from theme
-  warning: 'text-warning-500',            // Treasure Gold from theme
-  error: 'text-error-600',                // Error color from theme
-  info: 'text-info-600',                  // Info color from theme
-  muted: 'text-muted-foreground',         // Muted color from theme
+  // Default text colors
+  default: 'text-foreground',                    // Primary text color
+  primary: 'text-foreground',                    // Same as default
+  
+  // Brand colors from Trove style guide
+  gold: 'text-primary-500',                      // Treasure Gold - for highlights
+  brown: 'text-secondary-600',                   // Chest Brown - warm secondary
+  
+  // Status colors for data states
+  success: 'text-success-600 dark:text-success-400',    // Data loaded successfully
+  warning: 'text-warning-500 dark:text-warning-400',    // Data warnings/alerts  
+  error: 'text-error-600 dark:text-error-400',          // Data errors
+  info: 'text-info-600 dark:text-info-400',             // Data information
+  
+  // Semantic text colors for data exploration
+  muted: 'text-muted-foreground',                       // Secondary/helper text
+  subtle: 'text-muted-foreground/80',                   // Even more subtle
+  accent: 'text-accent-foreground',                     // Accent text
+  
+  // Legacy/backward compatibility
+  secondary: 'text-secondary-600 dark:text-secondary-400',  // Chest Brown from theme
+  
+  // Data-specific semantic colors
+  metric: 'text-primary-600 dark:text-primary-400',     // Key metrics/KPIs
+  insight: 'text-secondary-600 dark:text-secondary-400', // Data insights
+  nugget: 'text-primary-500 font-medium',               // Data nuggets (special!)
+  
+  // Interactive states
+  interactive: 'text-foreground hover:text-primary-600 transition-colors',
+  link: 'text-primary-600 hover:text-primary-700 underline-offset-2 hover:underline',
+  
+  // Light variants for subtlety
+  light: 'text-foreground/70',
+  lighter: 'text-foreground/50',
 };
 
 // Font weight styles

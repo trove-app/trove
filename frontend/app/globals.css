@@ -141,33 +141,35 @@
   --duration-slow: 350ms;
 }
 
-/* === DARK MODE THEME === */
-@media (prefers-color-scheme: dark) {
-  @theme {
-    /* Dark mode - Deep navy background with cream text */
-    --color-background: 0 0% 10.2%; /* #1A1A1A deep navy/black */
-    --color-foreground: 45 100% 96.5%; /* #FFF7EC cream */
-    --color-card: 0 0% 12%;
-    --color-card-foreground: 45 100% 96.5%;
-    --color-popover: 0 0% 10.2%;
-    --color-popover-foreground: 45 100% 96.5%;
-    --color-muted: 0 0% 18%;
-    --color-muted-foreground: 0 0% 65%;
-    --color-accent: 40 100% 48%; /* Keep treasure gold */
-    --color-accent-foreground: 0 0% 10.2%;
-    --color-border: 0 0% 20%;
-    --color-input: 0 0% 18%;
-    --color-ring: 40 100% 48%; /* Treasure Gold focus ring */
-    
-    /* Adjust shadows for dark mode */
-    --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.3);
-    --shadow-glow: 0 0 12px rgba(244, 177, 0, 0.4);
-    --shadow-treasure: 0 4px 16px rgba(244, 177, 0, 0.25);
-    --shadow-depth: 0 8px 32px rgba(0, 0, 0, 0.4);
-  }
+/* === BASE STYLES === */
+:root {
+  /* Light mode defaults (already defined in @theme above) */
 }
 
-/* === BASE STYLES === */
+/* === DARK MODE THEME (Override CSS variables) === */
+.dark {
+  /* Dark mode - Deep navy background with cream text */
+  --color-background: 0 0% 10.2%; /* #1A1A1A deep navy/black */
+  --color-foreground: 45 100% 96.5%; /* #FFF7EC cream */
+  --color-card: 0 0% 12%;
+  --color-card-foreground: 45 100% 96.5%;
+  --color-popover: 0 0% 10.2%;
+  --color-popover-foreground: 45 100% 96.5%;
+  --color-muted: 0 0% 18%;
+  --color-muted-foreground: 0 0% 65%;
+  --color-accent: 40 100% 48%; /* Keep treasure gold */
+  --color-accent-foreground: 0 0% 10.2%;
+  --color-border: 0 0% 20%;
+  --color-input: 0 0% 18%;
+  --color-ring: 40 100% 48%; /* Treasure Gold focus ring */
+  
+  /* Adjust shadows for dark mode */
+  --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-glow: 0 0 12px rgba(244, 177, 0, 0.4);
+  --shadow-treasure: 0 4px 16px rgba(244, 177, 0, 0.25);
+  --shadow-depth: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
 body {
   color: hsl(var(--color-foreground));
   background: hsl(var(--color-background));

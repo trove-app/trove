@@ -15,7 +15,7 @@ export interface BaseComponentProps {
 // Size variants used across components
 export type SizeVariant = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
-// Color variants based on our theme
+// Color variants based on our theme and data exploration contexts
 export type ColorVariant = 
   | 'primary' 
   | 'secondary' 
@@ -23,7 +23,23 @@ export type ColorVariant =
   | 'warning' 
   | 'error' 
   | 'info'
-  | 'muted';
+  | 'muted'
+  // Brand colors
+  | 'gold'
+  | 'brown'
+  // Semantic variants
+  | 'subtle'
+  | 'accent'
+  // Data-specific variants
+  | 'metric'
+  | 'insight'
+  | 'nugget'
+  // Interactive variants
+  | 'interactive'
+  | 'link'
+  // Light variants
+  | 'light'
+  | 'lighter';
 
 // Button variants
 export type ButtonVariant = 
