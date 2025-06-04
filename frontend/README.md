@@ -1,3 +1,5 @@
+# Trove Frontend
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
@@ -18,7 +20,40 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load fonts.
+
+## 🎨 Design System
+
+Trove uses **Tailwind CSS v4** with a custom theme that reflects our brand identity - warm, clear, and delightful. Our design system emphasizes:
+
+- **Treasure Gold** (`#F4B100`) and **Chest Brown** (`#A25D2D`) accents
+- **Cream backgrounds** (`#FFF7EC`) with **charcoal text** (`#2A2A2A`)
+- Rounded corners, soft shadows, and smooth animations
+- Automatic dark mode support
+
+### 📖 Documentation
+
+- **[Theme Customization Guide](../docs/theme-customization.md)** - Complete guide to customizing colors, typography, spacing, and more
+- **[Style Guide](../assets/style-guide.md)** - Brand identity and visual guidelines
+
+### 🚀 Quick Start with Components
+
+```tsx
+// Use theme-aware colors
+<div className="bg-background text-foreground">
+  Content that adapts to light/dark mode
+</div>
+
+// Primary actions with treasure gold
+<button className="bg-primary-500 text-primary-950 hover:bg-primary-600 rounded-lg px-4 py-2">
+  Find Gold
+</button>
+
+// Cards with soft shadows
+<div className="bg-card border border-border rounded-lg p-6 shadow-soft">
+  Card content
+</div>
+```
 
 ## Learn More
 

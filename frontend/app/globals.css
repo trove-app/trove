@@ -1,26 +1,201 @@
 @import "tailwindcss";
 
+@theme {
+  /* === TROVE BRAND COLORS === */
+  /* Core brand colors from style guide */
+  --color-brand-gold: #F4B100;
+  --color-brand-brown: #A25D2D;
+  --color-brand-dark: #1A1A1A;
+  --color-brand-cream: #FFF7EC;
+  --color-brand-charcoal: #2A2A2A;
+  
+  /* === PRIMARY COLORS (Treasure Gold Scale) === */
+  --color-primary-50: #fefbf0;
+  --color-primary-100: #fef7e0;
+  --color-primary-200: #fdecc4;
+  --color-primary-300: #fbd788;
+  --color-primary-400: #f9c74f;
+  --color-primary-500: #F4B100;
+  --color-primary-600: #d89e00;
+  --color-primary-700: #b8850a;
+  --color-primary-800: #956910;
+  --color-primary-900: #7a5611;
+  --color-primary-950: #472e05;
+  
+  /* === SECONDARY COLORS (Chest Brown Scale) === */
+  --color-secondary-50: #fdf8f6;
+  --color-secondary-100: #f2e8e5;
+  --color-secondary-200: #eaddd7;
+  --color-secondary-300: #e0cec7;
+  --color-secondary-400: #d2bab0;
+  --color-secondary-500: #A25D2D;
+  --color-secondary-600: #b8704a;
+  --color-secondary-700: #9c5a3c;
+  --color-secondary-800: #824b32;
+  --color-secondary-900: #6b3f2b;
+  --color-secondary-950: #3a1f16;
+
+  /* === STATUS COLORS === */
+  --color-success-50: #f3fae7;
+  --color-success-100: #e7f5cf;
+  --color-success-200: #d1ea9f;
+  --color-success-300: #b8e063;
+  --color-success-400: #9dd13c;
+  --color-success-500: #84bd26;
+  --color-success-600: #659a1a;
+  --color-success-700: #4d7617;
+  --color-success-800: #3f5e18;
+  --color-success-900: #345009;
+
+  --color-warning-50: #fff8e6;
+  --color-warning-100: #ffefcc;
+  --color-warning-200: #ffdd99;
+  --color-warning-300: #ffd666;
+  --color-warning-400: #ffcc33;
+  --color-warning-500: #F4B100;
+  --color-warning-600: #cc9500;
+  --color-warning-700: #a67700;
+  --color-warning-800: #805c00;
+  --color-warning-900: #593f00;
+
+  --color-error-50: #fef2f2;
+  --color-error-100: #fee2e2;
+  --color-error-200: #fecaca;
+  --color-error-300: #fca5a5;
+  --color-error-400: #f87171;
+  --color-error-500: #ef4444;
+  --color-error-600: #dc2626;
+  --color-error-700: #b91c1c;
+  --color-error-800: #991b1b;
+  --color-error-900: #7f1d1d;
+
+  --color-info-50: #f5f8fa;
+  --color-info-100: #e9eef2;
+  --color-info-200: #d6e2ea;
+  --color-info-300: #a3c0d4;
+  --color-info-400: #7ba3c4;
+  --color-info-500: #5a8cae;
+  --color-info-600: #4a7694;
+  --color-info-700: #3d6179;
+  --color-info-800: #2c5979;
+  --color-info-900: #1a3547;
+
+  /* === BASE COLORS (Trove Theme) === */
+  /* Light mode - Cream background with charcoal text */
+  --color-background: #FFF7EC; /* Cream from style guide */
+  --color-foreground: #2A2A2A; /* Charcoal from style guide */
+  --color-card: #FFFFFF;
+  --color-card-foreground: #2A2A2A;
+  --color-popover: #FFF7EC;
+  --color-popover-foreground: #2A2A2A;
+  --color-muted: #f8f4ea;
+  --color-muted-foreground: #6b6b6b;
+  --color-accent: #F4B100; /* Treasure Gold */
+  --color-accent-foreground: #2A2A2A;
+  --color-destructive: #ef4444;
+  --color-destructive-foreground: #ffffff;
+  --color-border: #e5dcc9;
+  --color-input: #f0ead6;
+  --color-ring: #F4B100; /* Treasure Gold focus ring */
+
+  /* === CUSTOM SPACING (Trove Scale) === */
+  --spacing: 0.25rem; /* Base spacing unit */
+  --spacing-18: 4.5rem;
+  --spacing-112: 28rem;
+  --spacing-128: 32rem;
+  --spacing-144: 36rem;
+
+  /* === CUSTOM BORDER RADIUS (Rounded, friendly) === */
+  --radius: 0.75rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
+
+  /* === CUSTOM BOX SHADOWS (Soft, warm) === */
+  --shadow-soft: 0 2px 8px rgba(26, 26, 26, 0.08);
+  --shadow-glow: 0 0 12px rgba(244, 177, 0, 0.25);
+  --shadow-treasure: 0 4px 16px rgba(244, 177, 0, 0.15);
+  --shadow-depth: 0 8px 32px rgba(26, 26, 26, 0.12);
+
+  /* === FONT FAMILIES === */
+  --font-sans: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+  
+  /* === TYPOGRAPHY SCALE === */
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+  --font-size-4xl: 2.25rem;
+  --font-size-5xl: 3rem;
+  --font-size-6xl: 3.75rem;
+
+  /* === ANIMATION DURATIONS === */
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 350ms;
+}
+
+/* === BASE STYLES === */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Light mode defaults (already defined in @theme above) */
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* === DARK MODE THEME (Override CSS variables) === */
+.dark {
+  /* Dark mode - Deep navy background with cream text */
+  --color-background: #1A1A1A; /* Deep navy/black from style guide */
+  --color-foreground: #FFF7EC; /* Cream from style guide */
+  --color-card: #2A2A2A;
+  --color-card-foreground: #FFF7EC;
+  --color-popover: #1A1A1A;
+  --color-popover-foreground: #FFF7EC;
+  --color-muted: #3A3A3A;
+  --color-muted-foreground: #a0a0a0;
+  --color-accent: #F4B100; /* Keep treasure gold */
+  --color-accent-foreground: #1A1A1A;
+  --color-border: #4A4A4A;
+  --color-input: #3A3A3A;
+  --color-ring: #F4B100; /* Treasure Gold focus ring */
+  
+  /* Adjust shadows for dark mode */
+  --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-glow: 0 0 12px rgba(244, 177, 0, 0.4);
+  --shadow-treasure: 0 4px 16px rgba(244, 177, 0, 0.25);
+  --shadow-depth: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--color-foreground);
+  background: var(--color-background);
+  font-family: var(--font-sans);
+  line-height: 1.6;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  /* Focus styles using treasure gold */
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
 }

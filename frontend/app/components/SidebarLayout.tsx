@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import Sidebar from "./Sidebar";
+import { Text } from "./ui";
 
 export default function SidebarLayout({
   children,
@@ -24,15 +25,15 @@ export default function SidebarLayout({
       </div>
       {/* Toggle button */}
       <button
-        className="fixed top-4 left-4 z-40 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-full p-2 shadow-md hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors"
+        className="fixed top-4 left-4 z-40 bg-background dark:bg-card border border-border rounded-full p-2 shadow-md hover:bg-accent/10 dark:hover:bg-accent/5 transition-colors"
         onClick={() => setSidebarOpen((v) => !v)}
         aria-label={sidebarOpen ? "Hide sidebar" : "Show sidebar"}
         style={{ marginTop: 0 }}
       >
         {sidebarOpen ? (
-          <span className="text-xl">×</span>
+          <Text size="xl" as="span">×</Text>
         ) : (
-          <span className="text-xl">☰</span>
+          <Text size="xl" as="span">☰</Text>
         )}
       </button>
       {/* Main content */}
