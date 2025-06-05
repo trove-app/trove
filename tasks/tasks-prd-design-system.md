@@ -85,7 +85,7 @@
     - [x] 3.8.4 Migrate SqlEditor component typography
     - [x] 3.8.5 Migrate SqlResultTable component typography
   - [x] 3.9 Migrate DB explorer typography components
-  - [ ] 3.10 Document typography usage patterns
+  - [x] 3.10 Document typography usage patterns
   - [ ] 3.11 Remove old typography styles after validation
 
 - [ ] 4.0 Input Components Implementation
