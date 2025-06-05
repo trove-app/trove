@@ -13,6 +13,7 @@ export * from './interactive';
 
 // Layout Components
 export { Card } from './Card';
+export * from './layout';
 
 // Data Display Components
 export * from './data-display';

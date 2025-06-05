@@ -1,9 +1,9 @@
 import TroveGradientTitle from "./components/TroveGradientTitle";
-import { Text, Heading, Card } from "./components/ui";
+import { Text, Heading, Card, PageContainer } from "./components/ui";
 
 export default function Home() {
   return (
-    <main className="flex flex-col min-h-screen items-center justify-center bg-background px-4">
+    <PageContainer centered>
       <TroveGradientTitle>trove</TroveGradientTitle>
       <Card variant="glass" size="xl" padding="lg" className="w-full mt-2 flex flex-col items-center">
         <Heading level={2} align="center" spacing="lg" className="text-2xl sm:text-3xl">
@@ -19,6 +19,6 @@ export default function Home() {
           <li><Text size="lg" as="span">🎯 Built for PMs, EMs, marketing, partner success, and more</Text></li>
         </ul>
       </Card>
-    </main>
+    </PageContainer>
   );
 }

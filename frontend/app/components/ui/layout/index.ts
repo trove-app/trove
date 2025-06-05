@@ -11,4 +11,4 @@
 // export { Card, CardHeader, CardContent, CardFooter } from './Card';
 
 // Placeholder - components will be implemented in subsequent tasks
-export {}; 
+export { PageContainer } from './PageContainer'; 
