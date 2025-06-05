@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { useSchema } from "../context/SchemaContext";
 import type { ColumnMetadata } from "../context/SchemaContext";
+import { Text, Heading, PageContainer } from "../components/ui";
 
 interface Table {
   table_name: string;
@@ -53,10 +54,10 @@ function TableSidebar({ tables, selected, onSelect, filter, setFilter, columnMat
             >
               <span className="flex items-center w-full">
                 <span className="mr-2">🗄️</span>
-                <span className="truncate max-w-[10rem] inline-block align-bottom" >{table.table_name}</span>
+                <Text as="span" variant="primary" className="truncate max-w-[10rem] inline-block align-bottom">{table.table_name}</Text>
               </span>
               {filter && columnMatches[table.table_name]?.length > 0 && (
-                <span className="ml-6 mt-0.5 text-xs text-fuchsia-600 dark:text-fuchsia-400">({columnMatches[table.table_name].length} col match{columnMatches[table.table_name].length > 1 ? 'es' : ''})</span>
+                <Text size="xs" variant="accent" className="ml-6 mt-0.5">({columnMatches[table.table_name].length} col match{columnMatches[table.table_name].length > 1 ? 'es' : ''})</Text>
               )}
             </button>
           </li>
@@ -71,7 +72,7 @@ function TableSidebar({ tables, selected, onSelect, filter, setFilter, columnMat
             top: tooltip.y,
           }}
         >
-          {tooltip.text}
+          <Text size="xs" variant="light">{tooltip.text}</Text>
         </div>
       )}
     </aside>
@@ -91,20 +92,31 @@ interface TableDetailsProps {
 }
 
 function TableDetails({ table, filter }: TableDetailsProps) {
-  if (!table) return <div className="flex-1 flex items-center justify-center text-slate-400">Select a table to view details</div>;
+  if (!table) return (
+    <div className="flex-1 flex items-center justify-center">
+      <Text variant="muted">Select a table to view details</Text>
+    </div>
+  );
+  
   return (
     <section className="flex-1 p-8">
-      <h2 className="text-3xl font-bold mb-4 flex items-center gap-2 break-words" title={table.table_name}>
+      <Heading 
+        level={2} 
+        variant="primary" 
+        weight="bold" 
+        spacing="md"
+        className="flex items-center gap-2"
+      >
         🗄️ <span className="break-words whitespace-pre-line">{highlight(table.table_name, filter)}</span>
-      </h2>
-      <div className="mb-2 text-slate-600 dark:text-zinc-300">Columns:</div>
+      </Heading>
+      <Text variant="muted" className="mb-2">Columns:</Text>
       <ul className="space-y-2">
         {table.columns.map((col) => {
           const isMatch = filter && col.name.toLowerCase().includes(filter.toLowerCase());
           return (
             <li key={col.name} className={`flex items-center gap-2 ${isMatch ? 'font-bold text-fuchsia-700 dark:text-fuchsia-400' : ''}`}>
-              <span className="font-mono text-base">{highlight(col.name, filter)}</span>
-              <span className="text-xs text-slate-500 dark:text-zinc-400">({col.data_type}{col.is_nullable ? ", nullable" : ""})</span>
+              <Text as="span" variant={isMatch ? "accent" : "primary"} className="font-mono">{highlight(col.name, filter)}</Text>
+              <Text size="xs" variant="muted">({col.data_type}{col.is_nullable ? ", nullable" : ""})</Text>
             </li>
           );
         })}
@@ -129,17 +141,21 @@ export default function DBExplorerPage() {
   const selectedTable = tables.find(t => t.table_name === selected) || (filteredTables.length === 1 ? filteredTables[0] : null);
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-white via-slate-100 to-slate-200 dark:from-zinc-900 dark:via-zinc-800 dark:to-zinc-950 px-4">
+    <PageContainer>
       <div className="flex w-full max-w-5xl h-[600px] rounded-xl shadow-xl bg-black/10 dark:bg-black/30 border border-slate-200 dark:border-zinc-800 overflow-hidden">
         <TableSidebar tables={filteredTables} selected={selected} onSelect={setSelected} filter={filter} setFilter={setFilter} columnMatches={columnMatches} />
         {loading ? (
-          <div className="flex-1 flex items-center justify-center text-slate-400">Loading schema...</div>
+          <div className="flex-1 flex items-center justify-center">
+            <Text variant="muted">Loading schema...</Text>
+          </div>
         ) : error ? (
-          <div className="flex-1 flex items-center justify-center text-red-600 font-semibold">{error}</div>
+          <div className="flex-1 flex items-center justify-center">
+            <Text variant="error" weight="semibold">{error}</Text>
+          </div>
         ) : (
           <TableDetails table={selectedTable} filter={filter} />
         )}
       </div>
-    </main>
+    </PageContainer>
   );
 } 

@@ -3,6 +3,7 @@ import type * as MonacoType from "monaco-editor";
 import React, { useEffect, useRef } from "react";
 import { useSchema } from "../context/SchemaContext";
 import { format as sqlFormatter } from "sql-formatter";
+import { Text } from "../components/ui";
 
 interface SqlEditorProps {
   value: string;
@@ -162,6 +163,10 @@ export default function SqlEditor({ value, onChange }: SqlEditorProps) {
 
   return (
     <div className="w-full max-w-full mx-auto bg-white dark:bg-zinc-900 rounded-2xl shadow-xl flex flex-col gap-5 border border-slate-200 dark:border-zinc-800 overflow-x-auto">
+      <div className="flex items-center justify-between px-4 pt-4">
+        <Text weight="semibold" variant="primary">SQL Query Editor</Text>
+        <Text size="xs" variant="muted">Auto-formatting on blur</Text>
+      </div>
       <MonacoEditor
         height="450px"
         defaultLanguage="sql"

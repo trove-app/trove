@@ -9,6 +9,7 @@ import {
 } from "../context/SqlBuilderContext";
 import type { VisualSqlBuilderHandle } from "./VisualSqlBuilder";
 import { format as sqlFormatter } from "sql-formatter";
+import { Text, PageContainer } from "../components/ui";
 
 function SqlBuilderInner() {
   const [result, setResult] = useState<{
@@ -73,7 +74,7 @@ function SqlBuilderInner() {
   };
 
   return (
-    <main className="flex flex-col min-h-screen items-center justify-center bg-gradient-to-br from-white via-slate-100 to-slate-200 dark:from-zinc-900 dark:via-zinc-800 dark:to-zinc-950 px-4">
+    <PageContainer>
       <div className="w-full flex flex-col items-center">
         {/* Toggle Tabs - only show when editor is visible */}
         {showEditor && (
@@ -84,7 +85,7 @@ function SqlBuilderInner() {
                   ${
                     mode === "written"
                       ? "bg-white dark:bg-zinc-900 text-blue-700 dark:text-blue-300 shadow border border-blue-500"
-                      : "bg-transparent text-slate-500 dark:text-zinc-400 border border-transparent hover:bg-slate-200 dark:hover:bg-zinc-700"
+                      : "bg-transparent text-slate-500 dark:text-zinc-300 border border-transparent hover:bg-slate-200 dark:hover:bg-zinc-700"
                   }`}
                 onClick={() => {
                   // When switching to written mode, set query to latest SQL from visual builder
@@ -105,29 +106,29 @@ function SqlBuilderInner() {
                 type="button"
                 style={{ zIndex: mode === "written" ? 1 : 0 }}
               >
-                Written
+                <Text as="span" weight="semibold" className={mode === "written" ? "text-blue-700 dark:text-blue-300" : "text-slate-500 dark:text-zinc-300"}>Written</Text>
               </button>
               <button
                 className={`px-6 py-2 rounded-lg font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:z-10
                   ${
                     mode === "visual"
                       ? "bg-white dark:bg-zinc-900 text-blue-700 dark:text-blue-300 shadow border border-blue-500"
-                      : "bg-transparent text-slate-500 dark:text-zinc-400 border border-transparent hover:bg-slate-200 dark:hover:bg-zinc-700"
+                      : "bg-transparent text-slate-500 dark:text-zinc-300 border border-transparent hover:bg-slate-200 dark:hover:bg-zinc-700"
                   }`}
                 onClick={() => setMode("visual")}
                 type="button"
                 style={{ zIndex: mode === "visual" ? 1 : 0 }}
               >
-                Visual
+                <Text as="span" weight="semibold" className={mode === "visual" ? "text-blue-700 dark:text-blue-300" : "text-slate-500 dark:text-zinc-300"}>Visual</Text>
               </button>
             </div>
           </div>
         )}
         <button
-          className="fixed bottom-8 right-8 z-50 bg-blue-600 text-white px-5 py-2 rounded-full shadow-lg font-bold hover:bg-blue-700 transition-colors"
+          className="fixed bottom-8 right-8 z-50 bg-blue-600 text-white px-5 py-2 rounded-full shadow-lg hover:bg-blue-700 transition-colors"
           onClick={() => setShowEditor((v) => !v)}
         >
-          {showEditor ? "Hide Query" : "Edit Query"}
+          <Text as="span" weight="bold" className="text-white">{showEditor ? "Hide Query" : "Edit Query"}</Text>
         </button>
         <div
           className={`w-full max-w-3xl transition-all duration-300 overflow-hidden ${
@@ -155,14 +156,14 @@ function SqlBuilderInner() {
           <div className="w-full flex flex-col items-end mt-2">
             <button
               onClick={runQuery}
-              className="px-6 py-2 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 disabled:opacity-60"
+              className="px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
               disabled={loading || !sql.trim()}
             >
-              {loading ? "Running..." : "Run Query"}
+              <Text as="span" weight="bold" className="text-white">{loading ? "Running..." : "Run Query"}</Text>
             </button>
             {error && (
-              <div className="text-red-600 font-semibold mb-4 self-start">
-                {error}
+              <div className="self-start">
+                <Text variant="error" weight="semibold">{error}</Text>
               </div>
             )}
           </div>
@@ -173,7 +174,7 @@ function SqlBuilderInner() {
           )}
         </section>
       </div>
-    </main>
+    </PageContainer>
   );
 }
 

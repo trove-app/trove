@@ -15,17 +15,19 @@
 - `frontend/app/components/ui/typography/Text.tsx` - Base Text component with size variants, color variants, and Trove brand styling
 - `frontend/app/components/ui/typography/Heading.tsx` - Heading component (h1-h6) with responsive typography and Trove styling
 - `frontend/app/components/ui/typography/index.ts` - Typography components export file
-- `frontend/app/components/ui/Card.tsx` - Card component with variants (default, outlined, elevated, glass) and Trove brand styling (FIXED: now uses CSS custom properties for proper light/dark mode contrast)
-- `frontend/app/design/page.tsx` - Design system showcase page with Text and Heading component examples (includes working dark mode toggle)
+- `frontend/app/components/ui/Card.tsx` - Card component with variants (default, outlined, elevated, glass) and Trove brand styling
+- `frontend/app/components/ui/layout/PageContainer.tsx` - Page container component with consistent layout and styling
+- `frontend/app/components/ui/layout/index.ts` - Layout components export file
+- `frontend/app/design/page.tsx` - Design system showcase page with Text and Heading component examples
 - `frontend/app/layout.tsx` - Root layout component
-- `frontend/app/page.tsx` - Homepage component (MIGRATED: uses Text, Heading, and Card components with theme-aware styling)
-- `frontend/app/components/TroveGradientTitle.tsx` - Special gradient title component (ANALYZED: uses h1 with gradient effect)
-- `frontend/app/sql-builder/` - SQL builder section
+- `frontend/app/page.tsx` - Homepage component (uses Text, Heading, Card, and PageContainer components)
+- `frontend/app/components/TroveGradientTitle.tsx` - Special gradient title component
+- `frontend/app/sql-builder/` - SQL builder section (in process of migrating typography)
 - `frontend/app/db-explorer/` - Database explorer section
 - `frontend/README.md` - Project overview with design system quick start
 - `docs/theme-customization.md` - Comprehensive theme customization documentation and guidelines
-- `frontend/app/components/Sidebar.tsx` - Sidebar navigation component (MIGRATED: uses Text components with brand colors and improved light mode styling)
-- `frontend/app/components/SidebarLayout.tsx` - Layout wrapper with collapsible sidebar (MIGRATED: toggle button uses Text components)
+- `frontend/app/components/Sidebar.tsx` - Sidebar navigation component (uses Text components with brand colors)
+- `frontend/app/components/SidebarLayout.tsx` - Layout wrapper with collapsible sidebar (uses Text components)
 - `frontend/app/components/ThemeToggle.tsx` - Theme toggle component with persistent state and brand-consistent styling
 
 ### Notes
@@ -50,7 +52,7 @@
 
 ## Tasks
 
-- [x] 1.0 Setup Tailwind Theme Foundation ✅ (Already completed - v4 is set up)
+- [x] 1.0 Setup Tailwind Theme Foundation
   - [x] 1.1 Tailwind v4 is already installed and configured
   - [x] 1.2 Brand color palette is defined in @theme configuration
   - [x] 1.3 Typography plugin is installed (@tailwindcss/typography)
@@ -61,9 +63,9 @@
   - [x] 1.8 Review and optimize current @theme configuration for style guide compliance
   - [x] 1.9 Document theme customization approach
 
-- [ ] 2.0 Create Base Component Library Structure
+- [x] 2.0 Create Base Component Library Structure
   - [x] 2.1 Setup component directory structure in `app/components/ui`
-  - [x] 2.2 Create TypeScript interfaces for component props (sufficient base types already created)
+  - [x] 2.2 Create TypeScript interfaces for component props
   - [x] 2.3 Setup shared Tailwind utility classes and component patterns
   - [x] 2.4 Create component development guidelines focusing on Tailwind v4 usage
   - [x] 2.5 Document component composition patterns
@@ -72,17 +74,17 @@
   - [x] 3.1 Create base Text component with size variants using Tailwind
   - [x] 3.2 Implement Heading component (h1-h6) using Tailwind classes
   - [x] 3.3 Build Code block component with proper font settings (SKIPPED - not needed for current product vision)
-  - [x] 3.4 Add theme-aware color variants via Tailwind classes (COMPLETED: includes working dark mode)
-  - [x] 3.5 Identify typography usage in homepage (COMPLETED: findings documented below)
+  - [x] 3.4 Add theme-aware color variants via Tailwind classes
+  - [x] 3.5 Identify typography usage in homepage
   - [x] 3.6 Migrate homepage typography to new components
-  - [x] 3.7 Migrate Sidebar explorer typography components ✅
-    - [x] Convert navigation links to Text components with variant="interactive" and weight="medium"
-    - [x] Convert disabled text to Text component with variant="muted"
-    - [x] Convert toggle button icons to Text components with size="xl"
-    - [x] Update color scheme from slate/zinc to brand theme colors
-    - [x] Add backdrop-blur effect to sidebar for enhanced visual appeal
-  - [ ] 3.8 Migrate SQL builder typography components
-  - [ ] 3.9 Migrate DB explorer typography components
+  - [x] 3.7 Migrate Sidebar explorer typography components
+  - [x] 3.8 Migrate SQL builder typography components
+    - [x] 3.8.1 Create PageContainer component for consistent page layouts
+    - [x] 3.8.2 Migrate main SQL builder page typography
+    - [x] 3.8.3 Migrate VisualSqlBuilder component typography
+    - [x] 3.8.4 Migrate SqlEditor component typography
+    - [x] 3.8.5 Migrate SqlResultTable component typography
+  - [x] 3.9 Migrate DB explorer typography components
   - [ ] 3.10 Document typography usage patterns
   - [ ] 3.11 Remove old typography styles after validation
 

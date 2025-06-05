@@ -1,6 +1,7 @@
 import React from "react";
 import { MantineReactTable, MRT_ColumnDef } from 'mantine-react-table';
 import { MantineProvider } from '@mantine/core';
+import { Text } from "../components/ui";
 
 interface SqlResultTableProps {
   columns: string[];
@@ -32,6 +33,10 @@ export default function SqlResultTable({ columns, rows }: SqlResultTableProps) {
 
   return (
     <div className="w-full max-w-6xl mx-auto mt-12 mb-12 px-4">
+      <div className="flex items-center justify-between mb-4">
+        <Text weight="semibold" variant="primary">Query Results</Text>
+        <Text size="xs" variant="muted">{rows.length} rows</Text>
+      </div>
       <div className="w-full bg-white/70 dark:bg-zinc-900/80 border border-slate-200 dark:border-zinc-800 rounded-md" style={{ boxShadow: 'none' }}>
         <MantineProvider
           theme={{
