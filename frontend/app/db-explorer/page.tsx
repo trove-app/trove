@@ -54,10 +54,12 @@ function TableSidebar({ tables, selected, onSelect, filter, setFilter, columnMat
             >
               <span className="flex items-center w-full">
                 <span className="mr-2">🗄️</span>
-                <Text as="span" variant="primary" className="truncate max-w-[10rem] inline-block align-bottom">{table.table_name}</Text>
+                <Text as="span" variant="primary" className="truncate max-w-[10rem] inline-block align-bottom">{highlight(table.table_name, filter)}</Text>
               </span>
               {filter && columnMatches[table.table_name]?.length > 0 && (
-                <Text size="xs" variant="accent" className="ml-6 mt-0.5">({columnMatches[table.table_name].length} col match{columnMatches[table.table_name].length > 1 ? 'es' : ''})</Text>
+                <Text as="span" size="xs" variant="muted" className="ml-6 mt-0.5 text-slate-600 dark:text-slate-400">
+                  ({columnMatches[table.table_name].length} col match{columnMatches[table.table_name].length > 1 ? 'es' : ''})
+                </Text>
               )}
             </button>
           </li>
@@ -83,7 +85,15 @@ function highlight(text: string, query: string) {
   if (!query) return text;
   const idx = text.toLowerCase().indexOf(query.toLowerCase());
   if (idx === -1) return text;
-  return <>{text.slice(0, idx)}<Text as="span" className="bg-yellow-200 dark:bg-yellow-700 rounded px-1">{text.slice(idx, idx + query.length)}</Text>{text.slice(idx + query.length)}</>;
+  return (
+    <>
+      {text.slice(0, idx)}
+      <span className="bg-yellow-200 dark:bg-yellow-500/30 text-yellow-900 dark:text-yellow-200">
+        {text.slice(idx, idx + query.length)}
+      </span>
+      {text.slice(idx + query.length)}
+    </>
+  );
 }
 
 interface TableDetailsProps {
@@ -114,8 +124,10 @@ function TableDetails({ table, filter }: TableDetailsProps) {
         {table.columns.map((col) => {
           const isMatch = filter && col.name.toLowerCase().includes(filter.toLowerCase());
           return (
-            <li key={col.name} className={`flex items-center gap-2 ${isMatch ? 'font-bold text-fuchsia-700 dark:text-fuchsia-400' : ''}`}>
-              <Text as="span" variant={isMatch ? "accent" : "primary"} className="font-mono">{highlight(col.name, filter)}</Text>
+            <li key={col.name} className="flex items-center gap-2">
+              <Text as="span" variant="primary" className={`font-mono ${isMatch ? 'font-semibold' : ''}`}>
+                {highlight(col.name, filter)}
+              </Text>
               <Text size="xs" variant="muted">({col.data_type}{col.is_nullable ? ", nullable" : ""})</Text>
             </li>
           );
