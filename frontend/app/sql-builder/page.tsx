@@ -125,10 +125,13 @@ function SqlBuilderInner() {
           </div>
         )}
         <button
-          className="fixed bottom-8 right-8 z-50 bg-blue-600 text-white px-5 py-2 rounded-full shadow-lg hover:bg-blue-700 transition-colors"
+          type="button"
+          className="fixed bottom-8 right-8 z-50 bg-blue-600 hover:bg-blue-700 px-5 py-2 rounded-full shadow-lg transition-colors"
           onClick={() => setShowEditor((v) => !v)}
         >
-          <Text as="span" weight="bold" className="text-white">{showEditor ? "Hide Query" : "Edit Query"}</Text>
+          <Text as="span" weight="bold" variant="light" className="text-white">
+            {showEditor ? "Hide Query" : "Edit Query"}
+          </Text>
         </button>
         <div
           className={`w-full max-w-3xl transition-all duration-300 overflow-hidden ${
@@ -156,10 +159,12 @@ function SqlBuilderInner() {
           <div className="w-full flex flex-col items-end mt-2">
             <button
               onClick={runQuery}
-              className="px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
+              className="px-6 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:opacity-60"
               disabled={loading || !sql.trim()}
             >
-              <Text as="span" weight="bold" className="text-white">{loading ? "Running..." : "Run Query"}</Text>
+              <Text as="span" weight="bold" variant="light" className="text-white">
+                {loading ? "Running..." : "Run Query"}
+              </Text>
             </button>
             {error && (
               <div className="self-start">

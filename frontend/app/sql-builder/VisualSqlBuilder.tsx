@@ -279,7 +279,7 @@ const VisualSqlBuilder = forwardRef<
           <Text weight="semibold" variant="primary">Combine Tables (JOIN)</Text>
           <button
             type="button"
-            className="px-3 py-1 rounded bg-blue-600 text-white text-xs font-semibold shadow hover:bg-blue-700"
+            className="px-3 py-1 rounded bg-blue-600 hover:bg-blue-700 shadow"
             onClick={handleAddJoin}
             disabled={!selectedTable || tables.length < 2}
             title={
@@ -290,12 +290,14 @@ const VisualSqlBuilder = forwardRef<
                 : "Add another table to combine"
             }
           >
-            <Text as="span" size="xs" className="text-white">+ Add Table</Text>
+            <Text as="span" variant="light" size="xs" className="text-white">+ Add Table</Text>
           </button>
         </div>
         {joins.length === 0 && (
           <div className="text-xs text-slate-500 dark:text-zinc-400 mb-2">
-            No tables combined.
+            <Text size="xs" variant="muted" className="mb-2">
+              Join tables to combine their data
+            </Text>
           </div>
         )}
         <div className="flex flex-col gap-2">
@@ -377,12 +379,12 @@ const VisualSqlBuilder = forwardRef<
                 </select>
                 <button
                   type="button"
-                  className="ml-2 p-1 rounded-full bg-red-100 dark:bg-red-900 hover:bg-red-200 dark:hover:bg-red-700 text-red-600 dark:text-red-300"
+                  className="ml-2 p-1 rounded-full bg-red-100 dark:bg-red-900 hover:bg-red-200 dark:hover:bg-red-700"
                   onClick={() => handleRemoveJoin(idx)}
                   title="Remove this table combination"
                   aria-label="Remove combine"
                 >
-                  <FaTrash size={12} />
+                  <Text variant="error">×</Text>
                 </button>
               </div>
             );
@@ -430,12 +432,10 @@ const VisualSqlBuilder = forwardRef<
             return (
               <div key={t.table_name} className="mb-1">
                 <div className="mb-1 text-xs font-semibold text-slate-700 flex items-center gap-2">
-                  <span className="uppercase tracking-wide">
+                  <Text size="xs" weight="semibold" variant="primary" className="uppercase tracking-wide">
                     {t.table_name}
-                  </span>
-                  <span className="text-slate-400 text-[10px]">
-                    ({tableAliases[t.table_name]})
-                  </span>
+                  </Text>
+                  <Text size="xs" variant="muted">({tableAliases[t.table_name]})</Text>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {meta.columns.map((col) => {
@@ -478,7 +478,7 @@ const VisualSqlBuilder = forwardRef<
           })}
         </div>
       ) : (
-        <span className="text-s text-slate-600">NA</span>
+        <Text variant="muted" size="xs">NA</Text>
       )}
 
       {/* Divider */}
@@ -491,10 +491,10 @@ const VisualSqlBuilder = forwardRef<
         <div className="mb-4 bg-slate-50 dark:bg-zinc-800 rounded-xl border border-slate-200 dark:border-zinc-700">
           <button
             type="button"
-            className="w-full flex items-center justify-between px-4 py-3 text-left"
+            className="w-full flex items-center justify-between px-4 py-3"
             onClick={() => setShowFilters((v) => !v)}
           >
-            <Text weight="semibold" variant="primary">Filter Your Results (WHERE)</Text>
+            <Text weight="semibold" variant="primary">Filter Results</Text>
             <Text>{showFilters ? "▲" : "▼"}</Text>
           </button>
           {showFilters && (
@@ -562,20 +562,20 @@ const VisualSqlBuilder = forwardRef<
                     />
                     <button
                       type="button"
-                      className="text-xs underline text-red-500 hover:text-red-700 ml-2"
+                      className="text-xs underline hover:text-red-700 ml-2"
                       onClick={() => handleRemoveFilter(idx)}
                     >
-                      Remove
+                      <Text variant="error" size="xs">Remove</Text>
                     </button>
                   </div>
                 );
               })}
               <button
                 type="button"
-                className="mt-2 px-3 py-1 rounded bg-blue-600 text-white text-xs font-semibold shadow hover:bg-blue-700"
+                className="mt-2 px-3 py-1 rounded bg-blue-600 hover:bg-blue-700 shadow"
                 onClick={handleAddFilter}
               >
-                + Add Filter
+                <Text as="span" variant="light" size="xs" className="text-white">+ Add Filter</Text>
               </button>
             </div>
           )}
@@ -584,7 +584,7 @@ const VisualSqlBuilder = forwardRef<
         <div className="mb-4 bg-slate-50 dark:bg-zinc-800 rounded-xl border border-slate-200 dark:border-zinc-700">
           <button
             type="button"
-            className="w-full flex items-center justify-between px-4 py-3 text-left"
+            className="w-full flex items-center justify-between px-4 py-3"
             onClick={() => setShowOrderBy((v) => !v)}
           >
             <Text weight="semibold" variant="primary">Sort Results (Order By)</Text>
@@ -665,20 +665,20 @@ const VisualSqlBuilder = forwardRef<
                     </button>
                     <button
                       type="button"
-                      className="text-xs underline text-red-500 hover:text-red-700 ml-2"
+                      className="text-xs underline hover:text-red-700 ml-2"
                       onClick={() => handleRemoveOrderBy(idx)}
                     >
-                      Remove
+                      <Text variant="error" size="xs">Remove</Text>
                     </button>
                   </div>
                 );
               })}
               <button
                 type="button"
-                className="mt-2 px-3 py-1 rounded bg-blue-600 text-white text-xs font-semibold shadow hover:bg-blue-700"
+                className="mt-2 px-3 py-1 rounded bg-blue-600 hover:bg-blue-700 shadow"
                 onClick={handleAddOrderBy}
               >
-                + Add Order By
+                <Text as="span" variant="light" size="xs" className="text-white">+ Add Sort Rule</Text>
               </button>
             </div>
           )}
@@ -687,7 +687,7 @@ const VisualSqlBuilder = forwardRef<
         <div className="mb-4 bg-slate-50 dark:bg-zinc-800 rounded-xl border border-slate-200 dark:border-zinc-700">
           <button
             type="button"
-            className="w-full flex items-center justify-between px-4 py-3 text-left"
+            className="w-full flex items-center justify-between px-4 py-3"
             onClick={() => setShowLimit((v) => !v)}
           >
             <Text weight="semibold" variant="primary">Limit Results</Text>
@@ -700,7 +700,7 @@ const VisualSqlBuilder = forwardRef<
                 type="number"
                 min={1}
                 max={10000}
-                className="w-24 rounded-lg border px-3 py-2 bg-white dark:bg-zinc-900 border-slate-300 dark:border-zinc-700 text-slate-800 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-24 rounded-lg border px-3 py-2 bg-white dark:bg-zinc-900 border-slate-300 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
                 value={limit}
                 onChange={(e) =>
                   setQueryState((prev) => ({
@@ -737,17 +737,16 @@ const VisualSqlBuilder = forwardRef<
           <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-2xl p-6 border border-slate-200 dark:border-zinc-700 max-w-lg w-full relative overflow-x-auto">
             <button
               type="button"
-              className="absolute top-3 right-3 text-slate-400 hover:text-blue-600 text-lg font-bold focus:outline-none"
+              className="absolute top-3 right-3 hover:text-blue-600 focus:outline-none"
               onClick={() => setShowSqlModal(false)}
-              aria-label="Close"
             >
-              <Text size="xl">×</Text>
+              <Text weight="bold" variant="interactive">×</Text>
             </button>
             <Text size="sm" weight="semibold" variant="primary" className="mb-4">
               Generated SQL
             </Text>
-            <pre className="p-3 rounded bg-slate-100 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-xs font-mono text-slate-700 dark:text-zinc-200 overflow-x-auto max-w-full whitespace-pre-wrap mb-3">
-              {generatedSql}
+            <pre className="p-3 rounded bg-slate-100 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 overflow-x-auto max-w-full whitespace-pre-wrap mb-2">
+              <Text as="span" variant="primary" size="xs" className="font-mono">{generatedSql}</Text>
             </pre>
             <button
               type="button"
@@ -755,9 +754,7 @@ const VisualSqlBuilder = forwardRef<
               onClick={handleCopy}
               title="Copy to clipboard"
             >
-              <Text size="xs" weight="semibold" className="text-white">
-                {copied ? "Copied!" : "Copy SQL"}
-              </Text>
+              <Text size="xs" weight="semibold" variant="light" className="text-white">Copy SQL</Text>
             </button>
           </div>
         </div>

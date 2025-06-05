@@ -37,10 +37,10 @@ function TableSidebar({ tables, selected, onSelect, filter, setFilter, columnMat
     <aside className="w-72 min-w-72 max-w-72 bg-white/90 dark:bg-zinc-900/90 border-r border-slate-200 dark:border-zinc-800 p-4 flex flex-col gap-2 h-full rounded-l-xl min-w-0">
       <input
         type="text"
-        placeholder="Search tables or columns..."
+        placeholder="Search tables and columns..."
         value={filter}
-        onChange={e => setFilter(e.target.value)}
-        className="mb-3 px-3 py-2 rounded border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-slate-900 dark:text-slate-100"
+        onChange={(e) => setFilter(e.target.value)}
+        className="mb-3 px-3 py-2 rounded border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
       />
       <ul className="flex-1 overflow-y-auto space-y-1">
         {tables.map((table) => (
@@ -83,7 +83,7 @@ function highlight(text: string, query: string) {
   if (!query) return text;
   const idx = text.toLowerCase().indexOf(query.toLowerCase());
   if (idx === -1) return text;
-  return <>{text.slice(0, idx)}<span className="bg-yellow-200 dark:bg-yellow-700 text-black dark:text-white rounded px-1">{text.slice(idx, idx + query.length)}</span>{text.slice(idx + query.length)}</>;
+  return <>{text.slice(0, idx)}<Text as="span" className="bg-yellow-200 dark:bg-yellow-700 rounded px-1">{text.slice(idx, idx + query.length)}</Text>{text.slice(idx + query.length)}</>;
 }
 
 interface TableDetailsProps {
