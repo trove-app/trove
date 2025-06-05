@@ -62,14 +62,20 @@ export default function ThemeToggle() {
 
   return (
     <button
-      type="button"
       onClick={toggleTheme}
-      className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors"
+      className="flex items-center gap-3 w-full px-3 py-2 rounded-lg border border-border bg-muted hover:bg-accent/10 transition-all duration-200 shadow-sm"
+      type="button"
       aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
     >
-      <Text as="span" size="lg" variant="primary">
-        {isDarkMode ? '🌙' : '☀️'}
-      </Text>
+      <span className="text-lg">{isDarkMode ? '🌙' : '☀️'}</span>
+      <div className="flex flex-col items-start">
+        <Text size="sm" weight="medium" as="span">
+          {isDarkMode ? 'Dark Mode' : 'Light Mode'}
+        </Text>
+        <Text size="xs" variant="muted" as="span">
+          Click to toggle theme
+        </Text>
+      </div>
     </button>
   );
 } 

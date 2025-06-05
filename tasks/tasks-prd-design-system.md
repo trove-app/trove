@@ -22,8 +22,8 @@
 - `frontend/app/layout.tsx` - Root layout component
 - `frontend/app/page.tsx` - Homepage component (uses Text, Heading, Card, and PageContainer components)
 - `frontend/app/components/TroveGradientTitle.tsx` - Special gradient title component
-- `frontend/app/sql-builder/` - SQL builder section (in process of migrating typography)
-- `frontend/app/db-explorer/` - Database explorer section
+- `frontend/app/sql-builder/` - SQL builder section with migrated typography
+- `frontend/app/db-explorer/` - Database explorer section with migrated typography
 - `frontend/README.md` - Project overview with design system quick start
 - `docs/theme-customization.md` - Comprehensive theme customization documentation and guidelines
 - `frontend/app/components/Sidebar.tsx` - Sidebar navigation component (uses Text components with brand colors)
@@ -70,7 +70,7 @@
   - [x] 2.4 Create component development guidelines focusing on Tailwind v4 usage
   - [x] 2.5 Document component composition patterns
 
-- [ ] 3.0 Typography System Implementation
+- [x] 3.0 Typography System Implementation
   - [x] 3.1 Create base Text component with size variants using Tailwind
   - [x] 3.2 Implement Heading component (h1-h6) using Tailwind classes
   - [x] 3.3 Build Code block component with proper font settings (SKIPPED - not needed for current product vision)
@@ -86,7 +86,7 @@
     - [x] 3.8.5 Migrate SqlResultTable component typography
   - [x] 3.9 Migrate DB explorer typography components
   - [x] 3.10 Document typography usage patterns
-  - [ ] 3.11 Remove old typography styles after validation
+  - [x] 3.11 Remove old typography styles after validation
 
 - [ ] 4.0 Input Components Implementation
   - [ ] 4.1 Create base Input component with Tailwind styling

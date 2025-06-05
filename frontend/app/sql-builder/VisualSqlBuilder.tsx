@@ -260,7 +260,7 @@ const VisualSqlBuilder = forwardRef<
           title="Pick the main table you want to explore."
         >
           <option value="" disabled>
-            <Text as="span" variant="muted">Select a table...</Text>
+            Select a table...
           </option>
           {tables.map((t) => (
             <option key={t.table_name} value={t.table_name}>

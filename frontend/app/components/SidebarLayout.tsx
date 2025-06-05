@@ -13,15 +13,11 @@ export default function SidebarLayout({
     <div className="relative min-h-screen">
       {/* Sidebar */}
       <div
-        className={`fixed top-0 left-0 h-full z-30 transition-transform duration-300 bg-transparent ${
+        className={`fixed top-0 left-0 h-full z-30 transition-transform duration-300 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="pt-0">
-          {" "}
-          {/* No extra top padding */}
-          <Sidebar />
-        </div>
+        <Sidebar />
       </div>
       {/* Toggle button */}
       <button
