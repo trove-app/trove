@@ -9,7 +9,8 @@ import {
 } from "../context/SqlBuilderContext";
 import type { VisualSqlBuilderHandle } from "./VisualSqlBuilder";
 import { format as sqlFormatter } from "sql-formatter";
-import { Text, PageContainer, Button } from "../components/ui";
+import { Text, Container, Button, Card } from "../components/ui";
+import { cn, layoutPatterns } from "../components/ui/utils";
 
 function SqlBuilderInner() {
   const [result, setResult] = useState<{
@@ -74,12 +75,16 @@ function SqlBuilderInner() {
   };
 
   return (
-    <PageContainer>
-      <div className="w-full flex flex-col items-center">
+    <Container maxWidth="7xl" className="min-h-screen py-8">
+      <div className={cn(layoutPatterns.flexCol, "items-center w-full")}>
         {/* Toggle Tabs - only show when editor is visible */}
         {showEditor && (
-          <div className="w-full max-w-xl flex justify-center mb-2 mt-6">
-            <div className="inline-flex rounded-xl bg-slate-100 dark:bg-zinc-800 p-1 shadow-sm border border-slate-200 dark:border-zinc-700">
+          <div className={cn(
+            "w-full max-w-xl",
+            layoutPatterns.flexCenter,
+            "mb-2 mt-6"
+          )}>
+            <Card variant="glass" padding="sm" className="inline-flex rounded-xl">
               <Button
                 variant={mode === "written" ? "primary" : "ghost"}
                 size="md"
@@ -113,9 +118,10 @@ function SqlBuilderInner() {
               >
                 <Text as="span" weight="semibold" className={mode === "visual" ? "text-primary" : "text-muted"}>Visual</Text>
               </Button>
-            </div>
+            </Card>
           </div>
         )}
+        
         <Button
           variant="primary"
           size="lg"
@@ -127,30 +133,48 @@ function SqlBuilderInner() {
             {showEditor ? "Hide Query" : "Edit Query"}
           </Text>
         </Button>
+
         <div
-          className={`w-full max-w-3xl transition-all duration-300 overflow-hidden ${
-            showEditor
-              ? "max-h-[800px] opacity-100 mt-12 mb-2"
-              : "max-h-0 opacity-0 mb-0 mt-0 pointer-events-none"
-          }`}
+          ref={wrapperRef}
+          className={cn(
+            "w-full max-w-3xl transition-all duration-300 overflow-hidden",
+            showEditor ? "max-h-[800px] opacity-100 mt-12 mb-2" : "max-h-0 opacity-0 mb-0 mt-0 pointer-events-none"
+          )}
         >
-          <div style={{ height: 600, overflowY: "auto" }}>
-            <section className="w-full h-full bg-white/80 dark:bg-zinc-900/80 rounded-2xl shadow-xl p-8 border border-slate-200 dark:border-zinc-800 flex flex-col">
+          <div ref={contentRef} style={{ height: 600, overflowY: "auto" }}>
+            <Card 
+              variant="glass" 
+              padding="lg"
+              className={cn(
+                "w-full h-full",
+                layoutPatterns.flexCol
+              )}
+            >
               {mode === "written" ? (
                 <SqlEditor value={sql} onChange={updateFromSql} />
               ) : (
-                <div className="h-full flex flex-col max-w-full overflow-x-auto">
+                <div className={cn(
+                  "h-full",
+                  layoutPatterns.flexCol,
+                  "max-w-full overflow-x-auto"
+                )}>
                   <VisualSqlBuilder
                     queryState={queryState}
                     setQueryState={setQueryState}
                     updateFromVisual={updateFromVisual}
+                    ref={visualBuilderRef}
                   />
                 </div>
               )}
-            </section>
+            </Card>
           </div>
+
           {/* Shared submit button and error message */}
-          <div className="w-full flex flex-col items-end mt-2">
+          <div className={cn(
+            "w-full",
+            layoutPatterns.flexCol,
+            "items-end mt-2"
+          )}>
             <Button
               variant="primary"
               size="lg"
@@ -169,13 +193,14 @@ function SqlBuilderInner() {
             )}
           </div>
         </div>
+
         <section className="w-full">
           {result && (
             <SqlResultTable columns={result.columns} rows={result.rows} />
           )}
         </section>
       </div>
-    </PageContainer>
+    </Container>
   );
 }
 

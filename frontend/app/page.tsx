@@ -1,15 +1,34 @@
 import TroveGradientTitle from "./components/TroveGradientTitle";
-import { Text, Heading, Card, PageContainer, Link } from "./components/ui";
+import { Text, Heading, Card, Container, Link } from "./components/ui";
+import { cn, layoutPatterns } from "./components/ui/utils";
 
 export default function Home() {
   return (
-    <PageContainer centered>
+    <Container 
+      maxWidth="7xl" 
+      className="min-h-screen flex flex-col items-center justify-center"
+    >
       <TroveGradientTitle>trove</TroveGradientTitle>
-      <Card variant="glass" size="xl" padding="lg" className="w-full mt-2 flex flex-col items-center">
+      
+      <Card 
+        variant="glass" 
+        size="xl" 
+        padding="lg" 
+        className={cn(
+          "w-full mt-2",
+          layoutPatterns.flexCol,
+          layoutPatterns.spacing.md
+        )}
+      >
         <Heading level={2} align="center" spacing="lg" className="text-2xl sm:text-3xl">
           What can trove do for you?
         </Heading>
-        <ul className="list-disc list-inside space-y-2 text-left">
+        
+        <ul className={cn(
+          "list-disc list-inside",
+          layoutPatterns.spacing.sm,
+          "text-left"
+        )}>
           <li><Text size="lg" as="span">✨ Visual SQL query builder for everyone</Text></li>
           <li><Text size="lg" as="span">⚡ Instant data previews and exploration</Text></li>
           <li><Text size="lg" as="span">🔌 Easy connections to your data sources</Text></li>
@@ -19,7 +38,11 @@ export default function Home() {
           <li><Text size="lg" as="span">🎯 Built for PMs, EMs, marketing, partner success, and more</Text></li>
         </ul>
         
-        <div className="mt-8 flex flex-col sm:flex-row gap-4 items-center">
+        <div className={cn(
+          "mt-8",
+          layoutPatterns.flexCol,
+          "sm:flex-row gap-4 items-center"
+        )}>
           <Link 
             href="/sql-builder"
             variant="button"
@@ -38,6 +61,6 @@ export default function Home() {
           </Link>
         </div>
       </Card>
-    </PageContainer>
+    </Container>
   );
 }

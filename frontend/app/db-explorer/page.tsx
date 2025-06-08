@@ -2,7 +2,8 @@
 import React, { useState } from "react";
 import { useSchema } from "../context/SchemaContext";
 import type { ColumnMetadata } from "../context/SchemaContext";
-import { Text, Heading, PageContainer, SearchInput, Button } from "../components/ui";
+import { Text, Heading, Container, SearchInput, Button, Card } from "../components/ui";
+import { cn, layoutPatterns } from "../components/ui/utils";
 
 interface Table {
   table_name: string;
@@ -22,41 +23,64 @@ function TableSidebar({ tables, selected, onSelect, filter, setFilter, columnMat
   const [tooltip, setTooltip] = useState<{ text: string; x: number; y: number } | null>(null);
 
   return (
-    <aside className="w-72 min-w-72 max-w-72 bg-white/90 dark:bg-zinc-900/90 border-r border-slate-200 dark:border-zinc-800 p-4 flex flex-col gap-2 h-full rounded-l-xl min-w-0">
+    <Card 
+      variant="glass" 
+      className={cn(
+        layoutPatterns.flexCol,
+        "w-72 min-w-72 max-w-72 border-r border-border rounded-l-xl rounded-r-none p-4 gap-2"
+      )}
+    >
       <SearchInput
         placeholder="Search tables and columns..."
         value={filter}
         onChange={(e) => setFilter(e.target.value)}
         className="mb-3"
       />
-      <ul className="flex-1 overflow-y-auto space-y-1">
+      <ul className={cn(layoutPatterns.flexCol, "flex-1 overflow-y-auto gap-1")}>
         {tables.map((table) => (
           <li key={table.table_name} className="relative group">
             <Button
               variant={selected === table.table_name ? "primary" : "ghost"}
               size="sm"
               onClick={() => onSelect(table.table_name)}
-              className={`w-full text-left justify-start ${selected === table.table_name ? "bg-primary-50 dark:bg-primary-950" : ""}`}
+              className={cn(
+                "w-full text-left justify-start",
+                selected === table.table_name && "bg-primary-50 dark:bg-primary-950"
+              )}
               aria-label={`View details for table ${table.table_name}`}
             >
-              <span className="flex items-center w-full">
+              <span className={cn(layoutPatterns.flexCenter, "w-full justify-start")}>
                 <span className="mr-2">🗄️</span>
-                <Text as="span" variant={selected === table.table_name ? "primary" : "muted"} className="truncate max-w-[10rem] inline-block align-bottom">{highlight(table.table_name, filter)}</Text>
+                <Text 
+                  as="span" 
+                  variant={selected === table.table_name ? "primary" : "muted"} 
+                  className="truncate max-w-[10rem] inline-block align-bottom"
+                >
+                  {highlight(table.table_name, filter)}
+                </Text>
               </span>
               {filter && columnMatches[table.table_name]?.length > 0 && (
-                <Text as="span" size="xs" variant="muted" className="ml-6 mt-0.5 text-slate-600 dark:text-slate-400">
+                <Text 
+                  as="span" 
+                  size="xs" 
+                  variant="muted" 
+                  className="ml-6 mt-0.5"
+                >
                   ({columnMatches[table.table_name].length} col match{columnMatches[table.table_name].length > 1 ? 'es' : ''})
                 </Text>
               )}
             </Button>
             {/* Tooltip using group hover */}
-            <div className="hidden group-hover:block absolute left-full top-1/2 transform -translate-y-1/2 ml-2 z-50 bg-black text-white text-xs rounded px-2 py-1 shadow-lg whitespace-pre-line max-w-xs pointer-events-none">
+            <div className={cn(
+              "hidden group-hover:block absolute left-full top-1/2 transform -translate-y-1/2 ml-2 z-50",
+              "bg-black text-white rounded px-2 py-1 shadow-lg whitespace-pre-line max-w-xs pointer-events-none"
+            )}>
               <Text size="xs" variant="light">{table.table_name}</Text>
             </div>
           </li>
         ))}
       </ul>
-    </aside>
+    </Card>
   );
 }
 
@@ -82,29 +106,33 @@ interface TableDetailsProps {
 
 function TableDetails({ table, filter }: TableDetailsProps) {
   if (!table) return (
-    <div className="flex-1 flex items-center justify-center">
+    <div className={cn(layoutPatterns.flexCenter, "flex-1")}>
       <Text variant="muted">Select a table to view details</Text>
     </div>
   );
   
   return (
-    <section className="flex-1 p-8">
+    <Card variant="glass" className={cn(layoutPatterns.spacing.lg, "flex-1 p-8 rounded-l-none")}>
       <Heading 
         level={2} 
         variant="primary" 
         weight="bold" 
         spacing="md"
-        className="flex items-center gap-2"
+        className={cn(layoutPatterns.flexCenter, "gap-2 justify-start")}
       >
         🗄️ <span className="break-words whitespace-pre-line">{highlight(table.table_name, filter)}</span>
       </Heading>
       <Text variant="muted" className="mb-2">Columns:</Text>
-      <ul className="space-y-2">
+      <ul className={cn(layoutPatterns.spacing.sm)}>
         {table.columns.map((col) => {
           const isMatch = filter && col.name.toLowerCase().includes(filter.toLowerCase());
           return (
-            <li key={col.name} className="flex items-center gap-2">
-              <Text as="span" variant="primary" className={`font-mono ${isMatch ? 'font-semibold' : ''}`}>
+            <li key={col.name} className={cn(layoutPatterns.flexCenter, "gap-2 justify-start")}>
+              <Text 
+                as="span" 
+                variant="primary" 
+                className={cn("font-mono", isMatch && "font-semibold")}
+              >
                 {highlight(col.name, filter)}
               </Text>
               <Text size="xs" variant="muted">({col.data_type}{col.is_nullable ? ", nullable" : ""})</Text>
@@ -112,7 +140,7 @@ function TableDetails({ table, filter }: TableDetailsProps) {
           );
         })}
       </ul>
-    </section>
+    </Card>
   );
 }
 
@@ -132,21 +160,31 @@ export default function DBExplorerPage() {
   const selectedTable = tables.find(t => t.table_name === selected) || (filteredTables.length === 1 ? filteredTables[0] : null);
 
   return (
-    <PageContainer>
-      <div className="flex w-full max-w-5xl h-[600px] rounded-xl shadow-xl bg-black/10 dark:bg-black/30 border border-slate-200 dark:border-zinc-800 overflow-hidden">
-        <TableSidebar tables={filteredTables} selected={selected} onSelect={setSelected} filter={filter} setFilter={setFilter} columnMatches={columnMatches} />
+    <Container maxWidth="7xl" className="py-8">
+      <Card variant="glass" className={cn(
+        layoutPatterns.flexRow,
+        "w-full max-w-5xl h-[600px] rounded-xl shadow-xl overflow-hidden"
+      )}>
+        <TableSidebar 
+          tables={filteredTables} 
+          selected={selected} 
+          onSelect={setSelected} 
+          filter={filter} 
+          setFilter={setFilter} 
+          columnMatches={columnMatches} 
+        />
         {loading ? (
-          <div className="flex-1 flex items-center justify-center">
+          <div className={cn(layoutPatterns.flexCenter, "flex-1")}>
             <Text variant="muted">Loading schema...</Text>
           </div>
         ) : error ? (
-          <div className="flex-1 flex items-center justify-center">
+          <div className={cn(layoutPatterns.flexCenter, "flex-1")}>
             <Text variant="error" weight="semibold">{error}</Text>
           </div>
         ) : (
           <TableDetails table={selectedTable} filter={filter} />
         )}
-      </div>
-    </PageContainer>
+      </Card>
+    </Container>
   );
 } 

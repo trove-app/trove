@@ -31,17 +31,56 @@ export const layoutPatterns = {
   flexStart: 'flex items-center justify-start',
   flexEnd: 'flex items-center justify-end',
   flexCol: 'flex flex-col',
+  flexRow: 'flex flex-row',
   
   // Common spacing
   spacing: {
     sm: 'space-y-2',
     md: 'space-y-4',
     lg: 'space-y-6',
+    xl: 'space-y-8',
+    '2xl': 'space-y-12',
+  },
+
+  // Horizontal spacing
+  hSpacing: {
+    sm: 'space-x-2',
+    md: 'space-x-4',
+    lg: 'space-x-6',
+    xl: 'space-x-8',
+    '2xl': 'space-x-12',
+  },
+
+  // Padding
+  padding: {
+    sm: 'p-2',
+    md: 'p-4',
+    lg: 'p-6',
+    xl: 'p-8',
+    '2xl': 'p-12',
+  },
+
+  // Margin
+  margin: {
+    sm: 'm-2',
+    md: 'm-4',
+    lg: 'm-6',
+    xl: 'm-8',
+    '2xl': 'm-12',
   },
 
   // Grid patterns
   grid2Cols: 'grid grid-cols-1 md:grid-cols-2 gap-4',
   grid3Cols: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4',
+  grid4Cols: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4',
+
+  // Responsive padding
+  responsivePadding: 'px-4 sm:px-6 lg:px-8',
+
+  // Common layout patterns
+  section: 'py-12 sm:py-16 lg:py-20',
+  container: 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8',
+  contentArea: 'py-6 sm:py-8 lg:py-12',
 } as const;
 
 // Input state patterns - comprehensive states for form elements
