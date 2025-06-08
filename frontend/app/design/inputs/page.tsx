@@ -1,4 +1,6 @@
-import { Input, Select, Tag, TagGroup, TagVariant } from '@/app/components/ui/inputs';
+"use client";
+
+import { Input, Select, Tag, TagGroup, TagVariant, SearchInput } from '@/app/components/ui/inputs';
 import { Heading } from '@/app/components/ui/typography';
 import { useState } from 'react';
 
@@ -34,6 +36,7 @@ const filterTags = [
 export default function InputsShowcase() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [removableTags, setRemovableTags] = useState(demoTags);
+  const [searchValue, setSearchValue] = useState('');
 
   const handleTagRemove = (id: string) => {
     setRemovableTags(tags => tags.filter(tag => tag.id !== id));
@@ -44,6 +47,18 @@ export default function InputsShowcase() {
       <Heading level={1}>Input Components</Heading>
       
       <div className="space-y-8">
+        {/* Search Input */}
+        <div>
+          <Heading level={2} className="mb-4">Search Input</Heading>
+          <SearchInput 
+            placeholder="Search for treasure..." 
+            label="Search"
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
+            helperText="Try searching for gold nuggets"
+          />
+        </div>
+
         {/* Default Input */}
         <div>
           <Heading level={2} className="mb-4">Default Input</Heading>

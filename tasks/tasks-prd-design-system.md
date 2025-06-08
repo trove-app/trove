@@ -88,11 +88,11 @@
   - [x] 3.10 Document typography usage patterns
   - [x] 3.11 Remove old typography styles after validation
 
-- [ ] 4.0 Input Components Implementation
-  - [ ] 4.1 Create base Input component with Tailwind styling
-  - [ ] 4.2 Build Select component using Tailwind classes
-  - [ ] 4.3 Implement Tag/Pill component system
-  - [ ] 4.4 Create SearchInput with icon support
+- [x] 4.0 Input Components Implementation
+  - [x] 4.1 Create base Input component with Tailwind styling
+  - [x] 4.2 Build Select component using Tailwind classes
+  - [x] 4.3 Implement Tag/Pill component system
+  - [x] 4.4 Create SearchInput with icon support
   - [ ] 4.5 Add input states using Tailwind modifiers
   - [ ] 4.6 Identify input usage in SQL builder
   - [ ] 4.7 Migrate SQL builder inputs

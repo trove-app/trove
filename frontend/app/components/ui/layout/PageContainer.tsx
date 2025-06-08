@@ -6,7 +6,7 @@ interface PageContainerProps {
   centered?: boolean;
 }
 
-export function PageContainer({ children, className, centered = false }: PageContainerProps) {
+export function PageContainer({ children, className, centered = true }: PageContainerProps) {
   return (
     <main 
       className={cn(
