@@ -15,71 +15,49 @@ interface TableSidebarProps {
   filter: string;
   setFilter: (filter: string) => void;
   columnMatches: Record<string, string[]>;
+  onHover?: (info: { type: 'table' | 'column'; name: string; dataType?: string } | null) => void;
 }
 
-function TableSidebar({ tables, selected, onSelect, filter, setFilter, columnMatches }: TableSidebarProps) {
-  const [hoveredTable, setHoveredTable] = useState<string | null>(null);
-
-  const handleMouseEnter = (tableName: string) => () => {
-    setHoveredTable(tableName);
-  };
-
-  const handleMouseLeave = () => {
-    setHoveredTable(null);
-  };
-
-  const filteredTables = tables.filter(t => {
-    const tableMatch = t.table_name.toLowerCase().includes(filter.toLowerCase());
-    const colMatches = t.columns.filter(col => col.name.toLowerCase().includes(filter.toLowerCase()));
-    if (colMatches.length > 0) columnMatches[t.table_name] = colMatches.map(col => col.name);
-    return tableMatch || colMatches.length > 0;
-  });
-
+function TableSidebar({ tables, selected, onSelect, filter, setFilter, columnMatches, onHover }: TableSidebarProps) {
   return (
-    <>
-      <aside className="w-72 min-w-72 max-w-72 bg-card/80 backdrop-blur-sm border-r border-border/50 
-                        p-4 flex flex-col gap-2 h-[calc(100%-2rem)] rounded-l-xl min-w-0">
-        <input
-          type="text"
-          placeholder="Search tables or columns..."
-          value={filter}
-          onChange={e => setFilter(e.target.value)}
-          className="mb-3 px-4 py-2 rounded-lg border border-border bg-input 
-                     text-foreground placeholder:text-muted-foreground
-                     focus:outline-none focus:ring-2 focus:ring-accent
-                     transition-all duration-200"
-        />
-        
-        <div className="flex-1 overflow-y-auto space-y-1.5">
-          {filteredTables.map((table) => (
-            <button
-              key={table.table_name}
-              onClick={() => onSelect(table.table_name)}
-              onMouseEnter={handleMouseEnter(table.table_name)}
-              onMouseLeave={handleMouseLeave}
-              className={`w-full text-left px-3 py-2 rounded-lg font-medium transition-all duration-200
-                         flex items-center cursor-pointer
-                         hover:bg-primary-100 dark:hover:bg-muted hover:shadow-soft
-                         ${selected === table.table_name 
-                           ? "bg-primary-100 dark:bg-muted text-accent font-semibold shadow-soft" 
-                           : "text-foreground"}`}
-            >
-              <span className="mr-2 text-xl">🗄️</span>
-              <span className="truncate max-w-[10rem] inline-block align-bottom">{table.table_name}</span>
-              {filter && columnMatches[table.table_name]?.length > 0 && (
-                <span className="ml-6 mt-1 text-xs text-accent">
-                  ({columnMatches[table.table_name].length} col match{columnMatches[table.table_name].length > 1 ? 'es' : ''})
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
-      </aside>
+    <aside className="w-72 min-w-72 max-w-72 bg-card/80 backdrop-blur-sm border-r border-border/50 
+                      p-4 flex flex-col gap-2 h-[calc(100%-2rem)] rounded-l-xl min-w-0">
+      <input
+        type="text"
+        placeholder="Search tables or columns..."
+        value={filter}
+        onChange={e => setFilter(e.target.value)}
+        className="mb-3 px-4 py-2 rounded-lg border border-border bg-input 
+                   text-foreground placeholder:text-muted-foreground
+                   focus:outline-none focus:ring-2 focus:ring-accent
+                   transition-all duration-200"
+      />
       
-      <div className="fixed bottom-0 left-0 right-0 h-8 min-h-8 px-3 py-1.5 bg-muted/30 backdrop-blur-sm border-t border-border/50 text-sm text-muted-foreground font-mono truncate">
-        {hoveredTable || 'Hover over a table to see its full name'}
+      <div className="flex-1 overflow-y-auto space-y-1.5">
+        {tables.map((table) => (
+          <button
+            key={table.table_name}
+            onClick={() => onSelect(table.table_name)}
+            onMouseEnter={() => onHover?.({ type: 'table', name: table.table_name })}
+            onMouseLeave={() => onHover?.(null)}
+            className={`w-full text-left px-3 py-2 rounded-lg font-medium transition-all duration-200
+                       flex items-center cursor-pointer
+                       hover:bg-primary-100 dark:hover:bg-muted hover:shadow-soft
+                       ${selected === table.table_name 
+                         ? "bg-primary-100 dark:bg-muted text-accent font-semibold shadow-soft" 
+                         : "text-foreground"}`}
+          >
+            <span className="mr-2 text-xl">🗄️</span>
+            <span className="truncate max-w-[10rem] inline-block align-bottom">{table.table_name}</span>
+            {filter && columnMatches[table.table_name]?.length > 0 && (
+              <span className="ml-6 mt-1 text-xs text-accent">
+                ({columnMatches[table.table_name].length} col match{columnMatches[table.table_name].length > 1 ? 'es' : ''})
+              </span>
+            )}
+          </button>
+        ))}
       </div>
-    </>
+    </aside>
   );
 }
 
@@ -93,9 +71,10 @@ function highlight(text: string, query: string) {
 interface TableDetailsProps {
   table: Table | null;
   filter: string;
+  onHover?: (info: { type: 'table' | 'column'; name: string; dataType?: string } | null) => void;
 }
 
-function TableDetails({ table, filter }: TableDetailsProps) {
+function TableDetails({ table, filter, onHover }: TableDetailsProps) {
   if (!table) return (
     <div className="flex-1 flex items-center justify-center text-muted-foreground">
       ✨ Select a table to view details
@@ -114,6 +93,8 @@ function TableDetails({ table, filter }: TableDetailsProps) {
           const isMatch = filter && col.name.toLowerCase().includes(filter.toLowerCase());
           return (
             <li key={col.name} 
+                onMouseEnter={() => onHover?.({ type: 'column', name: col.name, dataType: col.data_type })}
+                onMouseLeave={() => onHover?.(null)}
                 className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200
                            ${isMatch ? 'bg-accent/10 text-accent font-medium' : 'text-foreground'}`}>
               <span className="font-mono text-base">{highlight(col.name, filter)}</span>
@@ -132,7 +113,8 @@ export default function DBExplorerPage() {
   const { tables, loading, error } = useSchema();
   const [selected, setSelected] = useState<string | null>(null);
   const [filter, setFilter] = useState("");
-
+  const [hoveredInfo, setHoveredInfo] = useState<{ type: 'table' | 'column'; name: string; dataType?: string } | null>(null);
+  
   const columnMatches: Record<string, string[]> = {};
   const filteredTables = tables.filter(t => {
     const tableMatch = t.table_name.toLowerCase().includes(filter.toLowerCase());
@@ -144,15 +126,16 @@ export default function DBExplorerPage() {
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-4 py-8">
-      <div className="flex w-full max-w-5xl h-[600px] rounded-xl shadow-treasure 
+      <div className="flex w-full max-w-5xl h-[calc(100vh-8rem)] rounded-xl shadow-treasure 
                       bg-card/80 backdrop-blur-sm border border-border/50 overflow-hidden">
-        <TableSidebar 
+        <TableSidebar
           tables={filteredTables} 
           selected={selected} 
           onSelect={setSelected} 
-          filter={filter} 
-          setFilter={setFilter} 
-          columnMatches={columnMatches} 
+          filter={filter}
+          setFilter={setFilter}
+          columnMatches={columnMatches}
+          onHover={setHoveredInfo}
         />
         {loading ? (
           <div className="flex-1 flex items-center justify-center text-muted-foreground">
@@ -163,8 +146,22 @@ export default function DBExplorerPage() {
             {error}
           </div>
         ) : (
-          <TableDetails table={selectedTable} filter={filter} />
+          <TableDetails 
+            table={selectedTable} 
+            filter={filter}
+            onHover={setHoveredInfo}
+          />
         )}
+        
+        <div className="fixed bottom-0 left-0 right-0 h-8 min-h-8 px-3 py-1.5 bg-muted/30 backdrop-blur-sm border-t border-border/50 text-sm text-muted-foreground font-mono truncate">
+          {hoveredInfo ? (
+            hoveredInfo.type === 'table' 
+              ? hoveredInfo.name
+              : `${hoveredInfo.name} (${hoveredInfo.dataType})`
+          ) : (
+            'Hover over a table or column to see details'
+          )}
+        </div>
       </div>
     </main>
   );
