@@ -73,21 +73,20 @@ function SqlBuilderInner() {
   };
 
   return (
-    <main className="flex flex-col min-h-screen items-center justify-center bg-gradient-to-br from-white via-slate-100 to-slate-200 dark:from-zinc-900 dark:via-zinc-800 dark:to-zinc-950 px-4">
+    <main className="flex flex-col min-h-screen items-center justify-center bg-background">
       <div className="w-full flex flex-col items-center">
         {/* Toggle Tabs - only show when editor is visible */}
         {showEditor && (
           <div className="w-full max-w-xl flex justify-center mb-2 mt-6">
-            <div className="inline-flex rounded-xl bg-slate-100 dark:bg-zinc-800 p-1 shadow-sm border border-slate-200 dark:border-zinc-700">
+            <div className="inline-flex rounded-xl bg-muted p-1 shadow-soft border border-border">
               <button
-                className={`px-6 py-2 rounded-lg font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:z-10
+                className={`px-6 py-2 rounded-lg font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:z-10
                   ${
                     mode === "written"
-                      ? "bg-white dark:bg-zinc-900 text-blue-700 dark:text-blue-300 shadow border border-blue-500"
-                      : "bg-transparent text-slate-500 dark:text-zinc-400 border border-transparent hover:bg-slate-200 dark:hover:bg-zinc-700"
+                      ? "bg-card text-accent shadow-soft border border-accent"
+                      : "bg-transparent text-muted-foreground border border-transparent hover:bg-muted"
                   }`}
                 onClick={() => {
-                  // When switching to written mode, set query to latest SQL from visual builder
                   if (
                     visualBuilderRef.current &&
                     visualBuilderRef.current.getSql
@@ -108,11 +107,11 @@ function SqlBuilderInner() {
                 Written
               </button>
               <button
-                className={`px-6 py-2 rounded-lg font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:z-10
+                className={`px-6 py-2 rounded-lg font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:z-10
                   ${
                     mode === "visual"
-                      ? "bg-white dark:bg-zinc-900 text-blue-700 dark:text-blue-300 shadow border border-blue-500"
-                      : "bg-transparent text-slate-500 dark:text-zinc-400 border border-transparent hover:bg-slate-200 dark:hover:bg-zinc-700"
+                      ? "bg-card text-accent shadow-soft border border-accent"
+                      : "bg-transparent text-muted-foreground border border-transparent hover:bg-muted"
                   }`}
                 onClick={() => setMode("visual")}
                 type="button"
@@ -124,7 +123,7 @@ function SqlBuilderInner() {
           </div>
         )}
         <button
-          className="fixed bottom-8 right-8 z-50 bg-blue-600 text-white px-5 py-2 rounded-full shadow-lg font-bold hover:bg-blue-700 transition-colors"
+          className="fixed bottom-8 right-8 z-50 bg-accent text-accent-foreground px-5 py-2 rounded-full shadow-treasure font-bold hover:bg-primary-600 transition-colors"
           onClick={() => setShowEditor((v) => !v)}
         >
           {showEditor ? "Hide Query" : "Edit Query"}
@@ -137,7 +136,7 @@ function SqlBuilderInner() {
           }`}
         >
           <div style={{ height: 600, overflowY: "auto" }}>
-            <section className="w-full h-full bg-white/80 dark:bg-zinc-900/80 rounded-2xl shadow-xl p-8 border border-slate-200 dark:border-zinc-800 flex flex-col">
+            <section className="w-full h-full bg-card/80 rounded-2xl shadow-treasure p-8 border border-border flex flex-col">
               {mode === "written" ? (
                 <SqlEditor value={sql} onChange={updateFromSql} />
               ) : (
@@ -155,13 +154,13 @@ function SqlBuilderInner() {
           <div className="w-full flex flex-col items-end mt-2">
             <button
               onClick={runQuery}
-              className="px-6 py-2 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 disabled:opacity-60"
+              className="px-6 py-2 rounded-lg bg-accent text-accent-foreground font-bold hover:bg-primary-600 disabled:opacity-60 shadow-treasure"
               disabled={loading || !sql.trim()}
             >
               {loading ? "Running..." : "Run Query"}
             </button>
             {error && (
-              <div className="text-red-600 font-semibold mb-4 self-start">
+              <div className="text-error-600 font-semibold mb-4 self-start">
                 {error}
               </div>
             )}
