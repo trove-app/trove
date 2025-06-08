@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useSchema } from "../context/SchemaContext";
 import type { ColumnMetadata } from "../context/SchemaContext";
-import { Text, Heading, PageContainer } from "../components/ui";
+import { Text, Heading, PageContainer, SearchInput } from "../components/ui";
 
 interface Table {
   table_name: string;
@@ -35,12 +35,11 @@ function TableSidebar({ tables, selected, onSelect, filter, setFilter, columnMat
 
   return (
     <aside className="w-72 min-w-72 max-w-72 bg-white/90 dark:bg-zinc-900/90 border-r border-slate-200 dark:border-zinc-800 p-4 flex flex-col gap-2 h-full rounded-l-xl min-w-0">
-      <input
-        type="text"
+      <SearchInput
         placeholder="Search tables and columns..."
         value={filter}
         onChange={(e) => setFilter(e.target.value)}
-        className="mb-3 px-3 py-2 rounded border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        className="mb-3"
       />
       <ul className="flex-1 overflow-y-auto space-y-1">
         {tables.map((table) => (

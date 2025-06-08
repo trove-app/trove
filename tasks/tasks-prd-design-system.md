@@ -96,10 +96,10 @@
   - [x] 4.5 Add input states using Tailwind modifiers
   - [x] 4.6 Identify input usage in SQL builder
   - [x] 4.7 Migrate SQL builder inputs
-  - [ ] 4.8 Identify input usage in DB explorer
-  - [ ] 4.9 Migrate DB explorer inputs
-  - [ ] 4.10 Document form component usage
-  - [ ] 4.11 Remove old input components after validation
+  - [x] 4.8 Identify input usage in DB explorer
+  - [x] 4.9 Migrate DB explorer inputs
+  - [x] 4.10 Document form component usage
+  - [x] 4.11 Remove old input components after validation
 
 - [ ] 5.0 Interactive Elements Implementation
   - [ ] 5.1 Create Button component with type variants using Tailwind
