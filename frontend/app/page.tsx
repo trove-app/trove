@@ -1,5 +1,5 @@
 import TroveGradientTitle from "./components/TroveGradientTitle";
-import { Text, Heading, Card, PageContainer } from "./components/ui";
+import { Text, Heading, Card, PageContainer, Link } from "./components/ui";
 
 export default function Home() {
   return (
@@ -18,6 +18,25 @@ export default function Home() {
           <li><Text size="lg" as="span">🛠️ 100% open source and extensible</Text></li>
           <li><Text size="lg" as="span">🎯 Built for PMs, EMs, marketing, partner success, and more</Text></li>
         </ul>
+        
+        <div className="mt-8 flex flex-col sm:flex-row gap-4 items-center">
+          <Link 
+            href="/sql-builder"
+            variant="button"
+            size="lg"
+            className="font-semibold"
+          >
+            Start Building Queries ✨
+          </Link>
+          <Link 
+            href="/db-explorer"
+            variant="default"
+            size="lg"
+            className="font-semibold px-6 py-2 border-2 border-primary-500 rounded-lg hover:bg-primary-50"
+          >
+            Explore Your Data 🔍
+          </Link>
+        </div>
       </Card>
     </PageContainer>
   );

@@ -102,13 +102,16 @@
   - [x] 4.11 Remove old input components after validation
 
 - [ ] 5.0 Interactive Elements Implementation
-  - [ ] 5.1 Create Button component with type variants using Tailwind
-  - [ ] 5.2 Add size variants using Tailwind classes
-  - [ ] 5.3 Implement IconButton component
-  - [ ] 5.4 Build Link component with proper states
-  - [ ] 5.5 Add loading states via Tailwind animations
-  - [ ] 5.6 Identify button/link usage in homepage
-  - [ ] 5.7 Migrate homepage interactive elements
+  - [x] 5.1 Create Button component with type variants using Tailwind
+  - [x] 5.2 Add size variants using Tailwind classes
+  - [x] 5.3 Implement IconButton component
+  - [x] 5.4 Build Link component with proper states
+  - [x] 5.5 Add loading states via Tailwind animations
+  - [x] 5.6 Identify button/link usage in homepage
+    - Sidebar.tsx: Migrate Next.js Links to our Link component
+    - SidebarLayout.tsx: Replace raw button with IconButton
+    - page.tsx: Add CTA button using Button component
+  - [x] 5.7 Migrate homepage interactive elements
   - [ ] 5.8 Migrate SQL builder interactive elements
   - [ ] 5.9 Migrate DB explorer interactive elements
   - [ ] 5.10 Document interactive component usage
