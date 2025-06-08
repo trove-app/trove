@@ -93,9 +93,9 @@
   - [x] 4.2 Build Select component using Tailwind classes
   - [x] 4.3 Implement Tag/Pill component system
   - [x] 4.4 Create SearchInput with icon support
-  - [ ] 4.5 Add input states using Tailwind modifiers
-  - [ ] 4.6 Identify input usage in SQL builder
-  - [ ] 4.7 Migrate SQL builder inputs
+  - [x] 4.5 Add input states using Tailwind modifiers
+  - [x] 4.6 Identify input usage in SQL builder
+  - [x] 4.7 Migrate SQL builder inputs
   - [ ] 4.8 Identify input usage in DB explorer
   - [ ] 4.9 Migrate DB explorer inputs
   - [ ] 4.10 Document form component usage

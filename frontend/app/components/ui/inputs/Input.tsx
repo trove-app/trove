@@ -1,7 +1,8 @@
 import React from 'react';
 import { cn } from '../utils/cn';
+import { inputStates } from '../utils/tailwind-utils';
 
-export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
   /**
    * Optional label for the input
    */
@@ -19,10 +20,32 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
    */
   isError?: boolean;
   /**
+   * Whether the input is in a success state
+   */
+  isSuccess?: boolean;
+  /**
+   * Whether the input is in a warning state
+   */
+  isWarning?: boolean;
+  /**
+   * Whether the input is in a loading state
+   */
+  isLoading?: boolean;
+  /**
    * Custom classes to apply to the input wrapper
    */
   wrapperClassName?: string;
+  /**
+   * Size variant
+   */
+  size?: 'sm' | 'md' | 'lg';
 }
+
+const sizeStyles = {
+  sm: 'px-2 py-1 text-xs',
+  md: 'px-4 py-2 text-base',
+  lg: 'px-4 py-3 text-lg',
+} as const;
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ 
@@ -31,10 +54,22 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     helperText,
     error,
     isError,
+    isSuccess,
+    isWarning,
+    isLoading,
     wrapperClassName,
     disabled,
+    size = 'md',
+    type = 'text',
+    value,
     ...props 
   }, ref) => {
+    // Determine validation state
+    const validationState = isError ? 'error' : isSuccess ? 'success' : isWarning ? 'warning' : null;
+
+    // Handle number type
+    const inputValue = type === 'number' && typeof value === 'number' ? value.toString() : value;
+
     return (
       <div className={cn("w-full", wrapperClassName)}>
         {label && (
@@ -47,42 +82,46 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         )}
         <input
           ref={ref}
-          disabled={disabled}
+          type={type}
+          value={inputValue}
+          disabled={disabled || isLoading}
           className={cn(
             // Base styles
-            "w-full px-4 py-2 text-base transition duration-200 ease-in-out",
-            "bg-cream dark:bg-charcoal-black",
-            "text-charcoal-black dark:text-cream",
-            "border rounded-lg",
-            "placeholder:text-gray-400 dark:placeholder:text-gray-500",
+            inputStates.base,
+            sizeStyles[size],
             
-            // Focus styles
-            "focus:outline-none focus:ring-2",
-            "focus:border-treasure-gold focus:ring-treasure-gold/20",
-            
-            // Hover styles
-            "hover:border-treasure-gold/50",
-            
-            // Disabled styles
-            disabled && "opacity-50 cursor-not-allowed hover:border-inherit",
-            
-            // Error styles
-            isError && [
-              "border-red-500",
-              "focus:border-red-500",
-              "focus:ring-red-500/20",
+            // Interactive states
+            !disabled && !isLoading && [
+              inputStates.interactive.hover,
+              inputStates.interactive.focus,
+              inputStates.interactive.active,
+              inputStates.interactive.pressed,
             ],
+            
+            // Validation states
+            validationState && inputStates.validation[validationState],
+            
+            // Loading state
+            isLoading && inputStates.loading,
+            
+            // Disabled state
+            disabled && inputStates.disabled,
             
             className
           )}
           {...props}
         />
+        
         {(helperText || error) && (
           <p 
             className={cn(
               "mt-2 text-sm",
               error 
                 ? "text-red-500" 
+                : isSuccess
+                ? "text-success-600 dark:text-success-400"
+                : isWarning
+                ? "text-warning-600 dark:text-warning-400"
                 : "text-gray-500 dark:text-gray-400"
             )}
           >

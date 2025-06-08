@@ -1,5 +1,6 @@
 import React from 'react';
 import { cn } from '../utils/cn';
+import { inputStates } from '../utils/tailwind-utils';
 
 export interface SelectOption {
   value: string;
@@ -7,7 +8,7 @@ export interface SelectOption {
   disabled?: boolean;
 }
 
-export interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'children'> {
+export interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'children' | 'size'> {
   /**
    * Options for the select
    */
@@ -29,6 +30,18 @@ export interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectE
    */
   isError?: boolean;
   /**
+   * Whether the select is in a success state
+   */
+  isSuccess?: boolean;
+  /**
+   * Whether the select is in a warning state
+   */
+  isWarning?: boolean;
+  /**
+   * Whether the select is in a loading state
+   */
+  isLoading?: boolean;
+  /**
    * Custom classes to apply to the select wrapper
    */
   wrapperClassName?: string;
@@ -36,7 +49,17 @@ export interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectE
    * Optional placeholder text
    */
   placeholder?: string;
+  /**
+   * Size variant
+   */
+  size?: 'sm' | 'md' | 'lg';
 }
+
+const sizeStyles = {
+  sm: 'px-2 py-1 text-xs',
+  md: 'px-4 py-2 text-base',
+  lg: 'px-4 py-3 text-lg',
+} as const;
 
 export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
   ({ 
@@ -45,12 +68,19 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
     helperText,
     error,
     isError,
+    isSuccess,
+    isWarning,
+    isLoading,
     wrapperClassName,
     disabled,
     options,
     placeholder,
+    size = 'md',
     ...props 
   }, ref) => {
+    // Determine validation state
+    const validationState = isError ? 'error' : isSuccess ? 'success' : isWarning ? 'warning' : null;
+
     return (
       <div className={cn("w-full", wrapperClassName)}>
         {label && (
@@ -64,31 +94,29 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
         <div className="relative">
           <select
             ref={ref}
-            disabled={disabled}
+            disabled={disabled || isLoading}
             className={cn(
               // Base styles
-              "w-full px-4 py-2 text-base transition duration-200 ease-in-out appearance-none",
-              "bg-cream dark:bg-charcoal-black",
-              "text-charcoal-black dark:text-cream",
-              "border rounded-lg",
-              "pr-10", // Extra padding for the chevron
+              inputStates.base,
+              sizeStyles[size],
+              'appearance-none pr-10', // Extra padding for the chevron
               
-              // Focus styles
-              "focus:outline-none focus:ring-2",
-              "focus:border-treasure-gold focus:ring-treasure-gold/20",
-              
-              // Hover styles
-              "hover:border-treasure-gold/50",
-              
-              // Disabled styles
-              disabled && "opacity-50 cursor-not-allowed hover:border-inherit",
-              
-              // Error styles
-              isError && [
-                "border-red-500",
-                "focus:border-red-500",
-                "focus:ring-red-500/20",
+              // Interactive states
+              !disabled && !isLoading && [
+                inputStates.interactive.hover,
+                inputStates.interactive.focus,
+                inputStates.interactive.active,
+                inputStates.interactive.pressed,
               ],
+              
+              // Validation states
+              validationState && inputStates.validation[validationState],
+              
+              // Loading state
+              isLoading && inputStates.loading,
+              
+              // Disabled state
+              disabled && inputStates.disabled,
               
               className
             )}
@@ -111,7 +139,10 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
           </select>
           
           {/* Custom chevron icon */}
-          <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+          <div className={cn(
+            "absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none",
+            disabled && "opacity-50"
+          )}>
             <svg
               className="w-5 h-5 text-gray-400"
               xmlns="http://www.w3.org/2000/svg"
@@ -134,6 +165,10 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
               "mt-2 text-sm",
               error 
                 ? "text-red-500" 
+                : isSuccess
+                ? "text-success-600 dark:text-success-400"
+                : isWarning
+                ? "text-warning-600 dark:text-warning-400"
                 : "text-gray-500 dark:text-gray-400"
             )}
           >

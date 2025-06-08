@@ -9,6 +9,7 @@ import { useSqlBuilder, type QueryState } from "../context/SqlBuilderContext";
 import { useState as useLocalState } from "react";
 import { FaArrowUp, FaArrowDown, FaPlus, FaTrash } from "react-icons/fa";
 import { Text } from "../components/ui";
+import { Select, Input, Tag, TagGroup } from "../components/ui/inputs";
 
 interface VisualSqlBuilderProps {
   queryState: QueryState;
@@ -242,15 +243,10 @@ const VisualSqlBuilder = forwardRef<
     <div className="w-full max-w-full mx-auto bg-white dark:bg-zinc-900 rounded-2xl shadow-xl p-5 flex flex-col gap-5 border border-slate-200 dark:border-zinc-800 overflow-x-auto h-[575px]">
       {/* Table selection */}
       <div>
-        <label
-          htmlFor="table-select"
-          className="block mb-1"
-        >
-          <Text weight="semibold" variant="primary">Data Table</Text>
-        </label>
-        <select
+        <Select
           id="table-select"
-          className="w-full rounded-lg border px-3 py-2 bg-white dark:bg-zinc-900 border-slate-300 dark:border-zinc-700 text-slate-800 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
+          label="Data Table"
+          placeholder="Select a table..."
           value={selectedTable}
           onChange={(e) => {
             setQueryState((prev) => ({ ...prev, table: e.target.value }));
@@ -258,16 +254,12 @@ const VisualSqlBuilder = forwardRef<
           disabled={loading || !!error || tables.length === 0}
           aria-label="Select the main data table"
           title="Pick the main table you want to explore."
-        >
-          <option value="" disabled>
-            Select a table...
-          </option>
-          {tables.map((t) => (
-            <option key={t.table_name} value={t.table_name}>
-              {t.table_name}
-            </option>
-          ))}
-        </select>
+          options={tables.map((t) => ({
+            value: t.table_name,
+            label: t.table_name
+          }))}
+          size="md"
+        />
       </div>
 
       {/* Divider */}
@@ -312,8 +304,9 @@ const VisualSqlBuilder = forwardRef<
                 className="flex flex-wrap items-center gap-2 mb-1 bg-white dark:bg-zinc-900 rounded-lg p-2 shadow-sm border border-slate-200 dark:border-zinc-800"
               >
                 {/* Table to combine */}
-                <select
-                  className="rounded-lg border px-3 py-2 bg-white dark:bg-zinc-900 border-slate-300 dark:border-zinc-700 text-slate-800 dark:text-zinc-100 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
+                <Select
+                  size="sm"
+                  className="min-w-[150px]"
                   value={join.table}
                   onChange={(e) => {
                     const newTable = e.target.value;
@@ -335,48 +328,44 @@ const VisualSqlBuilder = forwardRef<
                   }}
                   aria-label="Select table to combine"
                   title="Pick another table to combine with your main table."
-                >
-                  {tables
+                  options={tables
                     .filter((t) => t.table_name !== selectedTable)
-                    .map((t) => (
-                      <option key={t.table_name} value={t.table_name}>
-                        {t.table_name}
-                      </option>
-                    ))}
-                </select>
+                    .map((t) => ({
+                      value: t.table_name,
+                      label: t.table_name
+                    }))}
+                />
                 {/* Main table column */}
-                <select
-                  className="rounded-lg border px-3 py-2 bg-white dark:bg-zinc-900 border-slate-300 dark:border-zinc-700 text-slate-800 dark:text-zinc-100 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
+                <Select
+                  size="sm"
+                  className="min-w-[150px]"
                   value={join.baseColumn}
                   onChange={(e) =>
                     handleJoinChange(idx, "baseColumn", e.target.value)
                   }
                   aria-label="Select column from main table"
                   title="Pick a column from your main table to match with the other table."
-                >
-                  {baseTable?.columns.map((col) => (
-                    <option key={col.name} value={col.name}>
-                      {col.name}
-                    </option>
-                  ))}
-                </select>
+                  options={baseTable?.columns.map((col) => ({
+                    value: col.name,
+                    label: col.name
+                  })) || []}
+                />
                 <Text as="span" size="xs" variant="muted">matches</Text>
                 {/* Other table column */}
-                <select
-                  className="rounded-lg border px-3 py-2 bg-white dark:bg-zinc-900 border-slate-300 dark:border-zinc-700 text-slate-800 dark:text-zinc-100 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
+                <Select
+                  size="sm"
+                  className="min-w-[150px]"
                   value={join.column}
                   onChange={(e) =>
                     handleJoinChange(idx, "column", e.target.value)
                   }
                   aria-label="Select column from other table"
                   title="Pick a column from the other table to match with your main table."
-                >
-                  {joinTable?.columns.map((col) => (
-                    <option key={col.name} value={col.name}>
-                      {col.name}
-                    </option>
-                  ))}
-                </select>
+                  options={joinTable?.columns.map((col) => ({
+                    value: col.name,
+                    label: col.name
+                  })) || []}
+                />
                 <button
                   type="button"
                   className="ml-2 p-1 rounded-full bg-red-100 dark:bg-red-900 hover:bg-red-200 dark:hover:bg-red-700"
@@ -419,16 +408,15 @@ const VisualSqlBuilder = forwardRef<
           {joinedTables.map((t, idx) => {
             const meta = tables.find((tab) => tab.table_name === t.table_name);
             if (!meta) return null;
-            // Color palette for pills
-            const pillColors = [
-              "bg-blue-600 text-white border-blue-600", // base
-              "bg-green-600 text-white border-green-600", // join 1
-              "bg-yellow-500 text-white border-yellow-500", // join 2
-              "bg-purple-600 text-white border-purple-600", // join 3
-              "bg-pink-600 text-white border-pink-600", // join 4
-              "bg-cyan-600 text-white border-cyan-600", // join 5
-            ];
-            const pillColor = pillColors[idx % pillColors.length];
+            // Color variants for tags
+            const tagVariants = [
+              'gold',     // base
+              'success',  // join 1
+              'warning',  // join 2
+              'error',    // join 3
+              'info',     // join 4
+            ] as const;
+            const tagVariant = tagVariants[idx % tagVariants.length];
             return (
               <div key={t.table_name} className="mb-1">
                 <div className="mb-1 text-xs font-semibold text-slate-700 flex items-center gap-2">
@@ -437,42 +425,24 @@ const VisualSqlBuilder = forwardRef<
                   </Text>
                   <Text size="xs" variant="muted">({tableAliases[t.table_name]})</Text>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {meta.columns.map((col) => {
+                <TagGroup 
+                  tags={meta.columns.map((col) => {
                     const colObj = { table: t.table_name, column: col.name };
                     const checked = selectedColumns.some(
                       (c) => c.table === t.table_name && c.column === col.name
                     );
-                    return (
-                      <label
-                        key={`${t.table_name}.${col.name}`}
-                        className={`flex items-center gap-2 px-3 py-1 rounded-full border text-xs font-mono cursor-pointer select-none transition-all
-                          ${
-                            checked
-                              ? pillColor
-                              : "bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-200 border-slate-300 dark:border-zinc-700 hover:bg-blue-100 dark:hover:bg-zinc-700 hover:border-blue-400"
-                          }
-                        `}
-                        tabIndex={0}
-                        title={
-                          checked
-                            ? "Column will be shown in your results"
-                            : "Click to show this column in your results"
-                        }
-                      >
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          onChange={() => handleColumnToggle(colObj)}
-                          className="accent-blue-600 rounded focus:ring-2 focus:ring-blue-400"
-                          tabIndex={-1}
-                          aria-label={`Show column ${col.name}`}
-                        />
-                        {col.name}
-                      </label>
-                    );
+                    return {
+                      id: `${t.table_name}.${col.name}`,
+                      label: col.name,
+                      variant: checked ? tagVariant : 'default',
+                      interactive: true,
+                      onClick: () => handleColumnToggle(colObj),
+                      className: "font-mono",
+                      title: checked ? "Column will be shown in your results" : "Click to show this column in your results"
+                    };
                   })}
-                </div>
+                  gap="sm"
+                />
               </div>
             );
           })}
@@ -511,48 +481,51 @@ const VisualSqlBuilder = forwardRef<
                     key={idx}
                     className="flex flex-wrap items-center gap-2 mb-2"
                   >
-                    <select
-                      className="rounded border px-2 py-1 text-xs bg-white dark:bg-zinc-900 border-slate-300 dark:border-zinc-700"
+                    <Select
+                      size="sm"
+                      className="min-w-[120px]"
                       value={f.table}
                       onChange={(e) =>
                         handleFilterChange(idx, "table", e.target.value)
                       }
-                    >
-                      {joinedTables.map((t) => (
-                        <option key={t.table_name} value={t.table_name}>
-                          {t.table_name}
-                        </option>
-                      ))}
-                    </select>
-                    <select
-                      className="rounded border px-2 py-1 text-xs bg-white dark:bg-zinc-900 border-slate-300 dark:border-zinc-700"
+                      options={joinedTables.map((t) => ({
+                        value: t.table_name,
+                        label: t.table_name
+                      }))}
+                    />
+                    <Select
+                      size="sm"
+                      className="min-w-[120px]"
                       value={f.column}
                       onChange={(e) =>
                         handleFilterChange(idx, "column", e.target.value)
                       }
-                    >
-                      {tableMeta?.columns.map((c) => (
-                        <option key={c.name} value={c.name}>
-                          {c.name}
-                        </option>
-                      ))}
-                    </select>
-                    <select
-                      className="rounded border px-2 py-1 text-xs bg-white dark:bg-zinc-900 border-slate-300 dark:border-zinc-700"
+                      options={tableMeta?.columns.map((c) => ({
+                        value: c.name,
+                        label: c.name
+                      })) || []}
+                    />
+                    <Select
+                      size="sm"
+                      className="min-w-[100px]"
                       value={f.op}
                       onChange={(e) =>
                         handleFilterChange(idx, "op", e.target.value)
                       }
                       aria-label="Choose how to compare values"
-                    >
-                      {["=", "!=", "<", ">", "<=", ">=", "ILIKE"].map((op) => (
-                        <option key={op} value={op}>
-                          {op === "ILIKE" ? "contains" : op}
-                        </option>
-                      ))}
-                    </select>
-                    <input
-                      className="rounded border px-2 py-1 text-xs bg-white dark:bg-zinc-900 border-slate-300 dark:border-zinc-700"
+                      options={[
+                        { value: "=", label: "=" },
+                        { value: "!=", label: "!=" },
+                        { value: "<", label: "<" },
+                        { value: ">", label: ">" },
+                        { value: "<=", label: "<=" },
+                        { value: ">=", label: ">=" },
+                        { value: "ILIKE", label: "contains" }
+                      ]}
+                    />
+                    <Input
+                      size="sm"
+                      className="min-w-[120px]"
                       value={f.value}
                       onChange={(e) =>
                         handleFilterChange(idx, "value", e.target.value)
@@ -604,45 +577,42 @@ const VisualSqlBuilder = forwardRef<
                     key={idx}
                     className="flex flex-wrap items-center gap-2 mb-2"
                   >
-                    <select
-                      className="rounded border px-2 py-1 text-xs bg-white dark:bg-zinc-900 border-slate-300 dark:border-zinc-700"
+                    <Select
+                      size="sm"
+                      className="min-w-[120px]"
                       value={o.table}
                       onChange={(e) =>
                         handleOrderByChange(idx, "table", e.target.value)
                       }
-                    >
-                      {joinedTables.map((t) => (
-                        <option key={t.table_name} value={t.table_name}>
-                          {t.table_name}
-                        </option>
-                      ))}
-                    </select>
-                    <select
-                      className="rounded border px-2 py-1 text-xs bg-white dark:bg-zinc-900 border-slate-300 dark:border-zinc-700"
+                      options={joinedTables.map((t) => ({
+                        value: t.table_name,
+                        label: t.table_name
+                      }))}
+                    />
+                    <Select
+                      size="sm"
+                      className="min-w-[120px]"
                       value={o.column}
                       onChange={(e) =>
                         handleOrderByChange(idx, "column", e.target.value)
                       }
-                    >
-                      {tableMeta?.columns.map((c) => (
-                        <option key={c.name} value={c.name}>
-                          {c.name}
-                        </option>
-                      ))}
-                    </select>
-                    <select
-                      className="rounded border px-2 py-1 text-xs bg-white dark:bg-zinc-900 border-slate-300 dark:border-zinc-700"
+                      options={tableMeta?.columns.map((c) => ({
+                        value: c.name,
+                        label: c.name
+                      })) || []}
+                    />
+                    <Select
+                      size="sm"
+                      className="min-w-[100px]"
                       value={o.direction}
                       onChange={(e) =>
                         handleOrderByChange(idx, "direction", e.target.value)
                       }
-                    >
-                      {["ASC", "DESC"].map((dir) => (
-                        <option key={dir} value={dir}>
-                          {dir}
-                        </option>
-                      ))}
-                    </select>
+                      options={[
+                        { value: "ASC", label: "ASC" },
+                        { value: "DESC", label: "DESC" }
+                      ]}
+                    />
                     <button
                       type="button"
                       className={`ml-2 p-1 rounded-full ${
@@ -695,13 +665,14 @@ const VisualSqlBuilder = forwardRef<
           </button>
           {showLimit && (
             <div className="px-4 pb-4 flex items-center gap-3">
-              <input
+              <Input
                 id="limit-input"
                 type="number"
                 min={1}
                 max={10000}
-                className="w-24 rounded-lg border px-3 py-2 bg-white dark:bg-zinc-900 border-slate-300 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                value={limit}
+                size="md"
+                className="w-24"
+                value={limit.toString()}
                 onChange={(e) =>
                   setQueryState((prev) => ({
                     ...prev,

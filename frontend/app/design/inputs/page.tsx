@@ -59,35 +59,81 @@ export default function InputsShowcase() {
           />
         </div>
 
-        {/* Default Input */}
+        {/* Input States */}
         <div>
-          <Heading level={2} className="mb-4">Default Input</Heading>
-          <Input 
-            placeholder="Enter some text..." 
-            label="Default Input"
-            helperText="This is a helper text"
-          />
-        </div>
+          <Heading level={2} className="mb-4">Input States</Heading>
+          
+          {/* Default Input */}
+          <div className="mb-4">
+            <Input 
+              placeholder="Default input state" 
+              label="Default Input"
+              helperText="This is a helper text"
+            />
+          </div>
 
-        {/* Input with Error */}
-        <div>
-          <Heading level={2} className="mb-4">Input with Error</Heading>
-          <Input 
-            placeholder="Enter some text..." 
-            label="Error Input"
-            isError
-            error="This field is required"
-          />
-        </div>
+          {/* Success State */}
+          <div className="mb-4">
+            <Input 
+              placeholder="Input with success" 
+              label="Success Input"
+              isSuccess
+              helperText="Data validated successfully"
+              defaultValue="Valid input"
+            />
+          </div>
 
-        {/* Disabled Input */}
-        <div>
-          <Heading level={2} className="mb-4">Disabled Input</Heading>
-          <Input 
-            placeholder="This input is disabled" 
-            label="Disabled Input"
-            disabled
-          />
+          {/* Warning State */}
+          <div className="mb-4">
+            <Input 
+              placeholder="Input with warning" 
+              label="Warning Input"
+              isWarning
+              helperText="Please review this value"
+              defaultValue="Review needed"
+            />
+          </div>
+
+          {/* Error State */}
+          <div className="mb-4">
+            <Input 
+              placeholder="Input with error" 
+              label="Error Input"
+              isError
+              error="This field is required"
+            />
+          </div>
+
+          {/* Loading State */}
+          <div className="mb-4">
+            <Input 
+              placeholder="Loading..." 
+              label="Loading Input"
+              isLoading
+              helperText="Loading data..."
+              defaultValue="Loading..."
+            />
+          </div>
+
+          {/* Disabled State */}
+          <div className="mb-4">
+            <Input 
+              placeholder="This input is disabled" 
+              label="Disabled Input"
+              disabled
+              defaultValue="Can't edit this"
+            />
+          </div>
+
+          {/* Read-only State */}
+          <div className="mb-4">
+            <Input 
+              placeholder="This input is read-only" 
+              label="Read-only Input"
+              readOnly
+              defaultValue="Can't edit this either"
+            />
+          </div>
         </div>
 
         {/* Default Select */}
