@@ -5,7 +5,7 @@ import ThemeToggle from "./ThemeToggle";
 export default function Sidebar() {
   return (
     <aside className="w-64 bg-card dark:bg-card border-r border-border flex flex-col p-6 shadow-md min-h-screen">
-      <div className="pl-8 mb-8">
+      <div className="pl-10 mb-8">
         <TroveGradientTitle size="text-3xl">Trove</TroveGradientTitle>
       </div>
       
