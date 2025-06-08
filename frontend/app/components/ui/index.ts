@@ -1,28 +1,32 @@
 // UI Component Library Index
 // This file exports all UI components for easy importing
 
-// Typography Components
-export { Text } from './typography/Text';
-export { Heading } from './typography/Heading';
-
 // Layout Components
 export { Container } from './layout/Container';
 export { Grid, GridItem } from './layout/Grid';
 
-// Card Component
-export { Card } from './Card';
+// Typography Components
+export { Text } from './typography/Text';
+export { Heading } from './typography/Heading';
+
+// Form Components
+export { Input } from './inputs/Input';
+export { Select } from './inputs/Select';
+export { SearchInput } from './inputs/SearchInput';
+export { Tag } from './inputs/Tag';
+export { TagGroup } from './inputs/TagGroup';
 
 // Interactive Components
 export { Button } from './interactive/Button';
 export { IconButton } from './interactive/IconButton';
 export { Link } from './interactive/Link';
 
-// Input Components
-export { Input } from './inputs/Input';
-export { SearchInput } from './inputs/SearchInput';
-export { Select } from './inputs/Select';
-export { Tag } from './inputs/Tag';
-export { TagGroup } from './inputs/TagGroup';
+// Data Components
+export { Table } from './data/Table';
+export type { TableProps } from './data/Table';
+
+// Card Component
+export { Card } from './Card';
 
 // Utility Functions
 export { cn } from './utils/cn';

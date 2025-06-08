@@ -8,8 +8,9 @@ import { useSchema } from "../context/SchemaContext";
 import { useSqlBuilder, type QueryState } from "../context/SqlBuilderContext";
 import { useState as useLocalState } from "react";
 import { FaArrowUp, FaArrowDown, FaPlus, FaTrash } from "react-icons/fa";
-import { Text, Button, IconButton } from "../components/ui";
+import { Text, Button, IconButton, Card } from "../components/ui";
 import { Select, Input, Tag, TagGroup } from "../components/ui/inputs";
+import { cn, layoutPatterns } from "../components/ui/utils";
 
 interface VisualSqlBuilderProps {
   queryState: QueryState;
@@ -240,451 +241,339 @@ const VisualSqlBuilder = forwardRef<
   };
 
   return (
-    <div className="w-full max-w-full mx-auto bg-white dark:bg-zinc-900 rounded-2xl shadow-xl p-5 flex flex-col gap-5 border border-slate-200 dark:border-zinc-800 overflow-x-auto h-[575px]">
-      {/* Table selection */}
-      <div>
-        <Select
-          id="table-select"
-          label="Data Table"
-          placeholder="Select a table..."
-          value={selectedTable}
-          onChange={(e) => {
-            setQueryState((prev) => ({ ...prev, table: e.target.value }));
-          }}
-          disabled={loading || !!error || tables.length === 0}
-          aria-label="Select the main data table"
-          title="Pick the main table you want to explore."
-          options={tables.map((t) => ({
-            value: t.table_name,
-            label: t.table_name
-          }))}
-          size="md"
-        />
-      </div>
-
-      {/* Divider */}
-      <div className="border-t border-slate-200 dark:border-zinc-800 my-1" />
-
-      {/* Joins UI (moved above columns) */}
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <Text weight="semibold" variant="primary">Combine Tables (JOIN)</Text>
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={handleAddJoin}
-            disabled={!selectedTable || tables.length < 2}
-            aria-label={
-              !selectedTable
-                ? "Select a main table first"
-                : tables.length < 2
-                ? "Need at least two tables to combine"
-                : "Add another table to combine"
-            }
-          >
-            <Text as="span" variant="light" size="xs" className="text-white">+ Add Table</Text>
-          </Button>
+    <div className={cn(layoutPatterns.flexCol, "gap-6 w-full")}>
+      {/* Table Selection */}
+      <Card variant="glass" padding="lg" className="w-full" size="full">
+        <div className={cn(layoutPatterns.flexCol, "gap-4")}>
+          <Text weight="semibold" variant="primary">Select Table</Text>
+          <Select
+            value={selectedTable}
+            onChange={(e) => {
+              const newState = {
+                ...queryState,
+                table: e.target.value,
+                columns: [],
+                joins: [],
+                filters: [],
+                orderBy: [],
+              };
+              setQueryState(newState);
+              updateFromVisual(newState);
+            }}
+            options={[
+              { value: "", label: "Choose a table..." },
+              ...tables.map((t) => ({
+                value: t.table_name,
+                label: t.table_name,
+              })),
+            ]}
+          />
         </div>
-        {joins.length === 0 && (
-          <div className="text-xs text-slate-500 dark:text-zinc-400 mb-2">
-            <Text size="xs" variant="muted" className="mb-2">
-              Join tables to combine their data
-            </Text>
-          </div>
-        )}
-        <div className="flex flex-col gap-2">
-          {joins.map((join, idx) => {
-            const joinTable = tables.find((t) => t.table_name === join.table);
-            const baseTable = tables.find(
-              (t) => t.table_name === selectedTable
-            );
-            return (
-              <div
-                key={idx}
-                className="flex flex-wrap items-center gap-2 mb-1 bg-white dark:bg-zinc-900 rounded-lg p-2 shadow-sm border border-slate-200 dark:border-zinc-800"
-              >
-                {/* Table to combine */}
-                <Select
+      </Card>
+
+      {/* Column Selection */}
+      {table && (
+        <Card variant="glass" padding="lg" className="w-full" size="full">
+          <div className={cn(layoutPatterns.flexCol, "gap-4")}>
+            <div className={cn(layoutPatterns.flexBetween)}>
+              <Text weight="semibold" variant="primary">Select Columns</Text>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
                   size="sm"
-                  className="min-w-[150px]"
+                  onClick={handleSelectAll}
+                  disabled={allSelected}
+                >
+                  Select All
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSelectNone}
+                  disabled={selectedColumns.length === 0}
+                >
+                  Clear
+                </Button>
+              </div>
+            </div>
+
+            <div className={cn(layoutPatterns.flexCol, "gap-2")}>
+              {joinedTables.map((t) => {
+                const tableMeta = tables.find(
+                  (tab) => tab.table_name === t.table_name
+                );
+                if (!tableMeta) return null;
+                return (
+                  <div key={t.table_name} className={cn(layoutPatterns.flexCol, "gap-2")}>
+                    <Text variant="muted" size="sm">{t.table_name}</Text>
+                    <TagGroup
+                      tags={tableMeta.columns.map((col) => ({
+                        id: `${t.table_name}.${col.name}`,
+                        label: col.name,
+                        variant: "default"
+                      }))}
+                      selectedIds={selectedColumns
+                        .filter((c) => c.table === t.table_name)
+                        .map((c) => `${c.table}.${c.column}`)}
+                      onSelectionChange={(ids) => {
+                        const selected = ids.map((id) => {
+                          const [table, column] = id.split(".");
+                          return { table, column };
+                        });
+                        const newColumns = [
+                          ...selectedColumns.filter((c) => c.table !== t.table_name),
+                          ...selected,
+                        ];
+                        const newState = { ...queryState, columns: newColumns };
+                        setQueryState(newState);
+                        updateFromVisual(newState);
+                      }}
+                      selectable
+                      multiSelect
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Joins */}
+      {table && (
+        <Card variant="glass" padding="lg" className="w-full" size="full">
+          <div className={cn(layoutPatterns.flexCol, "gap-4")}>
+            <div className={cn(layoutPatterns.flexBetween)}>
+              <Text weight="semibold" variant="primary">Joins</Text>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleAddJoin}
+                disabled={joins.length >= tables.length - 1}
+              >
+                Add Join
+              </Button>
+            </div>
+
+            {joins.map((join, idx) => (
+              <div key={idx} className="flex items-center gap-2">
+                <Select
                   value={join.table}
-                  onChange={(e) => {
-                    const newTable = e.target.value;
-                    const newJoinTable = tables.find(
-                      (t) => t.table_name === newTable
-                    );
-                    setQueryState((prev) => ({
-                      ...prev,
-                      joins: prev.joins.map((j, i) =>
-                        i === idx
-                          ? {
-                              ...j,
-                              table: newTable,
-                              column: newJoinTable?.columns[0]?.name || "",
-                            }
-                          : j
-                      ),
-                    }));
-                  }}
-                  aria-label="Select table to combine"
-                  title="Pick another table to combine with your main table."
+                  onChange={(e) =>
+                    handleJoinChange(idx, "table", e.target.value)
+                  }
                   options={tables
-                    .filter((t) => t.table_name !== selectedTable)
+                    .filter(
+                      (t) =>
+                        t.table_name !== selectedTable &&
+                        !joins
+                          .filter((_, i) => i !== idx)
+                          .some((j) => j.table === t.table_name)
+                    )
                     .map((t) => ({
                       value: t.table_name,
-                      label: t.table_name
+                      label: t.table_name,
                     }))}
                 />
-                {/* Main table column */}
+                <Text variant="muted">on</Text>
                 <Select
-                  size="sm"
-                  className="min-w-[150px]"
                   value={join.baseColumn}
                   onChange={(e) =>
                     handleJoinChange(idx, "baseColumn", e.target.value)
                   }
-                  aria-label="Select column from main table"
-                  title="Pick a column from your main table to match with the other table."
-                  options={baseTable?.columns.map((col) => ({
-                    value: col.name,
-                    label: col.name
-                  })) || []}
+                  options={
+                    table?.columns.map((c) => ({
+                      value: c.name,
+                      label: c.name,
+                    })) || []
+                  }
                 />
-                <Text as="span" size="xs" variant="muted">matches</Text>
-                {/* Other table column */}
+                <Text variant="muted">=</Text>
                 <Select
-                  size="sm"
-                  className="min-w-[150px]"
                   value={join.column}
                   onChange={(e) =>
                     handleJoinChange(idx, "column", e.target.value)
                   }
-                  aria-label="Select column from other table"
-                  title="Pick a column from the other table to match with your main table."
-                  options={joinTable?.columns.map((col) => ({
-                    value: col.name,
-                    label: col.name
-                  })) || []}
+                  options={
+                    tables
+                      .find((t) => t.table_name === join.table)
+                      ?.columns.map((c) => ({
+                        value: c.name,
+                        label: c.name,
+                      })) || []
+                  }
                 />
                 <IconButton
-                  variant="destructive"
+                  icon={<FaTrash />}
+                  variant="ghost"
                   size="sm"
                   onClick={() => handleRemoveJoin(idx)}
-                  aria-label="Remove this table combination"
-                  icon={<Text variant="error">×</Text>}
+                  aria-label="Remove join"
                 />
               </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Columns multiselect (now for all tables, grouped by table) */}
-      <div className="flex items-center justify-between mb-1 mt-4">
-        <Text weight="semibold" variant="primary">Columns to Show</Text>
-        <div className="flex gap-2">
-          <Button
-            variant="link"
-            size="sm"
-            onClick={handleSelectAll}
-            disabled={allSelected}
-          >
-            <Text as="span" size="xs" variant="link">Select All</Text>
-          </Button>
-          <Button
-            variant="link"
-            size="sm"
-            onClick={handleSelectNone}
-            disabled={selectedColumns.length === 0}
-          >
-            <Text as="span" size="xs" variant="muted">None</Text>
-          </Button>
-        </div>
-      </div>
-      {joinedTables.length > 0 ? (
-        <div className="flex flex-col gap-4">
-          {joinedTables.map((t, idx) => {
-            const meta = tables.find((tab) => tab.table_name === t.table_name);
-            if (!meta) return null;
-            // Color variants for tags
-            const tagVariants = [
-              'gold',     // base
-              'success',  // join 1
-              'warning',  // join 2
-              'error',    // join 3
-              'info',     // join 4
-            ] as const;
-            const tagVariant = tagVariants[idx % tagVariants.length];
-            return (
-              <div key={t.table_name} className="mb-1">
-                <div className="mb-1 text-xs font-semibold text-slate-700 flex items-center gap-2">
-                  <Text size="xs" weight="semibold" variant="primary" className="uppercase tracking-wide">
-                    {t.table_name}
-                  </Text>
-                  <Text size="xs" variant="muted">({tableAliases[t.table_name]})</Text>
-                </div>
-                <TagGroup 
-                  tags={meta.columns.map((col) => {
-                    const colObj = { table: t.table_name, column: col.name };
-                    const checked = selectedColumns.some(
-                      (c) => c.table === t.table_name && c.column === col.name
-                    );
-                    return {
-                      id: `${t.table_name}.${col.name}`,
-                      label: col.name,
-                      variant: checked ? tagVariant : 'default',
-                      interactive: true,
-                      onClick: () => handleColumnToggle(colObj),
-                      className: "font-mono",
-                      title: checked ? "Column will be shown in your results" : "Click to show this column in your results"
-                    };
-                  })}
-                  gap="sm"
-                />
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        <Text variant="muted" size="xs">NA</Text>
+            ))}
+          </div>
+        </Card>
       )}
 
-      {/* Divider */}
-      <div className="border-t border-slate-200 dark:border-zinc-800 my-1" />
-
-      {/* Optional Section */}
-      <div className="mt-6">
-        <Text size="lg" weight="bold" variant="primary">Optional Settings</Text>
-        {/* Filters */}
-        <div className="mb-4 bg-slate-50 dark:bg-zinc-800 rounded-xl border border-slate-200 dark:border-zinc-700">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full flex items-center justify-between px-4 py-3"
-            onClick={() => setShowFilters((v) => !v)}
-          >
-            <Text weight="semibold" variant="primary">Filter Results</Text>
-            <Text>{showFilters ? "▲" : "▼"}</Text>
-          </Button>
-          {showFilters && (
-            <div className="px-4 pb-4">
-              {queryState.filters.length === 0 && (
-                <Text size="xs" variant="muted" className="mb-2">
-                  No filters added.
-                </Text>
-              )}
-              {queryState.filters.map((f, idx) => {
-                const tableMeta = tables.find((t) => t.table_name === f.table);
-                return (
-                  <div
-                    key={idx}
-                    className="flex flex-wrap items-center gap-2 mb-2"
-                  >
-                    <Select
-                      size="sm"
-                      className="min-w-[120px]"
-                      value={f.table}
-                      onChange={(e) =>
-                        handleFilterChange(idx, "table", e.target.value)
-                      }
-                      options={joinedTables.map((t) => ({
-                        value: t.table_name,
-                        label: t.table_name
-                      }))}
-                    />
-                    <Select
-                      size="sm"
-                      className="min-w-[120px]"
-                      value={f.column}
-                      onChange={(e) =>
-                        handleFilterChange(idx, "column", e.target.value)
-                      }
-                      options={tableMeta?.columns.map((c) => ({
-                        value: c.name,
-                        label: c.name
-                      })) || []}
-                    />
-                    <Select
-                      size="sm"
-                      className="min-w-[100px]"
-                      value={f.op}
-                      onChange={(e) =>
-                        handleFilterChange(idx, "op", e.target.value)
-                      }
-                      aria-label="Choose how to compare values"
-                      options={[
-                        { value: "=", label: "=" },
-                        { value: "!=", label: "!=" },
-                        { value: "<", label: "<" },
-                        { value: ">", label: ">" },
-                        { value: "<=", label: "<=" },
-                        { value: ">=", label: ">=" },
-                        { value: "ILIKE", label: "contains" }
-                      ]}
-                    />
-                    <Input
-                      size="sm"
-                      className="min-w-[120px]"
-                      value={f.value}
-                      onChange={(e) =>
-                        handleFilterChange(idx, "value", e.target.value)
-                      }
-                      placeholder="Value"
-                      aria-label="Value to filter by"
-                    />
-                    <Button
-                      variant="link"
-                      size="sm"
-                      onClick={() => handleRemoveFilter(idx)}
-                      className="ml-2"
-                    >
-                      <Text variant="error" size="xs">Remove</Text>
-                    </Button>
-                  </div>
-                );
-              })}
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={handleAddFilter}
-                className="mt-2"
-              >
-                <Text as="span" variant="light" size="xs" className="text-white">+ Add Filter</Text>
-              </Button>
-            </div>
-          )}
-        </div>
-        {/* Order By */}
-        <div className="mb-4 bg-slate-50 dark:bg-zinc-800 rounded-xl border border-slate-200 dark:border-zinc-700">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full flex items-center justify-between px-4 py-3"
-            onClick={() => setShowOrderBy((v) => !v)}
-          >
-            <Text weight="semibold" variant="primary">Sort Results (Order By)</Text>
-            <Text>{showOrderBy ? "▲" : "▼"}</Text>
-          </Button>
-          {showOrderBy && (
-            <div className="px-4 pb-4">
-              {queryState.orderBy.length === 0 && (
-                <Text size="xs" variant="muted" className="mb-2">
-                  No sorting rules added.
-                </Text>
-              )}
-              {queryState.orderBy.map((o, idx) => {
-                const tableMeta = tables.find((t) => t.table_name === o.table);
-                return (
-                  <div
-                    key={idx}
-                    className="flex flex-wrap items-center gap-2 mb-2"
-                  >
-                    <Select
-                      size="sm"
-                      className="min-w-[120px]"
-                      value={o.table}
-                      onChange={(e) =>
-                        handleOrderByChange(idx, "table", e.target.value)
-                      }
-                      options={joinedTables.map((t) => ({
-                        value: t.table_name,
-                        label: t.table_name
-                      }))}
-                    />
-                    <Select
-                      size="sm"
-                      className="min-w-[120px]"
-                      value={o.column}
-                      onChange={(e) =>
-                        handleOrderByChange(idx, "column", e.target.value)
-                      }
-                      options={tableMeta?.columns.map((c) => ({
-                        value: c.name,
-                        label: c.name
-                      })) || []}
-                    />
-                    <Select
-                      size="sm"
-                      className="min-w-[100px]"
-                      value={o.direction}
-                      onChange={(e) =>
-                        handleOrderByChange(idx, "direction", e.target.value)
-                      }
-                      options={[
-                        { value: "ASC", label: "ASC" },
-                        { value: "DESC", label: "DESC" }
-                      ]}
-                    />
-                    <IconButton
-                      variant={o.direction === "ASC" ? "primary" : "secondary"}
-                      size="sm"
-                      onClick={() => handleToggleOrderByDirection(idx)}
-                      aria-label={
-                        o.direction === "ASC"
-                          ? "Sort ascending"
-                          : "Sort descending"
-                      }
-                      icon={o.direction === "ASC" ? <FaArrowUp size={14} /> : <FaArrowDown size={14} />}
-                      className="ml-2"
-                    />
-                    <Button
-                      variant="link"
-                      size="sm"
-                      onClick={() => handleRemoveOrderBy(idx)}
-                      className="ml-2"
-                    >
-                      <Text variant="error" size="xs">Remove</Text>
-                    </Button>
-                  </div>
-                );
-              })}
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={handleAddOrderBy}
-                className="mt-2"
-              >
-                <Text as="span" variant="light" size="xs" className="text-white">+ Add Sort Rule</Text>
-              </Button>
-            </div>
-          )}
-        </div>
-        {/* Limit */}
-        <div className="mb-4 bg-slate-50 dark:bg-zinc-800 rounded-xl border border-slate-200 dark:border-zinc-700">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full flex items-center justify-between px-4 py-3"
-            onClick={() => setShowLimit((v) => !v)}
-          >
-            <Text weight="semibold" variant="primary">Limit Results</Text>
-            <Text>{showLimit ? "▲" : "▼"}</Text>
-          </Button>
-          {showLimit && (
-            <div className="px-4 pb-4 flex items-center gap-3">
-              <Input
-                id="limit-input"
-                type="number"
-                min={1}
-                max={10000}
-                size="md"
-                className="w-24"
-                value={limit.toString()}
-                onChange={(e) =>
-                  setQueryState((prev) => ({
-                    ...prev,
-                    limit: Number(e.target.value),
-                  }))
-                }
-                aria-label="Set maximum number of rows"
-              />
-              <div title="Maximum number of rows to return">
-                <Text size="xs" variant="muted">(max rows)</Text>
+      {/* Optional sections */}
+      {table && (
+        <>
+          {/* Filters */}
+          <Card variant="glass" padding="lg" className="w-full" size="full">
+            <div className={cn(layoutPatterns.flexCol, "gap-4")}>
+              <div className={cn(layoutPatterns.flexBetween)}>
+                <Text weight="semibold" variant="primary">Filters</Text>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleAddFilter}
+                >
+                  Add Filter
+                </Button>
               </div>
+
+              {queryState.filters.map((filter, idx) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <Select
+                    value={filter.table}
+                    onChange={(e) =>
+                      handleFilterChange(idx, "table", e.target.value)
+                    }
+                    options={joinedTables.map((t) => ({
+                      value: t.table_name,
+                      label: t.table_name,
+                    }))}
+                  />
+                  <Select
+                    value={filter.column}
+                    onChange={(e) =>
+                      handleFilterChange(idx, "column", e.target.value)
+                    }
+                    options={
+                      tables
+                        .find((t) => t.table_name === filter.table)
+                        ?.columns.map((c) => ({
+                          value: c.name,
+                          label: c.name,
+                        })) || []
+                    }
+                  />
+                  <Select
+                    value={filter.op}
+                    onChange={(e) =>
+                      handleFilterChange(idx, "op", e.target.value)
+                    }
+                    options={[
+                      { value: "=", label: "=" },
+                      { value: "!=", label: "!=" },
+                      { value: ">", label: ">" },
+                      { value: "<", label: "<" },
+                      { value: ">=", label: ">=" },
+                      { value: "<=", label: "<=" },
+                      { value: "LIKE", label: "LIKE" },
+                      { value: "ILIKE", label: "ILIKE" },
+                      { value: "IN", label: "IN" },
+                    ]}
+                  />
+                  <Input
+                    value={filter.value}
+                    onChange={(e) =>
+                      handleFilterChange(idx, "value", e.target.value)
+                    }
+                    placeholder="Value..."
+                  />
+                  <IconButton
+                    icon={<FaTrash />}
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleRemoveFilter(idx)}
+                    aria-label="Remove filter"
+                  />
+                </div>
+              ))}
             </div>
-          )}
-        </div>
-      </div>
+          </Card>
+
+          {/* Order By */}
+          <Card variant="glass" padding="lg" className="w-full" size="full">
+            <div className={cn(layoutPatterns.flexCol, "gap-4")}>
+              <div className={cn(layoutPatterns.flexBetween)}>
+                <Text weight="semibold" variant="primary">Order By</Text>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleAddOrderBy}
+                >
+                  Add Sort
+                </Button>
+              </div>
+
+              {queryState.orderBy.map((order, idx) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <Select
+                    value={order.table}
+                    onChange={(e) =>
+                      handleOrderByChange(idx, "table", e.target.value)
+                    }
+                    options={joinedTables.map((t) => ({
+                      value: t.table_name,
+                      label: t.table_name,
+                    }))}
+                  />
+                  <Select
+                    value={order.column}
+                    onChange={(e) =>
+                      handleOrderByChange(idx, "column", e.target.value)
+                    }
+                    options={
+                      tables
+                        .find((t) => t.table_name === order.table)
+                        ?.columns.map((c) => ({
+                          value: c.name,
+                          label: c.name,
+                        })) || []
+                    }
+                  />
+                  <IconButton
+                    icon={order.direction === "ASC" ? <FaArrowUp /> : <FaArrowDown />}
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleToggleOrderByDirection(idx)}
+                    aria-label={`Toggle sort direction (currently ${order.direction})`}
+                  />
+                  <IconButton
+                    icon={<FaTrash />}
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleRemoveOrderBy(idx)}
+                    aria-label="Remove sort"
+                  />
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          {/* Limit */}
+          <Card variant="glass" padding="lg" className="w-full" size="full">
+            <div className={cn(layoutPatterns.flexCol, "gap-4")}>
+              <Text weight="semibold" variant="primary">Limit Results</Text>
+              <Input
+                type="number"
+                value={limit || ""}
+                onChange={(e) => {
+                  const val = e.target.value ? parseInt(e.target.value) : 0;
+                  const newState = { ...queryState, limit: val };
+                  setQueryState(newState);
+                  updateFromVisual(newState);
+                }}
+                placeholder="No limit"
+                min={1}
+              />
+            </div>
+          </Card>
+        </>
+      )}
 
       {/* SQL Preview Modal Trigger */}
       {generatedSql && (

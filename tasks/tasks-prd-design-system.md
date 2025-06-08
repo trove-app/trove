@@ -131,10 +131,10 @@
 
 - [ ] 7.0 Data Display Components Implementation
   - [ ] 7.1 Create Table wrapper component
-    - [ ] 7.1.1 Style mantine-react-table using Tailwind classes
-    - [ ] 7.1.2 Implement consistent header and cell styles
+    - [x] 7.1.1 Style mantine-react-table using Tailwind classes
+    - [x] 7.1.2 Implement consistent header and cell styles
     - [ ] 7.1.3 Add responsive behaviors
-    - [ ] 7.1.4 Setup dark mode variants
+    - [ ] 7.1.4 Setup dark/light mode variants
     - [ ] 7.1.5 Test table component in SQL builder
     - [ ] 7.1.6 Migrate SQL builder tables
     - [ ] 7.1.7 Test table component in DB explorer

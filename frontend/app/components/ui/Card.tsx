@@ -5,7 +5,7 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Visual variant of the card */
   variant?: 'default' | 'outlined' | 'elevated' | 'glass';
   /** Size variant */
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
   /** Padding variant */
   padding?: 'none' | 'sm' | 'md' | 'lg' | 'xl';
   /** Whether the card should be clickable */
@@ -27,7 +27,8 @@ const cardSizes = {
   sm: "max-w-sm",
   md: "max-w-md", 
   lg: "max-w-lg",
-  xl: "max-w-xl"
+  xl: "max-w-xl",
+  full: "w-full"
 };
 
 const cardPadding = {

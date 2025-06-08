@@ -75,69 +75,38 @@ function SqlBuilderInner() {
   };
 
   return (
-    <Container maxWidth="7xl" className="min-h-screen py-8">
-      <div className={cn(layoutPatterns.flexCol, "items-center w-full")}>
-        {/* Toggle Tabs - only show when editor is visible */}
-        {showEditor && (
-          <div className={cn(
-            "w-full max-w-xl",
-            layoutPatterns.flexCenter,
-            "mb-2 mt-6"
-          )}>
-            <Card variant="glass" padding="sm" className="inline-flex rounded-xl">
-              <Button
-                variant={mode === "written" ? "primary" : "ghost"}
-                size="md"
-                onClick={() => {
-                  // When switching to written mode, set query to latest SQL from visual builder
-                  if (
-                    visualBuilderRef.current &&
-                    visualBuilderRef.current.getSql
-                  ) {
-                    const rawSql = visualBuilderRef.current.getSql();
-                    updateFromSql(
-                      sqlFormatter(rawSql, {
-                        language: "sql",
-                        keywordCase: "upper",
-                      })
-                    );
-                  }
-                  setMode("written");
-                }}
-                className={mode === "written" ? "shadow border border-primary" : "border border-transparent"}
-                aria-label="Switch to written SQL mode"
-              >
-                <Text as="span" weight="semibold" className={mode === "written" ? "text-primary" : "text-muted"}>Written</Text>
-              </Button>
-              <Button
-                variant={mode === "visual" ? "primary" : "ghost"}
-                size="md"
-                onClick={() => setMode("visual")}
-                className={mode === "visual" ? "shadow border border-primary" : "border border-transparent"}
-                aria-label="Switch to visual SQL builder mode"
-              >
-                <Text as="span" weight="semibold" className={mode === "visual" ? "text-primary" : "text-muted"}>Visual</Text>
-              </Button>
-            </Card>
-          </div>
-        )}
-        
-        <Button
-          variant="primary"
-          size="lg"
-          className="fixed bottom-8 right-8 z-50 rounded-full shadow-lg"
-          onClick={() => setShowEditor((v) => !v)}
-          aria-label={showEditor ? "Hide query editor" : "Show query editor"}
-        >
-          <Text as="span" weight="bold" variant="light" className="text-white">
-            {showEditor ? "Hide Query" : "Edit Query"}
-          </Text>
-        </Button>
+    <Container maxWidth="full" className="px-6">
+      <div className={cn(
+        layoutPatterns.flexCol,
+        "w-full"
+      )}>
+        {/* Mode toggle */}
+        <div className={cn(
+          "flex items-center gap-2 mt-6",
+          "w-full justify-center"
+        )}>
+          <Button
+            variant={mode === "written" ? "primary" : "ghost"}
+            size="md"
+            className={mode === "written" ? "shadow border border-primary" : ""}
+            onClick={() => setMode("written")}
+          >
+            Written
+          </Button>
+          <Button
+            variant={mode === "visual" ? "primary" : "ghost"}
+            size="md"
+            className={mode === "visual" ? "shadow border border-primary" : ""}
+            onClick={() => setMode("visual")}
+          >
+            Visual
+          </Button>
+        </div>
 
         <div
           ref={wrapperRef}
           className={cn(
-            "w-full max-w-3xl transition-all duration-300 overflow-hidden",
+            "w-full transition-all duration-300 overflow-hidden",
             showEditor ? "max-h-[800px] opacity-100 mt-12 mb-2" : "max-h-0 opacity-0 mb-0 mt-0 pointer-events-none"
           )}
         >
@@ -145,10 +114,7 @@ function SqlBuilderInner() {
             <Card 
               variant="glass" 
               padding="lg"
-              className={cn(
-                "w-full h-full",
-                layoutPatterns.flexCol
-              )}
+              size="full"
             >
               {mode === "written" ? (
                 <SqlEditor value={sql} onChange={updateFromSql} />
@@ -156,7 +122,7 @@ function SqlBuilderInner() {
                 <div className={cn(
                   "h-full",
                   layoutPatterns.flexCol,
-                  "max-w-full overflow-x-auto"
+                  "w-full"
                 )}>
                   <VisualSqlBuilder
                     queryState={queryState}
