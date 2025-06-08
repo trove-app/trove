@@ -9,7 +9,7 @@ import {
 } from "../context/SqlBuilderContext";
 import type { VisualSqlBuilderHandle } from "./VisualSqlBuilder";
 import { format as sqlFormatter } from "sql-formatter";
-import { Text, PageContainer } from "../components/ui";
+import { Text, PageContainer, Button } from "../components/ui";
 
 function SqlBuilderInner() {
   const [result, setResult] = useState<{
@@ -80,13 +80,9 @@ function SqlBuilderInner() {
         {showEditor && (
           <div className="w-full max-w-xl flex justify-center mb-2 mt-6">
             <div className="inline-flex rounded-xl bg-slate-100 dark:bg-zinc-800 p-1 shadow-sm border border-slate-200 dark:border-zinc-700">
-              <button
-                className={`px-6 py-2 rounded-lg font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:z-10
-                  ${
-                    mode === "written"
-                      ? "bg-white dark:bg-zinc-900 text-blue-700 dark:text-blue-300 shadow border border-blue-500"
-                      : "bg-transparent text-slate-500 dark:text-zinc-300 border border-transparent hover:bg-slate-200 dark:hover:bg-zinc-700"
-                  }`}
+              <Button
+                variant={mode === "written" ? "primary" : "ghost"}
+                size="md"
                 onClick={() => {
                   // When switching to written mode, set query to latest SQL from visual builder
                   if (
@@ -103,36 +99,34 @@ function SqlBuilderInner() {
                   }
                   setMode("written");
                 }}
-                type="button"
-                style={{ zIndex: mode === "written" ? 1 : 0 }}
+                className={mode === "written" ? "shadow border border-primary" : "border border-transparent"}
+                aria-label="Switch to written SQL mode"
               >
-                <Text as="span" weight="semibold" className={mode === "written" ? "text-blue-700 dark:text-blue-300" : "text-slate-500 dark:text-zinc-300"}>Written</Text>
-              </button>
-              <button
-                className={`px-6 py-2 rounded-lg font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:z-10
-                  ${
-                    mode === "visual"
-                      ? "bg-white dark:bg-zinc-900 text-blue-700 dark:text-blue-300 shadow border border-blue-500"
-                      : "bg-transparent text-slate-500 dark:text-zinc-300 border border-transparent hover:bg-slate-200 dark:hover:bg-zinc-700"
-                  }`}
+                <Text as="span" weight="semibold" className={mode === "written" ? "text-primary" : "text-muted"}>Written</Text>
+              </Button>
+              <Button
+                variant={mode === "visual" ? "primary" : "ghost"}
+                size="md"
                 onClick={() => setMode("visual")}
-                type="button"
-                style={{ zIndex: mode === "visual" ? 1 : 0 }}
+                className={mode === "visual" ? "shadow border border-primary" : "border border-transparent"}
+                aria-label="Switch to visual SQL builder mode"
               >
-                <Text as="span" weight="semibold" className={mode === "visual" ? "text-blue-700 dark:text-blue-300" : "text-slate-500 dark:text-zinc-300"}>Visual</Text>
-              </button>
+                <Text as="span" weight="semibold" className={mode === "visual" ? "text-primary" : "text-muted"}>Visual</Text>
+              </Button>
             </div>
           </div>
         )}
-        <button
-          type="button"
-          className="fixed bottom-8 right-8 z-50 bg-blue-600 hover:bg-blue-700 px-5 py-2 rounded-full shadow-lg transition-colors"
+        <Button
+          variant="primary"
+          size="lg"
+          className="fixed bottom-8 right-8 z-50 rounded-full shadow-lg"
           onClick={() => setShowEditor((v) => !v)}
+          aria-label={showEditor ? "Hide query editor" : "Show query editor"}
         >
           <Text as="span" weight="bold" variant="light" className="text-white">
             {showEditor ? "Hide Query" : "Edit Query"}
           </Text>
-        </button>
+        </Button>
         <div
           className={`w-full max-w-3xl transition-all duration-300 overflow-hidden ${
             showEditor
@@ -157,15 +151,17 @@ function SqlBuilderInner() {
           </div>
           {/* Shared submit button and error message */}
           <div className="w-full flex flex-col items-end mt-2">
-            <button
+            <Button
+              variant="primary"
+              size="lg"
               onClick={runQuery}
-              className="px-6 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:opacity-60"
               disabled={loading || !sql.trim()}
+              aria-label="Execute SQL query"
             >
               <Text as="span" weight="bold" variant="light" className="text-white">
                 {loading ? "Running..." : "Run Query"}
               </Text>
-            </button>
+            </Button>
             {error && (
               <div className="self-start">
                 <Text variant="error" weight="semibold">{error}</Text>

@@ -37,19 +37,18 @@ All theme customization happens in `frontend/app/globals.css` using Tailwind v4'
 ### Usage in Components
 ```tsx
 // Primary buttons
-<button className="bg-primary-500 text-primary-950 hover:bg-primary-600">
-  Find Gold
-</button>
+<Button variant="primary">Primary Action</Button>
 
 // Secondary buttons  
-<button className="bg-secondary-500 text-white hover:bg-secondary-600">
-  Explore Chest
-</button>
+<Button variant="secondary">Secondary Action</Button>
 
 // Background sections
 <div className="bg-background text-foreground">
   Content with theme-aware colors
 </div>
+
+// Animated button
+<Button className="transition-all duration-normal hover:scale-105">Animated Button</Button>
 ```
 
 ## 🎨 Color System
@@ -178,87 +177,12 @@ Dark mode is handled automatically via `@media (prefers-color-scheme: dark)`:
 
 ### Usage
 ```tsx
-<button className="transition-all duration-normal hover:scale-105">
+<Button className="transition-all duration-normal hover:scale-105">
   Smooth hover effect
-</button>
+</Button>
 ```
 
 ## 🛠️ Customization Guidelines
 
 ### Adding New Colors
-1. Add to the appropriate color scale in `@theme`
-2. Follow the 50-950 naming convention
-3. Ensure WCAG AA contrast ratios
-4. Test in both light and dark modes
-
-```css
-@theme {
-  /* New color scale */
-  --color-custom-50: #f0f9ff;
-  --color-custom-500: #3b82f6;
-  --color-custom-950: #1e3a8a;
-}
-```
-
-### Extending Spacing
-```css
-@theme {
-  /* Custom spacing values */
-  --spacing-custom: 2.5rem; /* 40px */
-}
-```
-
-### Adding Custom Shadows
-```css
-@theme {
-  /* Custom shadow effects */
-  --shadow-custom: 0 10px 40px rgba(244, 177, 0, 0.2);
-}
-```
-
-## 🎯 Best Practices
-
-### Do's ✅
-- Use semantic color names (`bg-primary-500` not `bg-yellow-500`)
-- Leverage the spacing scale (`p-4` not `p-[16px]`)
-- Use theme-aware colors (`text-foreground` not `text-black`)
-- Test in both light and dark modes
-- Follow the treasure/gold metaphor in naming
-
-### Don'ts ❌
-- Don't use arbitrary values when theme tokens exist
-- Don't hardcode colors outside the theme system
-- Don't break the visual hierarchy with inconsistent spacing
-- Don't ignore accessibility contrast requirements
-
-## 🔧 Development Workflow
-
-### Theme Development Process
-1. **Design**: Define new design tokens in Figma/design tool
-2. **Theme**: Add tokens to `@theme` in `frontend/app/globals.css`
-3. **Components**: Use new tokens in component development
-4. **Test**: Verify in light/dark modes and different screen sizes
-5. **Document**: Update this documentation
-
-### Testing Theme Changes
-```bash
-# Start development server
-cd frontend
-npm run dev
-
-# Test in different modes
-# - Toggle system dark/light mode
-# - Test responsive breakpoints
-# - Verify accessibility with screen readers
-```
-
-## 📚 Resources
-
-- [Tailwind CSS v4 Documentation](https://tailwindcss.com/blog/tailwindcss-v4)
-- [Trove Style Guide](../assets/style-guide.md)
-- [WCAG Color Contrast Guidelines](https://www.w3.org/WAI/WCAG21/Understanding/contrast-minimum.html)
-- [CSS Custom Properties](https://developer.mozilla.org/en-US/docs/Web/CSS/--*)
-
----
-
-*"Find your data gold with a design system that sparkles."* ✨ 
+1. Add to the appropriate color scale in `

@@ -45,9 +45,7 @@ Trove uses **Tailwind CSS v4** with a custom theme that reflects our brand ident
 </div>
 
 // Primary actions with treasure gold
-<button className="bg-primary-500 text-primary-950 hover:bg-primary-600 rounded-lg px-4 py-2">
-  Find Gold
-</button>
+<Button variant="primary">Click me</Button>
 
 // Cards with soft shadows
 <div className="bg-card border border-border rounded-lg p-6 shadow-soft">

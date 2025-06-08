@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Text } from './ui';
+import { Text, Button } from './ui';
 
 export default function ThemeToggle() {
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -61,10 +61,10 @@ export default function ThemeToggle() {
   }
 
   return (
-    <button
+    <Button
       onClick={toggleTheme}
-      className="flex items-center gap-3 w-full px-3 py-2 rounded-lg border border-border bg-muted hover:bg-accent/10 transition-all duration-200 shadow-sm"
-      type="button"
+      variant="ghost"
+      className="flex items-center gap-3 w-full px-3 py-2 shadow-sm"
       aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
     >
       <span className="text-lg">{isDarkMode ? '🌙' : '☀️'}</span>
@@ -76,6 +76,6 @@ export default function ThemeToggle() {
           Click to toggle theme
         </Text>
       </div>
-    </button>
+    </Button>
   );
 } 
