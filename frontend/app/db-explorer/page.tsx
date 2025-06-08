@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { useSchema } from "../context/SchemaContext";
 import type { ColumnMetadata } from "../context/SchemaContext";
 
@@ -18,20 +18,62 @@ interface TableSidebarProps {
   onHover?: (info: { type: 'table' | 'column'; name: string; dataType?: string } | null) => void;
 }
 
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
+function SearchIcon() {
+  return (
+    <svg 
+      width="16" 
+      height="16" 
+      viewBox="0 0 16 16" 
+      fill="none" 
+      className="text-muted-foreground"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path 
+        d="M7.333 12.667A5.333 5.333 0 1 0 7.333 2a5.333 5.333 0 0 0 0 10.667ZM14 14l-2.9-2.9" 
+        stroke="currentColor" 
+        strokeWidth="1.5" 
+        strokeLinecap="round" 
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function TableSidebar({ tables, selected, onSelect, filter, setFilter, columnMatches, onHover }: TableSidebarProps) {
   return (
     <aside className="w-72 min-w-72 max-w-72 bg-card/80 backdrop-blur-sm border-r border-border/50 
                       p-4 flex flex-col gap-2 h-[calc(100%-2rem)] rounded-l-xl min-w-0">
-      <input
-        type="text"
-        placeholder="Search tables or columns..."
-        value={filter}
-        onChange={e => setFilter(e.target.value)}
-        className="mb-3 px-4 py-2 rounded-lg border border-border bg-input 
-                   text-foreground placeholder:text-muted-foreground
-                   focus:outline-none focus:ring-2 focus:ring-accent
-                   transition-all duration-200"
-      />
+      <div className="relative">
+        <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+          <SearchIcon />
+        </div>
+        <input
+          type="text"
+          placeholder="Search tables or columns..."
+          value={filter}
+          onChange={e => setFilter(e.target.value)}
+          className="w-full pl-9 pr-4 py-2 rounded-lg border border-border bg-input 
+                     text-foreground placeholder:text-muted-foreground
+                     focus:outline-none focus:ring-2 focus:ring-accent
+                     transition-all duration-200"
+        />
+      </div>
       
       <div className="flex-1 overflow-y-auto space-y-1.5">
         {tables.map((table) => (
@@ -96,6 +138,7 @@ function TableDetails({ table, filter, onHover }: TableDetailsProps) {
                 onMouseEnter={() => onHover?.({ type: 'column', name: col.name, dataType: col.data_type })}
                 onMouseLeave={() => onHover?.(null)}
                 className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200
+                           hover:bg-muted/50 cursor-pointer
                            ${isMatch ? 'bg-accent/10 text-accent font-medium' : 'text-foreground'}`}>
               <span className="font-mono text-base">{highlight(col.name, filter)}</span>
               <span className="text-xs text-muted-foreground">
@@ -115,6 +158,8 @@ export default function DBExplorerPage() {
   const [filter, setFilter] = useState("");
   const [hoveredInfo, setHoveredInfo] = useState<{ type: 'table' | 'column'; name: string; dataType?: string } | null>(null);
   
+  const debouncedHoveredInfo = useDebounce(hoveredInfo, 50);
+
   const columnMatches: Record<string, string[]> = {};
   const filteredTables = tables.filter(t => {
     const tableMatch = t.table_name.toLowerCase().includes(filter.toLowerCase());
@@ -122,6 +167,29 @@ export default function DBExplorerPage() {
     if (colMatches.length > 0) columnMatches[t.table_name] = colMatches.map(col => col.name);
     return tableMatch || colMatches.length > 0;
   });
+
+  // Calculate total matching columns across all tables
+  const totalMatchingColumns = Object.values(columnMatches).reduce((sum, cols) => sum + cols.length, 0);
+  
+  const getSearchSummary = () => {
+    if (!filter) return 'Hover over a table or column to see details';
+    
+    const tableCount = filteredTables.length;
+    const tableText = `${tableCount} ${tableCount === 1 ? 'table' : 'tables'}`;
+    
+    if (totalMatchingColumns === 0) {
+      return `Found ${tableText} matching "${filter}"`;
+    }
+
+    const columnText = `${totalMatchingColumns} ${totalMatchingColumns === 1 ? 'column' : 'columns'}`;
+    
+    if (tableCount === 0) {
+      return `Found ${columnText} matching "${filter}"`;
+    }
+
+    return `Found ${tableText} and ${columnText} matching "${filter}"`;
+  };
+
   const selectedTable = tables.find(t => t.table_name === selected) || (filteredTables.length === 1 ? filteredTables[0] : null);
 
   return (
@@ -153,13 +221,13 @@ export default function DBExplorerPage() {
           />
         )}
         
-        <div className="fixed bottom-0 left-0 right-0 h-8 min-h-8 px-3 py-1.5 bg-muted/30 backdrop-blur-sm border-t border-border/50 text-sm text-muted-foreground font-mono truncate">
-          {hoveredInfo ? (
-            hoveredInfo.type === 'table' 
-              ? hoveredInfo.name
-              : `${hoveredInfo.name} (${hoveredInfo.dataType})`
+        <div className="fixed bottom-0 left-0 right-0 h-8 min-h-8 px-3 py-1.5 bg-muted/30 backdrop-blur-sm border-t border-border/50 text-sm text-muted-foreground font-mono truncate transition-opacity duration-150">
+          {debouncedHoveredInfo ? (
+            debouncedHoveredInfo.type === 'table' 
+              ? debouncedHoveredInfo.name
+              : `${debouncedHoveredInfo.name} (${debouncedHoveredInfo.dataType})`
           ) : (
-            'Hover over a table or column to see details'
+            getSearchSummary()
           )}
         </div>
       </div>
