@@ -212,7 +212,7 @@ const VisualSqlBuilder = forwardRef<
   };
 
   return (
-    <div className="w-full max-w-full mx-auto bg-card rounded-2xl shadow-treasure p-5 flex flex-col gap-5 border border-border overflow-x-auto h-[575px]">
+    <div className="w-full max-w-full mx-auto bg-background rounded-2xl p-5 flex flex-col gap-5 border border-border overflow-x-auto h-[575px]">
       {/* Table selection */}
       <div>
         <label

@@ -103,11 +103,11 @@ function SqlBuilderInner() {
         <div
           className={`w-full max-w-3xl transition-all duration-300 overflow-hidden ${
             showEditor
-              ? "max-h-[800px] opacity-100 mt-12 mb-2"
+              ? "h-[calc(100%-20rem)] opacity-100 mt-12 mb-2"
               : "max-h-0 opacity-0 mb-0 mt-0 pointer-events-none"
           }`}
         >
-          <div style={{ height: 600, overflowY: "auto" }}>
+          <div style={{ height: 500, overflowY: "auto" }}>
             <section className="w-full h-full bg-card/80 rounded-2xl shadow-treasure p-8 border border-border flex flex-col">
               {mode === "written" ? (
                 <SqlEditor value={sql} onChange={updateFromSql} />
