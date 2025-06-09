@@ -10,6 +10,7 @@ import {
 import type { VisualSqlBuilderHandle } from "./VisualSqlBuilder";
 import { formatSql } from "../utils/sqlUtils";
 import { useSqlQuery } from "../hooks/useSqlQuery";
+import { FaPlay, FaSpinner } from "react-icons/fa";
 
 function SqlBuilderInner() {
   const [showEditor, setShowEditor] = useState(true);
@@ -18,7 +19,7 @@ function SqlBuilderInner() {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const { sql, queryState, setQueryState, updateFromVisual, updateFromSql } =
     useSqlBuilder();
-  const { result, loading, error, executeQuery } = useSqlQuery();
+  const { result, loading, error, executeQuery } = useSqlQuery(sql, () => setShowEditor(false));
 
   // Ref to access VisualSqlBuilder's latest SQL
   const visualBuilderRef = useRef<VisualSqlBuilderHandle>(null);
@@ -39,13 +40,11 @@ function SqlBuilderInner() {
     wrapper.addEventListener("transitionend", handleTransitionEnd);
   }, [mode, loading, error, sql]);
 
-  const runQuery = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const runQuery = async () => {
     try {
-      await executeQuery(sql);
-      setShowEditor(false); // auto-collapse after running query
+      await executeQuery();
     } catch {
-      // Error is handled by the hook
+      // Error - TODO
     }
   };
 
@@ -107,35 +106,50 @@ function SqlBuilderInner() {
               : "max-h-0 opacity-0 mb-0 mt-0 pointer-events-none"
           }`}
         >
-          <div style={{ height: 500, overflowY: "auto" }}>
-            <section className="w-full h-full bg-card/80 rounded-2xl shadow-treasure p-8 border border-border flex flex-col">
-              {mode === "written" ? (
-                <SqlEditor value={sql} onChange={updateFromSql} />
-              ) : (
-                <div className="h-full flex flex-col max-w-full overflow-x-auto">
-                  <VisualSqlBuilder
-                    queryState={queryState}
-                    setQueryState={setQueryState}
-                    updateFromVisual={updateFromVisual}
-                  />
-                </div>
-              )}
-            </section>
-          </div>
-          {/* Shared submit button and error message */}
-          <div className="w-full flex flex-col items-end mt-2">
-            <button
-              onClick={runQuery}
-              className="px-6 py-2 rounded-lg bg-accent text-accent-foreground font-bold hover:bg-primary-600 disabled:opacity-60 shadow-treasure"
-              disabled={loading || !sql.trim()}
-            >
-              {loading ? "Running..." : "Run Query"}
-            </button>
-            {error && (
-              <div className="text-error-600 font-semibold mb-4 self-start">
-                {error}
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <div style={{ height: 500, overflowY: "auto" }} className="relative">
+                <section className="w-full h-full bg-card/80 rounded-2xl shadow-treasure p-8 border border-border flex flex-col">
+                  {mode === "written" ? (
+                    <SqlEditor value={sql} onChange={updateFromSql} />
+                  ) : (
+                    <div className="h-full flex flex-col max-w-full overflow-x-auto">
+                      <VisualSqlBuilder
+                        queryState={queryState}
+                        setQueryState={setQueryState}
+                        updateFromVisual={updateFromVisual}
+                      />
+                    </div>
+                  )}
+                </section>
               </div>
-            )}
+            </div>
+
+            {/* Run Query Button - Right side */}
+            <div className="flex flex-col justify-center">
+              <div className="flex flex-col items-center gap-2">
+                <button
+                  onClick={runQuery}
+                  disabled={loading || !sql.trim()}
+                  className="group flex items-center gap-2 px-4 py-2 bg-accent hover:bg-primary-600 text-accent-foreground rounded-lg shadow-treasure transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {loading ? (
+                    <FaSpinner className="animate-spin" />
+                  ) : (
+                    <FaPlay className="group-hover:animate-pulse" />
+                  )}
+                  <span className="font-semibold">Run Query</span>
+                </button>
+                <div className="text-xs text-muted-foreground whitespace-nowrap">
+                  {navigator.platform.toLowerCase().includes('mac') ? '⌘' : 'Ctrl'} + Enter
+                </div>
+                {error && (
+                  <div className="text-error-600 font-semibold text-sm text-center">
+                    {error}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
         <section className="w-full">
