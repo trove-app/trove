@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useSchema } from "../context/SchemaContext";
 import type { ColumnMetadata } from "../context/SchemaContext";
 

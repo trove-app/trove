@@ -4,6 +4,13 @@ import React, { useEffect, useRef } from "react";
 import { useSchema } from "../context/SchemaContext";
 import { format as sqlFormatter } from "sql-formatter";
 
+// Declare global Monaco instance
+declare global {
+  interface Window {
+    monaco: typeof MonacoType;
+  }
+}
+
 interface SqlEditorProps {
   value: string;
   onChange: (value: string) => void;
@@ -40,6 +47,12 @@ let monacoSqlProviderRegistered = false;
 const SqlEditor: React.FC<SqlEditorProps> = ({ value, onChange }) => {
   const { tables } = useSchema();
   const editorRef = useRef<MonacoType.editor.IStandaloneCodeEditor | null>(null);
+  // Ref to always have the latest tables in the provider
+  const tablesRef = useRef(tables);
+
+  useEffect(() => {
+    tablesRef.current = tables;
+  }, [tables]);
 
   // Format SQL using sql-formatter
   const formatSql = (sql: string) => {
@@ -66,7 +79,7 @@ const SqlEditor: React.FC<SqlEditorProps> = ({ value, onChange }) => {
   useEffect(() => {
     const observer = new MutationObserver(() => {
       if (editorRef.current) {
-        const monaco = (window as any).monaco;
+        const monaco = window.monaco as typeof MonacoType;
         if (monaco) {
           monaco.editor.setTheme(getCurrentTheme());
         }
@@ -159,78 +172,106 @@ const SqlEditor: React.FC<SqlEditorProps> = ({ value, onChange }) => {
       },
     });
 
-    // Set up SQL language configuration
-    monaco.languages.registerCompletionItemProvider("sql", {
-      provideCompletionItems: (model, position) => {
-        const word = model.getWordUntilPosition(position);
-        const range = {
-          startLineNumber: position.lineNumber,
-          endLineNumber: position.lineNumber,
-          startColumn: word.startColumn,
-          endColumn: word.endColumn,
-        };
-
-        const suggestions: MonacoType.languages.CompletionItem[] = [];
-
-        // Add table names
-        tables.forEach((table) => {
-          suggestions.push({
-            label: table.table_name,
-            kind: monaco.languages.CompletionItemKind.Class,
-            insertText: table.table_name,
-            detail: "Table",
-            range,
+    // Set up SQL completion provider
+    if (!monacoSqlProviderRegistered) {
+      monaco.languages.registerCompletionItemProvider("sql", {
+        triggerCharacters: [" ", ".", ","],
+        provideCompletionItems: (
+          model: MonacoType.editor.ITextModel,
+          position: MonacoType.Position
+        ) => {
+          const textUntilPosition = model.getValueInRange({
+            startLineNumber: 1,
+            startColumn: 1,
+            endLineNumber: position.lineNumber,
+            endColumn: position.column,
           });
+          const context = getSqlContext(textUntilPosition);
+          const word = model.getWordUntilPosition(position);
+          const range = {
+            startLineNumber: position.lineNumber,
+            endLineNumber: position.lineNumber,
+            startColumn: word.startColumn,
+            endColumn: word.endColumn,
+          };
 
-          // Add column names for each table
-          table.columns.forEach((col) => {
+          const suggestions: MonacoType.languages.CompletionItem[] = [];
+          const currentTables = tablesRef.current;
+
+          if (context === "table") {
+            for (const table of currentTables) {
+              suggestions.push({
+                label: table.table_name,
+                kind: monaco.languages.CompletionItemKind.Struct,
+                insertText: table.table_name,
+                detail: "table",
+                range,
+              });
+            }
+          } else if (context === "column") {
+            for (const table of currentTables) {
+              for (const col of table.columns) {
+                suggestions.push({
+                  label: col.name,
+                  kind: monaco.languages.CompletionItemKind.Field,
+                  insertText: col.name,
+                  detail: `${col.data_type}${col.is_nullable ? ", nullable" : ""} (${table.table_name})`,
+                  range,
+                });
+              }
+            }
+          } else if (context === "dot") {
+            // Suggest columns for the table before the dot
+            const match = textUntilPosition.match(/([a-zA-Z0-9_]+)\.[a-zA-Z0-9_]*$/);
+            if (match) {
+              const tableName = match[1];
+              const table = currentTables.find(t => t.table_name === tableName);
+              if (table) {
+                for (const col of table.columns) {
+                  suggestions.push({
+                    label: col.name,
+                    kind: monaco.languages.CompletionItemKind.Field,
+                    insertText: col.name,
+                    detail: `${col.data_type}${col.is_nullable ? ", nullable" : ""} (${table.table_name})`,
+                    range,
+                  });
+                }
+              }
+            }
+          }
+
+          // Add SQL keywords
+          const keywords = [
+            "SELECT", "FROM", "WHERE", "JOIN", "LEFT JOIN", "INNER JOIN",
+            "GROUP BY", "ORDER BY", "LIMIT", "OFFSET", "AND", "OR",
+            "NOT", "IN", "LIKE", "ILIKE", "IS NULL", "IS NOT NULL",
+            "ASC", "DESC"
+          ];
+
+          keywords.forEach((keyword) => {
             suggestions.push({
-              label: `${table.table_name}.${col.name}`,
-              kind: monaco.languages.CompletionItemKind.Field,
-              insertText: col.name,
-              detail: `Column (${table.table_name})`,
+              label: keyword,
+              kind: monaco.languages.CompletionItemKind.Keyword,
+              insertText: keyword,
+              detail: "Keyword",
               range,
             });
           });
-        });
 
-        // Add SQL keywords
-        const keywords = [
-          "SELECT",
-          "FROM",
-          "WHERE",
-          "JOIN",
-          "LEFT JOIN",
-          "INNER JOIN",
-          "GROUP BY",
-          "ORDER BY",
-          "LIMIT",
-          "OFFSET",
-          "AND",
-          "OR",
-          "NOT",
-          "IN",
-          "LIKE",
-          "ILIKE",
-          "IS NULL",
-          "IS NOT NULL",
-          "ASC",
-          "DESC",
-        ];
-
-        keywords.forEach((keyword) => {
-          suggestions.push({
-            label: keyword,
-            kind: monaco.languages.CompletionItemKind.Keyword,
-            insertText: keyword,
-            detail: "Keyword",
-            range,
-          });
-        });
-
-        return { suggestions };
-      },
-    });
+          // Deduplicate suggestions by label
+          const uniqueSuggestions = [];
+          const seen = new Set();
+          for (const s of suggestions) {
+            if (!seen.has(s.label)) {
+              uniqueSuggestions.push(s);
+              seen.add(s.label);
+            }
+          }
+          return { suggestions: uniqueSuggestions };
+        },
+      });
+      monacoSqlProviderRegistered = true;
+    }
 
     // Format SQL on editor blur
     editor.onDidBlurEditorWidget(() => {

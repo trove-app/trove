@@ -7,7 +7,8 @@ import React, {
 import { useSchema } from "../context/SchemaContext";
 import { useSqlBuilder, type QueryState } from "../context/SqlBuilderContext";
 import { useState as useLocalState } from "react";
-import { FaArrowUp, FaArrowDown, FaPlus, FaTrash } from "react-icons/fa";
+import { FaArrowUp, FaArrowDown, FaPlus, FaTrash, FaTimes, FaChevronUp, FaChevronDown } from "react-icons/fa";
+import IconButton from "../components/IconButton";
 
 interface VisualSqlBuilderProps {
   queryState: QueryState;
@@ -58,9 +59,6 @@ const VisualSqlBuilder = forwardRef<
         : [];
     })
     .flat();
-  const allSelected =
-    allTableColumns.length > 0 &&
-    selectedColumns.length === allTableColumns.length;
 
   const handleSelectAll = () => {
     const newState = { ...queryState, columns: allTableColumns };
@@ -211,27 +209,10 @@ const VisualSqlBuilder = forwardRef<
     setQueryState(newState);
     updateFromVisual(newState);
   };
-  const handleToggleOrderByDirection = (idx: number) => {
-    const newOrderBy = queryState.orderBy.map((o, i) =>
-      i === idx
-        ? { ...o, direction: o.direction === "ASC" ? "DESC" : "ASC" }
-        : o
-    ) as { table: string; column: string; direction: "ASC" | "DESC" }[];
-    const newState = { ...queryState, orderBy: newOrderBy };
-    setQueryState(newState);
-    updateFromVisual(newState);
-  };
   const handleOrderByChange = (idx: number, field: string, value: string) => {
-    const newOrderBy = queryState.orderBy.map((o, i) => {
-      if (i !== idx) return o;
-      if (field === "direction") {
-        return {
-          ...o,
-          direction: (value === "DESC" ? "DESC" : "ASC") as "ASC" | "DESC",
-        };
-      }
-      return { ...o, [field]: value };
-    }) as { table: string; column: string; direction: "ASC" | "DESC" }[];
+    const newOrderBy = queryState.orderBy.map((o, i) =>
+      i === idx ? { ...o, [field]: value } : o
+    ) as { table: string; column: string; direction: "ASC" | "DESC" }[];
     const newState = { ...queryState, orderBy: newOrderBy };
     setQueryState(newState);
     updateFromVisual(newState);
@@ -279,13 +260,12 @@ const VisualSqlBuilder = forwardRef<
             <label className="block font-semibold text-foreground">
               Join Tables
             </label>
-            <button
-              type="button"
-              className="px-3 py-1 rounded-lg bg-accent text-accent-foreground text-xs font-semibold shadow-treasure hover:bg-primary-600 transition-colors"
+            <IconButton
+              icon={FaPlus}
+              label="Add Join"
               onClick={handleAddJoin}
-            >
-              + Add Join
-            </button>
+              variant="primary"
+            />
           </div>
           {joins.map((join, idx) => (
             <div
@@ -337,13 +317,13 @@ const VisualSqlBuilder = forwardRef<
                     </option>
                   ))}
               </select>
-              <button
-                type="button"
-                className="text-xs text-error-600 hover:text-error-700 ml-auto"
+              <IconButton
+                icon={FaTrash}
+                label="Remove Join"
                 onClick={() => handleRemoveJoin(idx)}
-              >
-                Remove
-              </button>
+                variant="destructive"
+                className="ml-auto"
+              />
             </div>
           ))}
         </div>
@@ -421,14 +401,26 @@ const VisualSqlBuilder = forwardRef<
         </div>
         {/* Filters */}
         <div className="mb-4 bg-muted rounded-xl border border-border">
-          <button
-            type="button"
-            className="w-full flex items-center justify-between px-4 py-3 text-left font-semibold text-accent focus:outline-none"
+          <div
+            role="button"
+            tabIndex={0}
+            className="w-full flex items-center justify-between px-4 py-3 text-left font-semibold text-accent focus:outline-none cursor-pointer"
             onClick={() => setShowFilters((v) => !v)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setShowFilters((v) => !v);
+              }
+            }}
           >
             <span>Filter Your Results (WHERE)</span>
-            <span>{showFilters ? "▲" : "▼"}</span>
-          </button>
+            <IconButton
+              icon={showFilters ? FaChevronUp : FaChevronDown}
+              label={showFilters ? "Hide Filters" : "Show Filters"}
+              variant="ghost"
+              size="sm"
+            />
+          </div>
           {showFilters && (
             <div className="px-4 pb-4">
               {queryState.filters.length === 0 && (
@@ -490,36 +482,48 @@ const VisualSqlBuilder = forwardRef<
                     }
                     placeholder="Value"
                   />
-                  <button
-                    type="button"
-                    className="text-xs text-error-600 hover:text-error-700 ml-auto"
+                  <IconButton
+                    icon={FaTrash}
+                    label="Remove Filter"
                     onClick={() => handleRemoveFilter(idx)}
-                  >
-                    Remove
-                  </button>
+                    variant="destructive"
+                    className="ml-auto"
+                  />
                 </div>
               ))}
-              <button
-                type="button"
-                className="mt-2 px-3 py-1 rounded-lg bg-accent text-accent-foreground text-xs font-semibold shadow-treasure hover:bg-primary-600"
+              <IconButton
+                icon={FaPlus}
+                label="Add Filter"
                 onClick={handleAddFilter}
-              >
-                + Add Filter
-              </button>
+                variant="primary"
+                className="mt-2"
+              />
             </div>
           )}
         </div>
 
         {/* Order By */}
         <div className="mb-4 bg-muted rounded-xl border border-border">
-          <button
-            type="button"
-            className="w-full flex items-center justify-between px-4 py-3 text-left font-semibold text-accent focus:outline-none"
+          <div
+            role="button"
+            tabIndex={0}
+            className="w-full flex items-center justify-between px-4 py-3 text-left font-semibold text-accent focus:outline-none cursor-pointer"
             onClick={() => setShowOrderBy((v) => !v)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setShowOrderBy((v) => !v);
+              }
+            }}
           >
             <span>Sort Results (ORDER BY)</span>
-            <span>{showOrderBy ? "▲" : "▼"}</span>
-          </button>
+            <IconButton
+              icon={showOrderBy ? FaChevronUp : FaChevronDown}
+              label={showOrderBy ? "Hide Sort Options" : "Show Sort Options"}
+              variant="ghost"
+              size="sm"
+            />
+          </div>
           {showOrderBy && (
             <div className="px-4 pb-4">
               {queryState.orderBy.length === 0 && (
@@ -560,46 +564,54 @@ const VisualSqlBuilder = forwardRef<
                         </option>
                       ))}
                   </select>
-                  <select
-                    className="rounded-lg border px-2 py-1 text-xs bg-card border-border text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                    value={o.direction}
-                    onChange={(e) =>
-                      handleOrderByChange(idx, "direction", e.target.value)
-                    }
-                  >
-                    <option value="ASC">Ascending</option>
-                    <option value="DESC">Descending</option>
-                  </select>
-                  <button
-                    type="button"
-                    className="text-xs text-error-600 hover:text-error-700 ml-auto"
+                  <IconButton
+                    icon={o.direction === "ASC" ? FaArrowUp : FaArrowDown}
+                    label={`Sort ${o.direction === "ASC" ? "Ascending" : "Descending"}`}
+                    onClick={() => handleOrderByChange(idx, "direction", o.direction === "ASC" ? "DESC" : "ASC")}
+                    variant="secondary"
+                  />
+                  <IconButton
+                    icon={FaTrash}
+                    label="Remove Sort"
                     onClick={() => handleRemoveOrderBy(idx)}
-                  >
-                    Remove
-                  </button>
+                    variant="destructive"
+                    className="ml-auto"
+                  />
                 </div>
               ))}
-              <button
-                type="button"
-                className="mt-2 px-3 py-1 rounded-lg bg-accent text-accent-foreground text-xs font-semibold shadow-treasure hover:bg-primary-600"
+              <IconButton
+                icon={FaPlus}
+                label="Add Sort"
                 onClick={handleAddOrderBy}
-              >
-                + Add Order By
-              </button>
+                variant="primary"
+                className="mt-2"
+              />
             </div>
           )}
         </div>
 
         {/* Limit */}
         <div className="mb-4 bg-muted rounded-xl border border-border">
-          <button
-            type="button"
-            className="w-full flex items-center justify-between px-4 py-3 text-left font-semibold text-accent focus:outline-none"
+          <div
+            role="button"
+            tabIndex={0}
+            className="w-full flex items-center justify-between px-4 py-3 text-left font-semibold text-accent focus:outline-none cursor-pointer"
             onClick={() => setShowLimit((v) => !v)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setShowLimit((v) => !v);
+              }
+            }}
           >
             <span>Limit Results</span>
-            <span>{showLimit ? "▲" : "▼"}</span>
-          </button>
+            <IconButton
+              icon={showLimit ? FaChevronUp : FaChevronDown}
+              label={showLimit ? "Hide Limit" : "Show Limit"}
+              variant="ghost"
+              size="sm"
+            />
+          </div>
           {showLimit && (
             <div className="px-4 pb-4 flex items-center gap-3">
               <input
@@ -640,13 +652,13 @@ const VisualSqlBuilder = forwardRef<
       {showSqlModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/40">
           <div className="bg-card rounded-xl shadow-treasure p-6 border border-border max-w-lg w-full relative overflow-x-auto">
-            <button
-              type="button"
-              className="absolute top-3 right-3 text-muted-foreground hover:text-accent text-lg font-bold focus:outline-none"
+            <IconButton
+              icon={FaTimes}
+              label="Close"
               onClick={() => setShowSqlModal(false)}
-            >
-              ×
-            </button>
+              variant="ghost"
+              className="absolute top-3 right-3"
+            />
             <div className="mb-4 text-sm font-semibold text-foreground">
               Generated SQL
             </div>
