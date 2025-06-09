@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useLayoutEffect } from "react";
+import React, { useState, useRef, useLayoutEffect, useEffect } from "react";
 import SqlResultTable from "./SqlResultTable";
 import SqlEditor from "./SqlEditor";
 import VisualSqlBuilder from "./VisualSqlBuilder";
@@ -8,21 +8,19 @@ import {
   useSqlBuilder,
 } from "../context/SqlBuilderContext";
 import type { VisualSqlBuilderHandle } from "./VisualSqlBuilder";
-import { format as sqlFormatter } from "sql-formatter";
+import { formatSql } from "../utils/sqlUtils";
+import { useSqlQuery } from "../hooks/useSqlQuery";
+import { FaPlay, FaSpinner } from "react-icons/fa";
+import ErrorToast from "../components/ErrorToast";
 
 function SqlBuilderInner() {
-  const [result, setResult] = useState<{
-    columns: string[];
-    rows: Record<string, unknown>[];
-  } | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [showEditor, setShowEditor] = useState(true);
   const [mode, setMode] = useState<"written" | "visual">("written");
   const contentRef = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const { sql, queryState, setQueryState, updateFromVisual, updateFromSql } =
     useSqlBuilder();
+  const { result, loading, error, executeQuery, setError } = useSqlQuery(sql, () => setShowEditor(false));
 
   // Ref to access VisualSqlBuilder's latest SQL
   const visualBuilderRef = useRef<VisualSqlBuilderHandle>(null);
@@ -43,62 +41,49 @@ function SqlBuilderInner() {
     wrapper.addEventListener("transitionend", handleTransitionEnd);
   }, [mode, loading, error, sql]);
 
-  const runQuery = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    setResult(null);
+  const runQuery = async () => {
     try {
-      const res = await fetch("/api/query", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: sql }),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.detail || "Query failed");
+      const result = await executeQuery();
+      if (result) {
+        setShowEditor(false); // auto-collapse after successful query
       }
-      const data = await res.json();
-      setResult(data);
-      setShowEditor(false); // auto-collapse after running query
     } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message || "Unknown error");
-      } else {
-        setError("Unknown error");
-      }
-    } finally {
-      setLoading(false);
+      // Error is handled by the hook
+      console.error('Query execution failed:', err);
     }
   };
 
+  // Make sure we're passing an async function to SqlEditor
+  const handleExecute = async () => {
+    await runQuery();
+  };
+
+  // Clear error when SQL changes
+  useEffect(() => {
+    setError(null);
+  }, [sql, setError]);
+
   return (
-    <main className="flex flex-col min-h-screen items-center justify-center bg-gradient-to-br from-white via-slate-100 to-slate-200 dark:from-zinc-900 dark:via-zinc-800 dark:to-zinc-950 px-4">
+    <main className="flex flex-col min-h-screen items-center justify-center bg-background">
       <div className="w-full flex flex-col items-center">
         {/* Toggle Tabs - only show when editor is visible */}
         {showEditor && (
           <div className="w-full max-w-xl flex justify-center mb-2 mt-6">
-            <div className="inline-flex rounded-xl bg-slate-100 dark:bg-zinc-800 p-1 shadow-sm border border-slate-200 dark:border-zinc-700">
+            <div className="inline-flex rounded-xl bg-muted p-1 shadow-soft border border-border">
               <button
-                className={`px-6 py-2 rounded-lg font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:z-10
+                className={`px-6 py-2 rounded-lg font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:z-10
                   ${
                     mode === "written"
-                      ? "bg-white dark:bg-zinc-900 text-blue-700 dark:text-blue-300 shadow border border-blue-500"
-                      : "bg-transparent text-slate-500 dark:text-zinc-400 border border-transparent hover:bg-slate-200 dark:hover:bg-zinc-700"
+                      ? "bg-card text-accent shadow-soft border border-accent"
+                      : "bg-transparent text-muted-foreground border border-transparent hover:bg-muted"
                   }`}
                 onClick={() => {
-                  // When switching to written mode, set query to latest SQL from visual builder
                   if (
                     visualBuilderRef.current &&
                     visualBuilderRef.current.getSql
                   ) {
                     const rawSql = visualBuilderRef.current.getSql();
-                    updateFromSql(
-                      sqlFormatter(rawSql, {
-                        language: "sql",
-                        keywordCase: "upper",
-                      })
-                    );
+                    updateFromSql(formatSql(rawSql));
                   }
                   setMode("written");
                 }}
@@ -108,11 +93,11 @@ function SqlBuilderInner() {
                 Written
               </button>
               <button
-                className={`px-6 py-2 rounded-lg font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:z-10
+                className={`px-6 py-2 rounded-lg font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:z-10
                   ${
                     mode === "visual"
-                      ? "bg-white dark:bg-zinc-900 text-blue-700 dark:text-blue-300 shadow border border-blue-500"
-                      : "bg-transparent text-slate-500 dark:text-zinc-400 border border-transparent hover:bg-slate-200 dark:hover:bg-zinc-700"
+                      ? "bg-card text-accent shadow-soft border border-accent"
+                      : "bg-transparent text-muted-foreground border border-transparent hover:bg-muted"
                   }`}
                 onClick={() => setMode("visual")}
                 type="button"
@@ -124,7 +109,7 @@ function SqlBuilderInner() {
           </div>
         )}
         <button
-          className="fixed bottom-8 right-8 z-50 bg-blue-600 text-white px-5 py-2 rounded-full shadow-lg font-bold hover:bg-blue-700 transition-colors"
+          className="fixed bottom-8 right-8 z-50 bg-accent text-accent-foreground px-5 py-2 rounded-full shadow-treasure font-bold hover:bg-primary-600 transition-colors"
           onClick={() => setShowEditor((v) => !v)}
         >
           {showEditor ? "Hide Query" : "Edit Query"}
@@ -132,39 +117,58 @@ function SqlBuilderInner() {
         <div
           className={`w-full max-w-3xl transition-all duration-300 overflow-hidden ${
             showEditor
-              ? "max-h-[800px] opacity-100 mt-12 mb-2"
+              ? "h-[calc(100%-20rem)] opacity-100 mt-12 mb-2"
               : "max-h-0 opacity-0 mb-0 mt-0 pointer-events-none"
           }`}
         >
-          <div style={{ height: 600, overflowY: "auto" }}>
-            <section className="w-full h-full bg-white/80 dark:bg-zinc-900/80 rounded-2xl shadow-xl p-8 border border-slate-200 dark:border-zinc-800 flex flex-col">
-              {mode === "written" ? (
-                <SqlEditor value={sql} onChange={updateFromSql} />
-              ) : (
-                <div className="h-full flex flex-col max-w-full overflow-x-auto">
-                  <VisualSqlBuilder
-                    queryState={queryState}
-                    setQueryState={setQueryState}
-                    updateFromVisual={updateFromVisual}
-                  />
-                </div>
-              )}
-            </section>
-          </div>
-          {/* Shared submit button and error message */}
-          <div className="w-full flex flex-col items-end mt-2">
-            <button
-              onClick={runQuery}
-              className="px-6 py-2 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 disabled:opacity-60"
-              disabled={loading || !sql.trim()}
-            >
-              {loading ? "Running..." : "Run Query"}
-            </button>
-            {error && (
-              <div className="text-red-600 font-semibold mb-4 self-start">
-                {error}
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <div style={{ height: 500, overflowY: "auto" }} className="relative">
+                <section className="w-full h-full bg-card/80 rounded-2xl shadow-treasure p-8 border border-border flex flex-col">
+                  {mode === "written" ? (
+                    <SqlEditor 
+                      value={sql} 
+                      onChange={updateFromSql} 
+                      onExecute={handleExecute}
+                    />
+                  ) : (
+                    <div className="h-full flex flex-col max-w-full overflow-x-auto">
+                      <VisualSqlBuilder
+                        queryState={queryState}
+                        setQueryState={setQueryState}
+                        updateFromVisual={updateFromVisual}
+                      />
+                    </div>
+                  )}
+                </section>
+                <ErrorToast 
+                  message={error} 
+                  onDismiss={() => setError(null)} 
+                  duration={4000}
+                />
               </div>
-            )}
+            </div>
+
+            {/* Run Query Button - Right side */}
+            <div className="flex flex-col justify-center">
+              <div className="flex flex-col items-center gap-2">
+                <button
+                  onClick={runQuery}
+                  disabled={loading || !sql.trim()}
+                  className="group flex items-center gap-2 px-4 py-2 bg-accent hover:bg-primary-600 text-accent-foreground rounded-lg shadow-treasure transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {loading ? (
+                    <FaSpinner className="animate-spin" />
+                  ) : (
+                    <FaPlay className="group-hover:animate-pulse" />
+                  )}
+                  <span className="font-semibold">Run Query</span>
+                </button>
+                <div className="text-xs text-muted-foreground whitespace-nowrap">
+                  {navigator.platform.toLowerCase().includes('mac') ? '⌘' : 'Ctrl'} + Enter
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <section className="w-full">

@@ -2,44 +2,27 @@ import MonacoEditor, { OnMount } from "@monaco-editor/react";
 import type * as MonacoType from "monaco-editor";
 import React, { useEffect, useRef } from "react";
 import { useSchema } from "../context/SchemaContext";
-import { format as sqlFormatter } from "sql-formatter";
+import { getSqlContext, formatSql } from "../utils/sqlUtils";
+
+// Declare global Monaco instance
+declare global {
+  interface Window {
+    monaco: typeof MonacoType;
+  }
+}
 
 interface SqlEditorProps {
   value: string;
   onChange: (value: string) => void;
-}
-
-// Helper to find the last relevant SQL keyword before the cursor
-function getSqlContext(text: string) {
-  // Remove comments and excessive whitespace
-  const cleaned = text.replace(/--.*$/gm, "").replace(/\s+/g, " ");
-  // Find the last keyword before the cursor
-  const keywords = [
-    "select", "from", "join", "where", "on", "and", "or", "into", "update", "insert", "set", "group by", "order by"
-  ];
-  let lastKeyword: string | null = null;
-  let lastIndex = -1;
-  for (const kw of keywords) {
-    const idx = cleaned.toLowerCase().lastIndexOf(kw);
-    if (idx > lastIndex) {
-      lastKeyword = kw;
-      lastIndex = idx;
-    }
-  }
-  // Dot notation: table.column
-  if (/\.[a-zA-Z0-9_]*$/.test(cleaned)) return "dot";
-  const lastKw = lastKeyword || "";
-  if (["from", "join", "into", "update"].includes(lastKw)) return "table";
-  if (["select", "where", "on", "and", "or", "set", "group by", "order by"].includes(lastKw)) return "column";
-  return null;
+  onExecute?: () => Promise<void>;
 }
 
 // Track if the completion provider has been registered for this Monaco instance
 let monacoSqlProviderRegistered = false;
 
-export default function SqlEditor({ value, onChange }: SqlEditorProps) {
+const SqlEditor: React.FC<SqlEditorProps> = ({ value, onChange, onExecute }) => {
   const { tables } = useSchema();
-  const monacoRef = useRef<unknown>(null);
+  const editorRef = useRef<MonacoType.editor.IStandaloneCodeEditor | null>(null);
   // Ref to always have the latest tables in the provider
   const tablesRef = useRef(tables);
 
@@ -47,35 +30,127 @@ export default function SqlEditor({ value, onChange }: SqlEditorProps) {
     tablesRef.current = tables;
   }, [tables]);
 
-  // Format SQL using sql-formatter
-  const formatSql = (sql: string) => {
-    try {
-      return sqlFormatter(sql, { language: "sql", keywordCase: "upper" });
-    } catch {
-      return sql; // fallback if formatting fails
-    }
-  };
-
   // Format initial value on mount
   useEffect(() => {
     if (value && value !== formatSql(value)) {
       onChange(formatSql(value));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Only update value on change, do not format
-  const handleChange = (v: string | undefined) => {
-    if (typeof v === "string") {
-      onChange(v);
-    } else {
-      onChange("");
-    }
+  // Get current theme
+  const getCurrentTheme = () => {
+    return document.documentElement.classList.contains('dark') ? 'trove-dark' : 'trove-light';
   };
 
-  const handleMount: OnMount = (editor, monaco) => {
-    monacoRef.current = monaco;
-    // Register provider only once per Monaco instance
+  // Update editor theme when document theme changes
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      if (editorRef.current) {
+        const monaco = window.monaco as typeof MonacoType;
+        if (monaco) {
+          monaco.editor.setTheme(getCurrentTheme());
+        }
+      }
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  const handleEditorDidMount: OnMount = (editor, monaco) => {
+    editorRef.current = editor;
+
+    // Add command for Cmd/Ctrl + Enter
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, async () => {
+      try {
+        if (onExecute) {
+          await onExecute();
+        }
+      } catch (err) {
+        console.error('Failed to execute query:', err);
+      }
+    });
+
+    // Set up Monaco editor theme
+    monaco.editor.defineTheme("trove-light", {
+      base: "vs",
+      inherit: true,
+      rules: [
+        { token: "keyword", foreground: "A25D2D", fontStyle: "bold" },
+        { token: "string", foreground: "84bd26" },
+        { token: "number", foreground: "F4B100" },
+        { token: "comment", foreground: "6b6b6b", fontStyle: "italic" },
+        { token: "operator", foreground: "A25D2D" },
+        { token: "delimiter", foreground: "2A2A2A" },
+        { token: "identifier", foreground: "2A2A2A" },
+      ],
+      colors: {
+        "editor.background": "#FFF7EC",
+        "editor.foreground": "#2A2A2A",
+        "editor.lineHighlightBackground": "#f8f4ea",
+        "editorCursor.foreground": "#F4B100",
+        "editor.selectionBackground": "#fdecc4",
+        "editor.inactiveSelectionBackground": "#f2e8e5",
+      },
+    });
+
+    monaco.editor.defineTheme("trove-dark", {
+      base: "vs-dark",
+      inherit: true,
+      rules: [
+        { token: "keyword", foreground: "F4B100", fontStyle: "bold" },
+        { token: "string", foreground: "9dd13c" },
+        { token: "number", foreground: "fbd788" },
+        { token: "comment", foreground: "a0a0a0", fontStyle: "italic" },
+        { token: "operator", foreground: "F4B100" },
+        { token: "delimiter", foreground: "FFF7EC" },
+        { token: "identifier", foreground: "FFF7EC" },
+      ],
+      colors: {
+        "editor.background": "#1A1A1A",
+        "editor.foreground": "#FFF7EC",
+        "editor.lineHighlightBackground": "#2A2A2A",
+        "editorCursor.foreground": "#F4B100",
+        "editor.selectionBackground": "#3A3A3A",
+        "editor.inactiveSelectionBackground": "#4A4A4A",
+      },
+    });
+
+    // Set up SQL language configuration
+    monaco.languages.setMonarchTokensProvider("sql", {
+      defaultToken: "identifier",
+      tokenizer: {
+        root: [
+          [/\s+/, "white"],
+          [/--.*$/, "comment"],
+          [/\/\*/, "comment", "@comment"],
+          [/'([^'\\]|\\.)*$/, "string.invalid"],
+          [/'/, "string", "@string"],
+          [/\d*\.\d+([eE][-+]?\d+)?/, "number.float"],
+          [/\d+/, "number"],
+          [/[;,.]/, "delimiter"],
+          [/[()[\]]/, "delimiter"],
+          [/\b(SELECT|FROM|WHERE|JOIN|LEFT|INNER|RIGHT|ON|GROUP|BY|ORDER|LIMIT|OFFSET|AND|OR|NOT|IN|LIKE|ILIKE|IS|NULL|ASC|DESC|DISTINCT|HAVING|UNION|ALL|AS|WITH|CASE|WHEN|THEN|ELSE|END)\b/i, "keyword"],
+          [/[<>=!]+/, "operator"],
+          [/[a-zA-Z_]\w*/, "identifier"],
+        ],
+        comment: [
+          [/[^/*]+/, "comment"],
+          [/\*\//, "comment", "@pop"],
+          [/[/*]/, "comment"],
+        ],
+        string: [
+          [/[^\\']+/, "string"],
+          [/'/, "string", "@pop"],
+        ],
+      },
+    });
+
+    // Set up SQL completion provider
     if (!monacoSqlProviderRegistered) {
       monaco.languages.registerCompletionItemProvider("sql", {
         triggerCharacters: [" ", ".", ","],
@@ -91,14 +166,16 @@ export default function SqlEditor({ value, onChange }: SqlEditorProps) {
           });
           const context = getSqlContext(textUntilPosition);
           const word = model.getWordUntilPosition(position);
-          const range = new monaco.Range(
-            position.lineNumber,
-            word.startColumn,
-            position.lineNumber,
-            word.endColumn
-          );
+          const range = {
+            startLineNumber: position.lineNumber,
+            endLineNumber: position.lineNumber,
+            startColumn: word.startColumn,
+            endColumn: word.endColumn,
+          };
+
           const suggestions: MonacoType.languages.CompletionItem[] = [];
           const currentTables = tablesRef.current;
+
           if (context === "table") {
             for (const table of currentTables) {
               suggestions.push({
@@ -140,6 +217,25 @@ export default function SqlEditor({ value, onChange }: SqlEditorProps) {
               }
             }
           }
+
+          // Add SQL keywords
+          const keywords = [
+            "SELECT", "FROM", "WHERE", "JOIN", "LEFT JOIN", "INNER JOIN",
+            "GROUP BY", "ORDER BY", "LIMIT", "OFFSET", "AND", "OR",
+            "NOT", "IN", "LIKE", "ILIKE", "IS NULL", "IS NOT NULL",
+            "ASC", "DESC"
+          ];
+
+          keywords.forEach((keyword) => {
+            suggestions.push({
+              label: keyword,
+              kind: monaco.languages.CompletionItemKind.Keyword,
+              insertText: keyword,
+              detail: "Keyword",
+              range,
+            });
+          });
+
           // Deduplicate suggestions by label
           const uniqueSuggestions = [];
           const seen = new Set();
@@ -154,32 +250,42 @@ export default function SqlEditor({ value, onChange }: SqlEditorProps) {
       });
       monacoSqlProviderRegistered = true;
     }
-    // Attach blur event to format SQL
+
+    // Format SQL on editor blur
     editor.onDidBlurEditorWidget(() => {
-      onChange(formatSql(editor.getValue()));
+      const currentValue = editor.getValue();
+      const formattedValue = formatSql(currentValue);
+      if (currentValue !== formattedValue) {
+        editor.setValue(formattedValue);
+      }
     });
+
+    // Set initial theme
+    monaco.editor.setTheme(getCurrentTheme());
   };
 
   return (
-    <div className="w-full max-w-full mx-auto bg-white dark:bg-zinc-900 rounded-2xl shadow-xl flex flex-col gap-5 border border-slate-200 dark:border-zinc-800 overflow-x-auto">
+    <div className="w-full h-full rounded-lg overflow-hidden border border-border">
       <MonacoEditor
-        height="450px"
+        height="100%"
         defaultLanguage="sql"
-        theme="vs-dark"
         value={value}
-        onChange={handleChange}
-        onMount={handleMount}
+        onChange={(value) => onChange(value || "")}
+        onMount={handleEditorDidMount}
         options={{
-          fontSize: 16,
           minimap: { enabled: false },
-          wordWrap: "on",
-          scrollBeyondLastLine: false,
+          fontSize: 14,
           lineNumbers: "on",
+          roundedSelection: true,
+          scrollBeyondLastLine: false,
+          wordWrap: "on",
           automaticLayout: true,
-          tabSize: 2,
+          theme: getCurrentTheme(),
           padding: { top: 16, bottom: 16 },
         }}
       />
     </div>
   );
-} 
+};
+
+export default SqlEditor; 
