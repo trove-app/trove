@@ -14,12 +14,13 @@ declare global {
 interface SqlEditorProps {
   value: string;
   onChange: (value: string) => void;
+  onExecute?: () => Promise<void>;
 }
 
 // Track if the completion provider has been registered for this Monaco instance
 let monacoSqlProviderRegistered = false;
 
-const SqlEditor: React.FC<SqlEditorProps> = ({ value, onChange }) => {
+const SqlEditor: React.FC<SqlEditorProps> = ({ value, onChange, onExecute }) => {
   const { tables } = useSchema();
   const editorRef = useRef<MonacoType.editor.IStandaloneCodeEditor | null>(null);
   // Ref to always have the latest tables in the provider
@@ -62,6 +63,17 @@ const SqlEditor: React.FC<SqlEditorProps> = ({ value, onChange }) => {
 
   const handleEditorDidMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
+
+    // Add command for Cmd/Ctrl + Enter
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, async () => {
+      try {
+        if (onExecute) {
+          await onExecute();
+        }
+      } catch (err) {
+        console.error('Failed to execute query:', err);
+      }
+    });
 
     // Set up Monaco editor theme
     monaco.editor.defineTheme("trove-light", {

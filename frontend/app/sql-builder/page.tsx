@@ -42,10 +42,19 @@ function SqlBuilderInner() {
 
   const runQuery = async () => {
     try {
-      await executeQuery();
-    } catch {
-      // Error - TODO
+      const result = await executeQuery();
+      if (result) {
+        setShowEditor(false); // auto-collapse after successful query
+      }
+    } catch (err) {
+      // Error is handled by the hook
+      console.error('Query execution failed:', err);
     }
+  };
+
+  // Make sure we're passing an async function to SqlEditor
+  const handleExecute = async () => {
+    await runQuery();
   };
 
   return (
@@ -111,7 +120,11 @@ function SqlBuilderInner() {
               <div style={{ height: 500, overflowY: "auto" }} className="relative">
                 <section className="w-full h-full bg-card/80 rounded-2xl shadow-treasure p-8 border border-border flex flex-col">
                   {mode === "written" ? (
-                    <SqlEditor value={sql} onChange={updateFromSql} />
+                    <SqlEditor 
+                      value={sql} 
+                      onChange={updateFromSql} 
+                      onExecute={handleExecute}
+                    />
                   ) : (
                     <div className="h-full flex flex-col max-w-full overflow-x-auto">
                       <VisualSqlBuilder
