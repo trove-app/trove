@@ -1,6 +1,7 @@
 import React from "react";
 import { MantineReactTable, MRT_ColumnDef } from 'mantine-react-table';
 import { MantineProvider } from '@mantine/core';
+import { useTheme } from '../context/ThemeContext';
 
 interface SqlResultTableProps {
   columns: string[];
@@ -16,6 +17,8 @@ const troveColors: { gold: ColorScale; brown: ColorScale } = {
 };
 
 export default function SqlResultTable({ columns, rows }: SqlResultTableProps) {
+  const { theme } = useTheme();
+
   // Build Mantine column definitions
   const mantineColumns: MRT_ColumnDef<Record<string, unknown>>[] = columns.map(col => ({
     accessorKey: col,
@@ -36,7 +39,7 @@ export default function SqlResultTable({ columns, rows }: SqlResultTableProps) {
               gold: troveColors.gold,
               brown: troveColors.brown,
             },
-            colorScheme: 'light',
+            colorScheme: theme,
             components: {
               Table: {
                 styles: {
