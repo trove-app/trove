@@ -2,7 +2,7 @@ import MonacoEditor, { OnMount } from "@monaco-editor/react";
 import type * as MonacoType from "monaco-editor";
 import React, { useEffect, useRef } from "react";
 import { useSchema } from "../context/SchemaContext";
-import { format as sqlFormatter } from "sql-formatter";
+import { getSqlContext, formatSql } from "../utils/sqlUtils";
 
 // Declare global Monaco instance
 declare global {
@@ -14,31 +14,6 @@ declare global {
 interface SqlEditorProps {
   value: string;
   onChange: (value: string) => void;
-}
-
-// Helper to find the last relevant SQL keyword before the cursor
-function getSqlContext(text: string) {
-  // Remove comments and excessive whitespace
-  const cleaned = text.replace(/--.*$/gm, "").replace(/\s+/g, " ");
-  // Find the last keyword before the cursor
-  const keywords = [
-    "select", "from", "join", "where", "on", "and", "or", "into", "update", "insert", "set", "group by", "order by"
-  ];
-  let lastKeyword: string | null = null;
-  let lastIndex = -1;
-  for (const kw of keywords) {
-    const idx = cleaned.toLowerCase().lastIndexOf(kw);
-    if (idx > lastIndex) {
-      lastKeyword = kw;
-      lastIndex = idx;
-    }
-  }
-  // Dot notation: table.column
-  if (/\.[a-zA-Z0-9_]*$/.test(cleaned)) return "dot";
-  const lastKw = lastKeyword || "";
-  if (["from", "join", "into", "update"].includes(lastKw)) return "table";
-  if (["select", "where", "on", "and", "or", "set", "group by", "order by"].includes(lastKw)) return "column";
-  return null;
 }
 
 // Track if the completion provider has been registered for this Monaco instance
@@ -53,15 +28,6 @@ const SqlEditor: React.FC<SqlEditorProps> = ({ value, onChange }) => {
   useEffect(() => {
     tablesRef.current = tables;
   }, [tables]);
-
-  // Format SQL using sql-formatter
-  const formatSql = (sql: string) => {
-    try {
-      return sqlFormatter(sql, { language: "sql", keywordCase: "upper" });
-    } catch {
-      return sql; // fallback if formatting fails
-    }
-  };
 
   // Format initial value on mount
   useEffect(() => {

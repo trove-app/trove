@@ -8,21 +8,17 @@ import {
   useSqlBuilder,
 } from "../context/SqlBuilderContext";
 import type { VisualSqlBuilderHandle } from "./VisualSqlBuilder";
-import { format as sqlFormatter } from "sql-formatter";
+import { formatSql } from "../utils/sqlUtils";
+import { useSqlQuery } from "../hooks/useSqlQuery";
 
 function SqlBuilderInner() {
-  const [result, setResult] = useState<{
-    columns: string[];
-    rows: Record<string, unknown>[];
-  } | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [showEditor, setShowEditor] = useState(true);
   const [mode, setMode] = useState<"written" | "visual">("written");
   const contentRef = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const { sql, queryState, setQueryState, updateFromVisual, updateFromSql } =
     useSqlBuilder();
+  const { result, loading, error, executeQuery } = useSqlQuery();
 
   // Ref to access VisualSqlBuilder's latest SQL
   const visualBuilderRef = useRef<VisualSqlBuilderHandle>(null);
@@ -45,30 +41,11 @@ function SqlBuilderInner() {
 
   const runQuery = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
-    setResult(null);
     try {
-      const res = await fetch("/api/query", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: sql }),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.detail || "Query failed");
-      }
-      const data = await res.json();
-      setResult(data);
+      await executeQuery(sql);
       setShowEditor(false); // auto-collapse after running query
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message || "Unknown error");
-      } else {
-        setError("Unknown error");
-      }
-    } finally {
-      setLoading(false);
+    } catch {
+      // Error is handled by the hook
     }
   };
 
@@ -92,12 +69,7 @@ function SqlBuilderInner() {
                     visualBuilderRef.current.getSql
                   ) {
                     const rawSql = visualBuilderRef.current.getSql();
-                    updateFromSql(
-                      sqlFormatter(rawSql, {
-                        language: "sql",
-                        keywordCase: "upper",
-                      })
-                    );
+                    updateFromSql(formatSql(rawSql));
                   }
                   setMode("written");
                 }}

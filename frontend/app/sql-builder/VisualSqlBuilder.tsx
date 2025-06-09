@@ -5,10 +5,11 @@ import React, {
   useImperativeHandle
 } from "react";
 import { useSchema } from "../context/SchemaContext";
-import { useSqlBuilder, type QueryState } from "../context/SqlBuilderContext";
+import { type QueryState } from "../context/SqlBuilderContext";
 import { useState as useLocalState } from "react";
 import { FaArrowUp, FaArrowDown, FaPlus, FaTrash, FaTimes, FaChevronUp, FaChevronDown } from "react-icons/fa";
 import IconButton from "../components/IconButton";
+import { generateTableAliases, getAllTableColumns, generateSql } from "../utils/sqlUtils";
 
 interface VisualSqlBuilderProps {
   queryState: QueryState;
@@ -31,7 +32,6 @@ const VisualSqlBuilder = forwardRef<
   const [generatedSql, setGeneratedSql] = useState<string>("");
   const [showSqlModal, setShowSqlModal] = useState(false);
   const [copied, setCopied] = useState(false);
-  const { generateSql} = useSqlBuilder();
   const {
     table: selectedTable,
     columns: selectedColumns,
@@ -45,31 +45,23 @@ const VisualSqlBuilder = forwardRef<
     ...(selectedTable ? [{ table_name: selectedTable }] : []),
     ...joins.map((j) => ({ table_name: j.table })),
   ];
-  // Assign aliases: t0, t1, ...
-  const tableAliases: Record<string, string> = {};
-  joinedTables.forEach((t, i) => {
-    tableAliases[t.table_name] = `t${i}`;
-  });
-  // Build all columns from all tables
-  const allTableColumns = joinedTables
-    .map((t) => {
-      const meta = tables.find((tab) => tab.table_name === t.table_name);
-      return meta
-        ? meta.columns.map((col) => ({ table: t.table_name, column: col.name }))
-        : [];
-    })
-    .flat();
+
+  // Get all available columns and table aliases
+  const allTableColumns = getAllTableColumns(tables, joinedTables.map(t => t.table_name));
+  const tableAliases = generateTableAliases(joinedTables.map(t => t.table_name));
 
   const handleSelectAll = () => {
     const newState = { ...queryState, columns: allTableColumns };
     setQueryState(newState);
     updateFromVisual(newState);
   };
+
   const handleSelectNone = () => {
     const newState = { ...queryState, columns: [] };
     setQueryState(newState);
     updateFromVisual(newState);
   };
+
   const handleColumnToggle = (colObj: { table: string; column: string }) => {
     const exists = selectedColumns.some(
       (c) => c.table === colObj.table && c.column === colObj.column
@@ -86,8 +78,6 @@ const VisualSqlBuilder = forwardRef<
     setQueryState(newState);
     updateFromVisual(newState);
   };
-
-  // Only LEFT JOIN supported for now
 
   // Add a new join row
   const handleAddJoin = () => {
@@ -129,8 +119,7 @@ const VisualSqlBuilder = forwardRef<
   useEffect(() => {
     const sql = generateSql(queryState);
     setGeneratedSql(sql);
-    // No onChange, parent is updated via updateFromVisual
-  }, [queryState, generateSql]);
+  }, [queryState]);
 
   // Copy to clipboard
   const handleCopy = () => {
@@ -171,12 +160,14 @@ const VisualSqlBuilder = forwardRef<
     setQueryState(newState);
     updateFromVisual(newState);
   };
+
   const handleRemoveFilter = (idx: number) => {
     const newFilters = queryState.filters.filter((_, i) => i !== idx);
     const newState = { ...queryState, filters: newFilters };
     setQueryState(newState);
     updateFromVisual(newState);
   };
+
   const handleFilterChange = (idx: number, field: string, value: string) => {
     const newFilters = queryState.filters.map((f, i) =>
       i === idx ? { ...f, [field]: value } : f
@@ -203,12 +194,14 @@ const VisualSqlBuilder = forwardRef<
     setQueryState(newState);
     updateFromVisual(newState);
   };
+
   const handleRemoveOrderBy = (idx: number) => {
     const newOrderBy = queryState.orderBy.filter((_, i) => i !== idx);
     const newState = { ...queryState, orderBy: newOrderBy };
     setQueryState(newState);
     updateFromVisual(newState);
   };
+
   const handleOrderByChange = (idx: number, field: string, value: string) => {
     const newOrderBy = queryState.orderBy.map((o, i) =>
       i === idx ? { ...o, [field]: value } : o
