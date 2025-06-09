@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useLayoutEffect } from "react";
+import React, { useState, useRef, useLayoutEffect, useEffect } from "react";
 import SqlResultTable from "./SqlResultTable";
 import SqlEditor from "./SqlEditor";
 import VisualSqlBuilder from "./VisualSqlBuilder";
@@ -11,6 +11,7 @@ import type { VisualSqlBuilderHandle } from "./VisualSqlBuilder";
 import { formatSql } from "../utils/sqlUtils";
 import { useSqlQuery } from "../hooks/useSqlQuery";
 import { FaPlay, FaSpinner } from "react-icons/fa";
+import ErrorToast from "../components/ErrorToast";
 
 function SqlBuilderInner() {
   const [showEditor, setShowEditor] = useState(true);
@@ -19,7 +20,7 @@ function SqlBuilderInner() {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const { sql, queryState, setQueryState, updateFromVisual, updateFromSql } =
     useSqlBuilder();
-  const { result, loading, error, executeQuery } = useSqlQuery(sql, () => setShowEditor(false));
+  const { result, loading, error, executeQuery, setError } = useSqlQuery(sql, () => setShowEditor(false));
 
   // Ref to access VisualSqlBuilder's latest SQL
   const visualBuilderRef = useRef<VisualSqlBuilderHandle>(null);
@@ -56,6 +57,11 @@ function SqlBuilderInner() {
   const handleExecute = async () => {
     await runQuery();
   };
+
+  // Clear error when SQL changes
+  useEffect(() => {
+    setError(null);
+  }, [sql, setError]);
 
   return (
     <main className="flex flex-col min-h-screen items-center justify-center bg-background">
@@ -135,6 +141,11 @@ function SqlBuilderInner() {
                     </div>
                   )}
                 </section>
+                <ErrorToast 
+                  message={error} 
+                  onDismiss={() => setError(null)} 
+                  duration={4000}
+                />
               </div>
             </div>
 
@@ -156,11 +167,6 @@ function SqlBuilderInner() {
                 <div className="text-xs text-muted-foreground whitespace-nowrap">
                   {navigator.platform.toLowerCase().includes('mac') ? '⌘' : 'Ctrl'} + Enter
                 </div>
-                {error && (
-                  <div className="text-error-600 font-semibold text-sm text-center">
-                    {error}
-                  </div>
-                )}
               </div>
             </div>
           </div>

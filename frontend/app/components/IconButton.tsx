@@ -1,6 +1,5 @@
 import React from 'react';
 import { IconType } from 'react-icons';
-import { twMerge } from 'tailwind-merge';
 
 interface IconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   icon: IconType;
@@ -14,7 +13,7 @@ const IconButton: React.FC<IconButtonProps> = ({
   label,
   variant = 'ghost',
   size = 'sm',
-  className,
+  className = '',
   ...props
 }) => {
   const baseStyles = "rounded-lg flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50";
@@ -41,12 +40,7 @@ const IconButton: React.FC<IconButtonProps> = ({
   return (
     <button
       type="button"
-      className={twMerge(
-        baseStyles,
-        variantStyles[variant],
-        sizeStyles[size],
-        className
-      )}
+      className={`${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
       aria-label={label}
       title={label}
       {...props}

@@ -1,14 +1,16 @@
 "use client";
-import React, { useState } from "react";
+import React from "react";
 import Sidebar from "./Sidebar";
 import { IconMenu2, IconX } from "@tabler/icons-react";
+import { useSidebar } from "../context/SidebarContext";
 
 export default function SidebarLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const { sidebarOpen, setSidebarOpen } = useSidebar();
+  
   return (
     <div className="relative min-h-screen">
       {/* Sidebar */}

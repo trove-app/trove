@@ -16,7 +16,7 @@ export function useSqlQuery(sql: string, onQueryComplete?: () => void) {
     sqlRef.current = sql;
   }, [sql]);
 
-  const executeQuery = async (query: string = sqlRef.current) => {
+  const executeQuery = useCallback(async (query: string = sqlRef.current) => {
     setLoading(true);
     setError(null);
     setResult(null);
@@ -26,33 +26,32 @@ export function useSqlQuery(sql: string, onQueryComplete?: () => void) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query }),
       });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.detail || "Query failed");
-      }
+      
       const data = await res.json();
+      
+      if (!res.ok) {
+        setError(data.detail || "Query failed");
+        return null;
+      }
+      
       setResult(data);
       onQueryComplete?.();
       return data;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Unknown error";
       setError(errorMessage);
-      throw err;
+      return null;
     } finally {
       setLoading(false);
     }
-  };
+  }, [onQueryComplete]);
 
   // Add keyboard shortcut handler
   const handleKeyDown = useCallback(async (event: KeyboardEvent) => {
     // Check for Cmd/Ctrl + Enter
     if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
       event.preventDefault();
-      try {
-        await executeQuery();
-      } catch (err) {
-        // Error is already handled in executeQuery
-      }
+      await executeQuery();
     }
   }, [executeQuery]);
 
