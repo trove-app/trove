@@ -7,7 +7,7 @@ export default function Sidebar() {
     <aside className="w-64 bg-card/80 backdrop-blur-sm border-r border-border/50 
                       flex flex-col p-6 shadow-treasure min-h-screen">
       <div className="pl-10 mb-8">
-        <TroveGradientTitle size="text-3xl">Trove</TroveGradientTitle>
+        <TroveGradientTitle size="text-3xl">trove</TroveGradientTitle>
       </div>
       
       <nav className="flex flex-col gap-3 flex-1">

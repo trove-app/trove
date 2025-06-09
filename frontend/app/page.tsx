@@ -5,7 +5,7 @@ export default function Home() {
     <main className="flex flex-col min-h-screen items-center justify-center 
                      bg-background
                      px-4 py-8">
-      <TroveGradientTitle>TROVE</TroveGradientTitle>
+      <TroveGradientTitle>trove</TroveGradientTitle>
       
       <section className="w-full max-w-xl bg-card/80 backdrop-blur-sm
                          border border-border/50 rounded-xl shadow-treasure
@@ -30,10 +30,6 @@ export default function Home() {
           <li className="flex items-center gap-3 group">
             <span className="text-2xl group-hover:scale-110 transition-transform">🧠</span>
             <span>AI first - ask questions, get answers</span>
-          </li>
-          <li className="flex items-center gap-3 group">
-            <span className="text-2xl group-hover:scale-110 transition-transform">💸</span>
-            <span>No per-seat pricing, ever</span>
           </li>
           <li className="flex items-center gap-3 group">
             <span className="text-2xl group-hover:scale-110 transition-transform">🛠️</span>
