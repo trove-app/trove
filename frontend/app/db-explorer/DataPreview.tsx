@@ -6,9 +6,10 @@ interface DataPreviewProps {
   error: string | null;
   previewData: { rows: Record<string, any>[] } | null;
   column: ColumnMetadata;
+  fromCache?: boolean;
 }
 
-export default function DataPreview({ loading, error, previewData, column }: DataPreviewProps) {
+export default function DataPreview({ loading, error, previewData, column, fromCache }: DataPreviewProps) {
   // Improved loading state: animated shimmer rows
   if (loading) {
     return (
@@ -31,7 +32,12 @@ export default function DataPreview({ loading, error, previewData, column }: Dat
 
   if (previewData && previewData.rows.length > 0) {
     return (
-      <div className="space-y-1">
+      <div className="space-y-1 relative">
+        {fromCache && (
+          <div className="absolute top-0 right-0 text-[10px] text-accent bg-accent/10 px-1 py-0.5 rounded-bl-md rounded-tr-md font-mono z-10" title="Loaded from cache">
+            cached
+          </div>
+        )}
         {previewData.rows.map((row, rowIndex) => (
           <div
             key={rowIndex}

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import type { ColumnMetadata } from "../context/SchemaContext";
 import { useSqlQuery } from '../hooks/useSqlQuery';
 import DataPreview from "./DataPreview";
@@ -27,8 +27,19 @@ const TableDetails = ({ table, filter, onHover }: TableDetailsProps) => {
     loading: previewLoading,
     error: previewError,
     executeQuery: executePreviewQuery,
-    setResult: setPreviewResult
+    setResult: setPreviewResult,
+    fromCache
   } = useSqlQuery('');
+  const [refetching, setRefetching] = useState(false);
+
+  // Helper to force refetch (bypass cache)
+  const handleRefetch = async () => {
+    if (!table?.table_name) return;
+    setRefetching(true);
+    const queryString = `SELECT * FROM "${table.table_name}" LIMIT 5`;
+    await executePreviewQuery(queryString + ` --force-refetch=${Date.now()}`); // Add a unique comment to bust cache
+    setRefetching(false);
+  };
 
   useEffect(() => {
     if (table?.table_name) {
@@ -47,10 +58,25 @@ const TableDetails = ({ table, filter, onHover }: TableDetailsProps) => {
   
   return (
     <section className="flex-1 p-8 overflow-y-auto">
-      <h2 className="text-3xl font-bold mb-6 flex items-center gap-3 break-words text-foreground" title={table.table_name}>
-        <span className="text-2xl">🗄️</span> 
-        <span className="break-words whitespace-pre-line">{highlight(table.table_name, filter)}</span>
-      </h2>
+      <div className="flex items-center justify-between mb-6 gap-2">
+        <h2 className="text-3xl font-bold flex items-center gap-3 break-words text-foreground min-w-0" title={table.table_name}>
+          <span className="text-2xl">🗄️</span>
+          <span className="break-words whitespace-pre-line min-w-0 max-w-[20vw] md:max-w-[32vw] lg:max-w-[40vw] truncate block" style={{ wordBreak: 'break-all' }}>{highlight(table.table_name, filter)}</span>
+        </h2>
+        <button
+          className="ml-2 px-2 py-1 rounded border border-accent bg-transparent text-accent text-xs font-normal shadow-none hover:bg-accent/10 transition disabled:opacity-60 disabled:cursor-not-allowed"
+          onClick={handleRefetch}
+          disabled={previewLoading || refetching}
+          title="Force refetch preview data"
+          style={{ minWidth: 0 }}
+        >
+          {refetching || previewLoading ? (
+            <span className="flex items-center gap-1"><span className="animate-spin inline-block w-3 h-3 border-2 border-accent border-t-transparent rounded-full"></span>Refreshing</span>
+          ) : (
+            'Refetch'
+          )}
+        </button>
+      </div>
 
       <div className="mb-2 text-sm font-semibold text-muted-foreground">Column Details & Preview (first 5 values):</div>
       <ul className="space-y-1 border border-border/30 rounded-lg bg-card">
@@ -79,6 +105,7 @@ const TableDetails = ({ table, filter, onHover }: TableDetailsProps) => {
                   error={previewError}
                   previewData={previewData}
                   column={col}
+                  fromCache={fromCache}
                 />
               </div>
             </li>
