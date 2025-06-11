@@ -2,8 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useSchema } from "../context/SchemaContext";
 import type { ColumnMetadata } from "../context/SchemaContext";
-// TablePreview component is no longer used here, replaced by useTablePreviewData hook
-import useTablePreviewData from '../hooks/useTablePreviewData';
+import { useSqlQuery } from '../hooks/useSqlQuery';
 
 interface Table {
   table_name: string;
@@ -119,7 +118,24 @@ interface TableDetailsProps {
 }
 
 function TableDetails({ table, filter, onHover }: TableDetailsProps) {
-  const { data: previewData, loading: previewLoading, error: previewError } = useTablePreviewData(table?.table_name, 5); // Limit to 5 rows for this view
+  // Initialize useSqlQuery. Pass an empty string as the initial query.
+  const {
+    result: previewData,
+    loading: previewLoading,
+    error: previewError,
+    executeQuery: executePreviewQuery,
+    setResult: setPreviewResult // To clear results when table is deselected
+  } = useSqlQuery('');
+
+  useEffect(() => {
+    if (table?.table_name) {
+      const queryString = `SELECT * FROM "${table.table_name}" LIMIT 5`;
+      executePreviewQuery(queryString);
+    } else {
+      // Clear previous preview data if no table is selected
+      setPreviewResult(null);
+    }
+  }, [table?.table_name, executePreviewQuery, setPreviewResult]);
 
   if (!table) return (
     <div className="flex-1 flex items-center justify-center text-muted-foreground">
