@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from "react";
 import { useSchema } from "../context/SchemaContext";
 import type { ColumnMetadata } from "../context/SchemaContext";
-import TablePreview from '../components/TablePreview';
+// TablePreview component is no longer used here, replaced by useTablePreviewData hook
+import useTablePreviewData from '../hooks/useTablePreviewData';
 
 interface Table {
   table_name: string;
@@ -118,6 +119,8 @@ interface TableDetailsProps {
 }
 
 function TableDetails({ table, filter, onHover }: TableDetailsProps) {
+  const { data: previewData, loading: previewLoading, error: previewError } = useTablePreviewData(table?.table_name, 5); // Limit to 5 rows for this view
+
   if (!table) return (
     <div className="flex-1 flex items-center justify-center text-muted-foreground">
       ✨ Select a table to view details
@@ -130,21 +133,54 @@ function TableDetails({ table, filter, onHover }: TableDetailsProps) {
         <span className="text-2xl">🗄️</span> 
         <span className="break-words whitespace-pre-line">{highlight(table.table_name, filter)}</span>
       </h2>
-      <div className="mb-4 text-muted-foreground font-medium">Columns:</div>
-      <ul className="space-y-3">
-        {table.columns.map((col) => {
+
+      <div className="mb-2 text-sm font-semibold text-muted-foreground">Column Details & Preview (first 5 values):</div>
+      <ul className="space-y-1 border border-border/30 rounded-lg bg-card">
+        {table.columns.map((col, index) => {
           const isMatch = filter && col.name.toLowerCase().includes(filter.toLowerCase());
           return (
-            <li key={col.name} 
-                onMouseEnter={() => onHover?.({ type: 'column', name: col.name, dataType: col.data_type })}
-                onMouseLeave={() => onHover?.(null)}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200
-                           hover:bg-muted/50 cursor-pointer
-                           ${isMatch ? 'bg-accent/10 text-accent font-medium' : 'text-foreground'}`}>
-              <span className="font-mono text-base">{highlight(col.name, filter)}</span>
-              <span className="text-xs text-muted-foreground">
-                ({col.data_type}{col.is_nullable ? ", nullable" : ""})
-              </span>
+            <li
+              key={col.name}
+              onMouseEnter={() => onHover?.({ type: 'column', name: col.name, dataType: col.data_type })}
+              onMouseLeave={() => onHover?.(null)}
+              className={`flex items-start transition-all duration-150 ${index > 0 ? 'border-t border-border/30' : ''}
+                         ${isMatch ? 'bg-accent/5' : 'hover:bg-muted/30'}`}
+            >
+              {/* Left Column: Column Metadata */}
+              <div className={`w-2/5 p-3 pr-2 ${isMatch ? 'text-accent font-medium' : 'text-foreground'}`}>
+                <div className="font-mono text-sm mb-0.5 break-all">{highlight(col.name, filter)}</div>
+                <div className="text-xs text-muted-foreground/80">
+                  {col.data_type}{col.is_nullable ? ", nullable" : ""}
+                </div>
+              </div>
+
+              {/* Right Column: Preview Data */}
+              <div className="w-3/5 p-3 pl-2 border-l border-border/30 min-h-[4.5rem]"> {/* min-h to ensure some height for status messages */}
+                {previewLoading && <div className="text-xs text-muted-foreground italic pt-1">Loading...</div>}
+                {previewError && <div className="text-xs text-error-600 dark:text-error-500 italic pt-1 truncate" title={previewError}>Error</div>}
+
+                {previewData && !previewLoading && !previewError && (
+                  <div className="space-y-1">
+                    {previewData.rows.length > 0 ? (
+                      previewData.rows.map((row, rowIndex) => (
+                        <div
+                          key={rowIndex}
+                          className="text-xs text-foreground/90 truncate font-mono max-w-full" // max-w-full within its flex container
+                          title={row[col.name] !== null && row[col.name] !== undefined ? String(row[col.name]) : 'NULL'}
+                        >
+                          {row[col.name] !== null && row[col.name] !== undefined ? String(row[col.name]) : <span className="italic text-muted-foreground/60">NULL</span>}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-xs text-muted-foreground italic pt-1">No preview values</div>
+                    )}
+                  </div>
+                )}
+                {/* Fallback for initial state before fetch or if data is null without error */}
+                {!previewData && !previewLoading && !previewError && (
+                     <div className="text-xs text-muted-foreground italic pt-1">Preview N/A</div>
+                )}
+              </div>
             </li>
           );
         })}
@@ -214,22 +250,14 @@ export default function DBExplorerPage() {
           <div className="flex-1 flex items-center justify-center text-error-500 font-medium">
             {error}
           </div>
-        ) : selectedTable ? (
-          <div className="flex-1 flex flex-col min-w-0"> {/* Added flex-col and min-w-0 here */}
-            <TableDetails
-              table={selectedTable}
-              filter={filter}
-              onHover={setHoveredInfo}
-            />
-            <div className="p-8 pt-0"> {/* Added padding for separation, ensure it's within scrollable area */}
-              <h4 className="text-xl font-semibold mt-8 mb-4 text-foreground">Data Preview</h4>
-              <TablePreview tableName={selectedTable.table_name} />
-            </div>
-          </div>
         ) : (
-          <div className="flex-1 flex items-center justify-center text-muted-foreground">
-            ✨ Select a table to view details
-          </div>
+          // selectedTable is now passed directly to TableDetails, which handles the null case.
+          // The wrapper div for TableDetails and TablePreview is removed.
+          <TableDetails
+            table={selectedTable}
+            filter={filter}
+            onHover={setHoveredInfo}
+          />
         )}
         
         <div className="fixed bottom-0 left-0 right-0 h-8 min-h-8 px-3 py-1.5 bg-muted/30 backdrop-blur-sm border-t border-border/50 text-sm text-muted-foreground font-mono truncate transition-opacity duration-150">
