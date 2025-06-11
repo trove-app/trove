@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { queryCache as baseQueryCache, LRUCache } from '../utils/QueryCache';
 
 interface SqlResult {
   columns: string[];
   rows: Record<string, unknown>[];
 }
 
-// Simple in-memory cache for query results
-const queryCache: Record<string, { result: SqlResult; timestamp: number }> = {};
+// Use a typed version of the shared queryCache for SqlResult
+const queryCache: LRUCache<string, SqlResult> = baseQueryCache as LRUCache<string, SqlResult>;
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 export function useSqlQuery(sql: string, onQueryComplete?: () => void) {
@@ -27,14 +28,14 @@ export function useSqlQuery(sql: string, onQueryComplete?: () => void) {
     setResult(null);
     setFromCache(false);
     // Check cache first
-    const cacheEntry = queryCache[query];
+    const cacheEntry = queryCache.get(query);
     const now = Date.now();
     if (cacheEntry && now - cacheEntry.timestamp < CACHE_TTL) {
-      setResult(cacheEntry.result);
+      setResult(cacheEntry.value);
       setFromCache(true);
       setLoading(false);
       onQueryComplete?.();
-      return cacheEntry.result;
+      return cacheEntry.value;
     }
     try {
       const res = await fetch("/api/query", {
@@ -50,7 +51,7 @@ export function useSqlQuery(sql: string, onQueryComplete?: () => void) {
       setResult(data);
       setFromCache(false);
       // Update cache
-      queryCache[query] = { result: data, timestamp: now };
+      queryCache.set(query, data, now);
       onQueryComplete?.();
       return data;
     } catch (err) {

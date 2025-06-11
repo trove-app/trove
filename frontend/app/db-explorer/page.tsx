@@ -1,24 +1,9 @@
 'use client';
 import React, { useState, useEffect } from "react";
 import { useSchema } from "../context/SchemaContext";
-import type { ColumnMetadata } from "../context/SchemaContext";
 import TableSidebar from "./TableSidebar";
 import TableDetails from "./TableDetails";
 
-interface Table {
-  table_name: string;
-  columns: ColumnMetadata[];
-}
-
-interface TableSidebarProps {
-  tables: Table[];
-  selected: string | null;
-  onSelect: (tableName: string) => void;
-  filter: string;
-  setFilter: (filter: string) => void;
-  columnMatches: Record<string, string[]>;
-  onHover?: (info: { type: 'table' | 'column'; name: string; dataType?: string } | null) => void;
-}
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
@@ -34,34 +19,6 @@ function useDebounce<T>(value: T, delay: number): T {
   }, [value, delay]);
 
   return debouncedValue;
-}
-
-function SearchIcon() {
-  return (
-    <svg 
-      width="16" 
-      height="16" 
-      viewBox="0 0 16 16" 
-      fill="none" 
-      className="text-muted-foreground"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path 
-        d="M7.333 12.667A5.333 5.333 0 1 0 7.333 2a5.333 5.333 0 0 0 0 10.667ZM14 14l-2.9-2.9" 
-        stroke="currentColor" 
-        strokeWidth="1.5" 
-        strokeLinecap="round" 
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function highlight(text: string, query: string) {
-  if (!query) return text;
-  const idx = text.toLowerCase().indexOf(query.toLowerCase());
-  if (idx === -1) return text;
-  return <>{text.slice(0, idx)}<span className="bg-accent/20 text-accent rounded-md px-1">{text.slice(idx, idx + query.length)}</span>{text.slice(idx + query.length)}</>;
 }
 
 export default function DBExplorerPage() {

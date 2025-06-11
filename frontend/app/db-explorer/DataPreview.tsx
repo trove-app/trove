@@ -4,7 +4,7 @@ import type { ColumnMetadata } from "../context/SchemaContext";
 interface DataPreviewProps {
   loading: boolean;
   error: string | null;
-  previewData: { rows: Record<string, any>[] } | null;
+  previewData: { rows: Record<string, unknown>[] } | null;
   column: ColumnMetadata;
   fromCache?: boolean;
 }
