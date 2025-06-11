@@ -20,6 +20,7 @@ DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@db:5432
 
 class QueryRequest(BaseModel):
     query: str
+    limit: Optional[int] = None
 
 class ColumnMetadata(BaseModel):
     name: str
@@ -36,7 +37,10 @@ async def run_query(request: QueryRequest) -> Any:
     try:
         conn = await asyncpg.connect(DATABASE_URL)
         try:
-            results = await conn.fetch(request.query)
+            query_to_execute = request.query
+            if request.limit is not None and request.limit > 0:
+                query_to_execute += f" LIMIT {request.limit}"
+            results = await conn.fetch(query_to_execute)
             columns = results[0].keys() if results else []
             data = [dict(row) for row in results]
             return {"columns": columns, "rows": data}

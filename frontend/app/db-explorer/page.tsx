@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useSchema } from "../context/SchemaContext";
 import type { ColumnMetadata } from "../context/SchemaContext";
+import TablePreview from '../components/TablePreview';
 
 interface Table {
   table_name: string;
@@ -124,7 +125,7 @@ function TableDetails({ table, filter, onHover }: TableDetailsProps) {
   );
   
   return (
-    <section className="flex-1 p-8">
+    <section className="flex-1 p-8 overflow-y-auto">
       <h2 className="text-3xl font-bold mb-6 flex items-center gap-3 break-words text-foreground" title={table.table_name}>
         <span className="text-2xl">🗄️</span> 
         <span className="break-words whitespace-pre-line">{highlight(table.table_name, filter)}</span>
@@ -213,12 +214,22 @@ export default function DBExplorerPage() {
           <div className="flex-1 flex items-center justify-center text-error-500 font-medium">
             {error}
           </div>
+        ) : selectedTable ? (
+          <div className="flex-1 flex flex-col min-w-0"> {/* Added flex-col and min-w-0 here */}
+            <TableDetails
+              table={selectedTable}
+              filter={filter}
+              onHover={setHoveredInfo}
+            />
+            <div className="p-8 pt-0"> {/* Added padding for separation, ensure it's within scrollable area */}
+              <h4 className="text-xl font-semibold mt-8 mb-4 text-foreground">Data Preview</h4>
+              <TablePreview tableName={selectedTable.table_name} />
+            </div>
+          </div>
         ) : (
-          <TableDetails 
-            table={selectedTable} 
-            filter={filter}
-            onHover={setHoveredInfo}
-          />
+          <div className="flex-1 flex items-center justify-center text-muted-foreground">
+            ✨ Select a table to view details
+          </div>
         )}
         
         <div className="fixed bottom-0 left-0 right-0 h-8 min-h-8 px-3 py-1.5 bg-muted/30 backdrop-blur-sm border-t border-border/50 text-sm text-muted-foreground font-mono truncate transition-opacity duration-150">
