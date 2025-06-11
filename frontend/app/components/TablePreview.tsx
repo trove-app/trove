@@ -8,13 +8,13 @@ interface TablePreviewProps {
 
 interface QueryResponse {
   columns: string[];
-  rows: Record<string, any>[];
+  rows: Record<string, unknown>[];
   detail?: string; // For backend errors
 }
 
 export default function TablePreview({ tableName }: TablePreviewProps) {
   const [columns, setColumns] = useState<string[]>([]);
-  const [rows, setRows] = useState<Record<string, any>[]>([]);
+  const [rows, setRows] = useState<Record<string, unknown>[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
