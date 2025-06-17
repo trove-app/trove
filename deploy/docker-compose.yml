@@ -70,9 +70,9 @@ services:
     - .env
 
   dbt:
-    build: ../db
+    build: ./db
     volumes:
-      - ./dbt_project:/app
+      - ./db/dbt_project:/app
     depends_on:
       - db
     networks:
