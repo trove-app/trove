@@ -73,6 +73,10 @@ jobs:
         run: |
           gcloud compute scp --recurse deploy/* ${{ secrets.DEPLOY_INSTANCE_NAME }}:~/deploy/ --zone=${{ secrets.GCP_ZONE }}
 
+      - name: Upload dbt project to instance
+        run: |
+          gcloud compute scp --recurse db/dbt_project ${{ secrets.DEPLOY_INSTANCE_NAME }}:~/deploy/ --zone=${{ secrets.GCP_ZONE }}
+
       - name: Set environment variables
         uses: google-github-actions/ssh-compute@v0
         with:

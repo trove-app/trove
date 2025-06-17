@@ -69,6 +69,18 @@ services:
     env_file:
     - .env
 
+  dbt:
+    build: ../db
+    volumes:
+      - ./dbt_project:/app
+    depends_on:
+      - db
+    networks:
+      - trove-network
+    environment:
+      DBT_PROFILES_DIR: /app/profiles
+    command: dbt build --profiles-dir /app/profiles
+
 volumes:
   postgres_data:
   caddy_data:

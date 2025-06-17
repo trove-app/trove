@@ -129,7 +129,7 @@ health_check() {
         
         # Check if all containers are running
         local running_containers=$(docker-compose -f "$COMPOSE_FILE" ps -q | wc -l)
-        local expected_containers=4  # frontend, backend, db, caddy
+        local expected_containers=5  # frontend, backend, db, caddy, dbt
         
         if [[ $running_containers -eq $expected_containers ]]; then
             # Check if services are responding
@@ -185,6 +185,13 @@ main() {
     authenticate_gcr
     pull_images
     deploy
+
+    log_info "Running dbt project to build demo DB..."
+    if ! docker-compose -f "$COMPOSE_FILE" run --rm dbt; then
+        log_error "dbt run failed"
+        exit 1
+    fi
+    log_success "dbt run completed"
     
     if health_check; then
         cleanup
