@@ -185,6 +185,13 @@ main() {
     authenticate_gcr
     pull_images
     deploy
+
+    log_info "Running dbt project to build demo DB..."
+    if ! docker-compose -f "$COMPOSE_FILE" run --rm dbt; then
+        log_error "dbt run failed"
+        exit 1
+    fi
+    log_success "dbt run completed"
     
     if health_check; then
         cleanup
