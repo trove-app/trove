@@ -60,13 +60,14 @@ jobs:
                     ${{ env.GCR_HOSTNAME }}/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/trove-backend:latest
           docker push ${{ env.GCR_HOSTNAME }}/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/trove-backend:latest
 
-      - name: Setup deployment directory
+      - name: Clean up remote deploy directory
         uses: google-github-actions/ssh-compute@v0
         with:
           instance_name: ${{ secrets.DEPLOY_INSTANCE_NAME }}
           zone: ${{ secrets.GCP_ZONE }}
           ssh_private_key: ${{ secrets.DEPLOY_SSH_KEY }}
           command: |
+            rm -rf ~/deploy/*
             mkdir -p ~/deploy/
 
       - name: Upload deployment files to instance
