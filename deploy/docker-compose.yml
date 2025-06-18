@@ -79,7 +79,8 @@ services:
       - trove-network
     environment:
       DBT_PROFILES_DIR: /app/profiles
-    command: dbt build --profiles-dir /app/profiles
+    entrypoint: ["dbt"]
+    command: ["build", "--profiles-dir", "/app/profiles"]
 
 volumes:
   postgres_data:

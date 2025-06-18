@@ -186,6 +186,20 @@ main() {
     pull_images
     deploy
 
+    log_info "Installing dbt dependencies..."
+    if ! docker-compose -f "$COMPOSE_FILE" run --rm dbt deps; then
+        log_error "dbt deps failed"
+        exit 1
+    fi
+    log_success "dbt dependencies installed"
+
+    log_info "Seeding dbt data..."
+    if ! docker-compose -f "$COMPOSE_FILE" run --rm dbt seed; then
+        log_error "dbt seed failed"
+        exit 1
+    fi
+    log_success "dbt seed completed"
+
     log_info "Running dbt project to build demo DB..."
     if ! docker-compose -f "$COMPOSE_FILE" run --rm dbt; then
         log_error "dbt run failed"
