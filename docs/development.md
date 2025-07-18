@@ -89,7 +89,7 @@ make test
 
 # Run specific test suites
 cd backend && python -m pytest
-cd frontend && yarn test
+cd frontend && npm test
 ```
 
 ### 3. Code Style

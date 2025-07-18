@@ -1,17 +1,18 @@
 # Production Dockerfile for Next.js + Tailwind
 
 FROM node:23-alpine AS builder
+
 WORKDIR /app
 
 # Install dependencies
 
-COPY package.json yarn.lock ./
-RUN yarn install --frozen-lockfile
+COPY package.json package-lock.json ./
+RUN npm ci --frozen-lockfile
 
 # Copy source code and build
 
 COPY . .
-RUN yarn build
+RUN npm run build
 
 # Production image
 
@@ -23,17 +24,13 @@ WORKDIR /app
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/yarn.lock ./yarn.lock
-
-# Ensure .next and static files are present
-
-COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/package-lock.json ./package-lock.json
 
 # Install only production dependencies
 
-RUN yarn install --production --frozen-lockfile
+RUN npm ci --production --frozen-lockfile
 
 # Expose port and run the application
 
 EXPOSE 3000
-CMD ["yarn", "start"]
+CMD ["npm", "start"]

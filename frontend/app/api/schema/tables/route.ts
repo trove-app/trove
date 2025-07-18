@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 
-const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000";
+// In Docker, services can communicate using service names
+// For local development, we use localhost
+const BACKEND_URL = process.env.BACKEND_URL || "http://backend:8000";
 
 export async function GET() {
   try {
+    console.log("BACKEND_URL", BACKEND_URL);
     const beRes = await fetch(`${BACKEND_URL}/api/v1/tables`);
     const data = await beRes.json();
     return new NextResponse(JSON.stringify(data), {
