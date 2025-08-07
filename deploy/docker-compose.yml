@@ -23,7 +23,7 @@ services:
     container_name: trove-db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: trove
+      POSTGRES_DB: postgres
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     volumes:
@@ -41,7 +41,7 @@ services:
     container_name: trove-backend
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@db:5432/trove
+      DATABASE_URL: postgresql://postgres:postgres@trove-db:5432/postgres
       NODE_ENV: production
     depends_on:
       - db
