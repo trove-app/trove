@@ -1,5 +1,3 @@
-# Production Dockerfile for Next.js + Tailwind
-
 FROM node:23-alpine AS builder
 
 WORKDIR /app
@@ -7,7 +5,7 @@ WORKDIR /app
 # Install dependencies
 
 COPY package.json package-lock.json ./
-RUN npm ci --frozen-lockfile
+RUN npm ci
 
 # Copy source code and build
 
@@ -28,7 +26,7 @@ COPY --from=builder /app/package-lock.json ./package-lock.json
 
 # Install only production dependencies
 
-RUN npm ci --production --frozen-lockfile
+RUN npm ci --production
 
 # Expose port and run the application
 

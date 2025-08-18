@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
 
-// In Docker, services can communicate using service names
-// For local development, we use localhost
 const BACKEND_URL = process.env.BACKEND_URL || "http://backend:8000";
 
 export async function GET() {

@@ -24,7 +24,7 @@ npm-debug.log*
 .pnpm-debug.log*
 
 # local env files
-.env*.local
+.env
 
 # vercel
 .vercel
