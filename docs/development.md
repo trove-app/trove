@@ -56,7 +56,7 @@ trove/
 │   ├── app/         # Pages and components
 │   ├── lib/         # Utilities and helpers
 │   └── tests/       # Frontend tests
-├── db/              # Database and dbt configuration
+├── sample_db/       # Sample Database and dbt configuration
 │   ├── migrations/  # Database migrations
 │   └── dbt_project/ # dbt models and configuration
 ├── docs/            # Documentation

@@ -29,7 +29,7 @@ docker run --env-file .env -p 8000:8000 trove-backend
 
 ## Environment
 - The backend expects a PostgreSQL database (see `.env` for connection string).
-- The default is `postgresql://postgres:postgres@db:5432/trove` (for Docker Compose).
+- The default is `postgresql://postgres:postgres@sample_db:5432/postgres` (for Docker Compose).
 
 ## API
 - `POST /api/v1/query` — Accepts an SQL query and returns results.

@@ -30,7 +30,7 @@ build: ## Rebuild containers
 db-seed: ## Reset and seed database (dev only!)
 	@echo "Warning: This will erase all data! Press Ctrl+C to cancel..."
 	@sleep 5
-	docker compose exec db psql -U postgres -d postgres -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+	docker compose exec sample_db psql -U postgres -d postgres -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
 	docker compose run --rm dbt dbt deps --profiles-dir /app/profiles
 	docker compose run --rm dbt dbt seed --profiles-dir /app/profiles
 	docker compose run --rm dbt dbt run --profiles-dir /app/profiles
