@@ -1,7 +1,6 @@
+.git
 node_modules
+npm-debug.log
 .next
 .env*
-yarn-error.log
-npm-debug.log*
-coverage
-.DS_Store 
+!.env.template 

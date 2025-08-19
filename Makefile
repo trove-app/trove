@@ -9,7 +9,7 @@ ifneq (,$(wildcard $(ENV_FILE)))
     export
 endif
 
-.PHONY: help up down build deploy clean logs test db-seed
+.PHONY: help up down build deploy clean logs test db-seed test-frontend
 
 help: ## Show help message
 	@echo 'Usage: make [target]'
@@ -50,4 +50,5 @@ clean: ## Clean up containers and volumes
 
 test: ## Run tests
 	cd backend && python -m pytest
-	cd frontend && yarn test 
+test-frontend:
+	cd frontend && npm test 
