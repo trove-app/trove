@@ -16,7 +16,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@sample_db:5432/postgres")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@sample-db:5432/postgres")
 
 class QueryRequest(BaseModel):
     query: str
@@ -53,6 +53,8 @@ async def run_query(request: QueryRequest) -> Any:
 async def get_tables_metadata() -> Any:
     try:
         conn = await asyncpg.connect(DATABASE_URL)
+        print(DATABASE_URL)
+        
         try:
             # Get all user tables in the public schema
             tables = await conn.fetch("""

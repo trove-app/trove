@@ -1,4 +1,4 @@
 SELECT
     *
 FROM
-    {{ source('public', 'payment') }}
+    {{ ref('payment') }}
