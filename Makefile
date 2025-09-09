@@ -9,7 +9,7 @@ ifneq (,$(wildcard $(ENV_FILE)))
     export
 endif
 
-.PHONY: help up down build deploy clean logs test db-seed test-frontend
+.PHONY: help up down build deploy clean logs test db-seed db-migrate test-frontend
 
 help: ## Show help message
 	@echo 'Usage: make [target]'
@@ -27,6 +27,10 @@ build: ## Rebuild containers
 	docker compose build
 
 # Database Commands
+db-migrate: ## Run database migrations
+	@echo "Running database migrations..."
+	docker compose restart backend
+
 db-seed: ## Reset and seed database (dev only!)
 	@echo "Warning: This will erase all data! Press Ctrl+C to cancel..."
 	@sleep 5

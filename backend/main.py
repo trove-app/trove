@@ -1,11 +1,33 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Any, List, Dict, Optional
 import asyncpg
+import logging
 import os
 
+from db import DatabaseManager
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Internal database configuration (for trove's metadata)
+TROVE_DB_URL = os.getenv("TROVE_DB_URL", "postgresql://postgres:postgres@trove-db:5432/trove")
+db_manager = DatabaseManager(TROVE_DB_URL)
+
+# Sample database configuration (for demo/examples)
+SAMPLE_DB_URL = os.getenv("SAMPLE_DB_URL", "postgresql://postgres:postgres@sample-db:5432/postgres")
+
 app = FastAPI()
+
+@app.on_event("startup")
+async def on_startup():
+    """Run on application startup."""
+    logger.info("Running database migrations...")
+    await db_manager.run_migrations()
+    logger.info("Database migrations completed")
 
 # CORS
 app.add_middleware(
