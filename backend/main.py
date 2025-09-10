@@ -8,6 +8,7 @@ import logging
 import os
 
 from db import DatabaseManager
+from routers import database as database_router
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -28,6 +29,9 @@ async def on_startup():
     logger.info("Running database migrations...")
     await db_manager.run_migrations()
     logger.info("Database migrations completed")
+
+# Include routers
+app.include_router(database_router.router)
 
 # CORS
 app.add_middleware(
