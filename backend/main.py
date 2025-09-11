@@ -1,11 +1,32 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Any, List, Dict, Optional
 import asyncpg
+import logging
 import os
 
+from db import DatabaseManager
+from routers import database as database_router
+from utils.crypto import crypto_manager
+from utils.connection_manager import connection_manager
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Database configuration
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@trove-db:5432/trove")
+db_manager = DatabaseManager(DATABASE_URL)
+
 app = FastAPI()
+
+@app.on_event("startup")
+async def on_startup():
+    """Run on application startup."""
+    logger.info("Running database migrations...")
+    await db_manager.run_migrations()
+    logger.info("Database migrations completed")
 
 # CORS
 app.add_middleware(
@@ -16,11 +37,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@db:5432/postgres")
 
 class QueryRequest(BaseModel):
     query: str
     limit: Optional[int] = None
+    connection_id: Optional[int] = None
 
 class ColumnMetadata(BaseModel):
     name: str
@@ -32,10 +53,25 @@ class TableMetadata(BaseModel):
     table_name: str
     columns: List[ColumnMetadata]
 
+# Remove the old get_connection_string function - now handled by ConnectionManager
+
+# Include routers
+app.include_router(database_router.router)
+
 @app.post("/api/v1/query")
-async def run_query(request: QueryRequest) -> Any:
+async def run_query(
+    request: QueryRequest,
+    connection_id_header: Optional[str] = Header(None, alias="X-Connection-ID")
+) -> Any:
     try:
-        conn = await asyncpg.connect(DATABASE_URL)
+        # Extract connection ID from request body or header
+        connection_id = connection_manager.extract_connection_id(
+            connection_id_param=request.connection_id,
+            connection_id_header=connection_id_header
+        )
+        
+        # Get user database connection
+        conn = await connection_manager.get_user_connection(connection_id)
         try:
             query_to_execute = request.query
             if request.limit is not None and request.limit > 0:
@@ -50,9 +86,19 @@ async def run_query(request: QueryRequest) -> Any:
         raise HTTPException(status_code=400, detail=str(e))
 
 @app.get("/api/v1/tables", response_model=List[TableMetadata])
-async def get_tables_metadata() -> Any:
+async def get_tables_metadata(
+    connection_id: Optional[int] = None,
+    connection_id_header: Optional[str] = Header(None, alias="X-Connection-ID")
+) -> Any:
     try:
-        conn = await asyncpg.connect(DATABASE_URL)
+        # Extract connection ID from query param or header
+        connection_id = connection_manager.extract_connection_id(
+            connection_id_param=connection_id,
+            connection_id_header=connection_id_header
+        )
+        
+        # Get user database connection
+        conn = await connection_manager.get_user_connection(connection_id)
         try:
             # Get all user tables in the public schema
             tables = await conn.fetch("""
@@ -61,6 +107,7 @@ async def get_tables_metadata() -> Any:
                 WHERE table_schema = 'public' AND table_type = 'BASE TABLE'
                 ORDER BY table_name;
             """)
+            
             table_list = []
             for table in tables:
                 table_name = table['table_name']
@@ -83,4 +130,8 @@ async def get_tables_metadata() -> Any:
         finally:
             await conn.close()
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Error fetching table metadata: {str(e)}") 
+        logger.error(f"Error fetching table metadata: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=400,
+            detail=f"Error fetching table metadata: {str(e)}"
+        )

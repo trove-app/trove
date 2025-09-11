@@ -18,7 +18,7 @@ services:
     networks:
       - trove-network
 
-  db:
+  sample_db:
     image: postgres:15-alpine
     container_name: trove-db
     restart: unless-stopped
@@ -44,7 +44,7 @@ services:
       DATABASE_URL: postgresql://postgres:postgres@trove-db:5432/postgres
       NODE_ENV: production
     depends_on:
-      - db
+      - sample_db
     networks:
       - trove-network
     healthcheck:
@@ -70,11 +70,11 @@ services:
     - .env
 
   dbt:
-    build: ./db
+    build: ./sample_db
     volumes:
-      - ./db/dbt_project:/app
+      - ./sample_db/dbt_project:/app
     depends_on:
-      - db
+      - sample_db
     networks:
       - trove-network
     environment:

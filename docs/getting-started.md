@@ -58,7 +58,7 @@ The database can be set up in two ways:
 
 1. Using Docker (recommended):
 ```bash
-docker compose up db
+docker compose up sample_db
 ```
 
 2. Manual PostgreSQL setup:
@@ -94,7 +94,7 @@ Create a `.env` file in the root directory:
 POSTGRES_DB=postgres
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=postgres
-DATABASE_URL=postgresql://postgres:postgres@db:5432/postgres
+DATABASE_URL=postgresql://postgres:postgres@sample_db:5432/postgres
 
 # Backend
 PORT=8000

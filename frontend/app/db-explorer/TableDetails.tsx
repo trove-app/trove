@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import type { ColumnMetadata } from "../context/SchemaContext";
+import { useDatabaseConnection } from "../context/DatabaseConnectionContext";
 import { useSqlQuery } from '../hooks/useSqlQuery';
 import DataPreview from "./DataPreview";
 
@@ -22,6 +23,7 @@ function highlight(text: string, query: string) {
 }
 
 const TableDetails = ({ table, filter, onHover }: TableDetailsProps) => {
+  const { selectedConnection } = useDatabaseConnection();
   const {
     result: previewData,
     loading: previewLoading,
@@ -29,7 +31,7 @@ const TableDetails = ({ table, filter, onHover }: TableDetailsProps) => {
     executeQuery: executePreviewQuery,
     setResult: setPreviewResult,
     fromCache
-  } = useSqlQuery('');
+  } = useSqlQuery('', undefined, selectedConnection?.id);
   const [refetching, setRefetching] = useState(false);
 
   // Helper to force refetch (bypass cache)

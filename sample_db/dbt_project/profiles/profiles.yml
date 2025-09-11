@@ -3,7 +3,7 @@ test_profile:
   outputs:
     dev:
       type: postgres
-      host: db
+      host: sample_db
       user: postgres
       password: postgres
       port: 5432

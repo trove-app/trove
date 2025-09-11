@@ -7,6 +7,8 @@ import {
   SqlBuilderProvider,
   useSqlBuilder,
 } from "../context/SqlBuilderContext";
+import { useDatabaseConnection } from "../context/DatabaseConnectionContext";
+import ConnectionSelector from "../components/ConnectionSelector";
 import type { VisualSqlBuilderHandle } from "./VisualSqlBuilder";
 import { formatSql } from "../utils/sqlUtils";
 import { useSqlQuery } from "../hooks/useSqlQuery";
@@ -20,7 +22,12 @@ function SqlBuilderInner() {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const { sql, queryState, setQueryState, updateFromVisual, updateFromSql } =
     useSqlBuilder();
-  const { result, loading, error, executeQuery, setError } = useSqlQuery(sql, () => setShowEditor(false));
+  const { selectedConnection } = useDatabaseConnection();
+  const { result, loading, error, executeQuery, setError } = useSqlQuery(
+    sql, 
+    () => setShowEditor(false),
+    selectedConnection?.id
+  );
 
   // Ref to access VisualSqlBuilder's latest SQL
   const visualBuilderRef = useRef<VisualSqlBuilderHandle>(null);
@@ -64,8 +71,14 @@ function SqlBuilderInner() {
   }, [sql, setError]);
 
   return (
-    <main className="flex flex-col min-h-screen items-center justify-center bg-background">
-      <div className="w-full flex flex-col items-center">
+    <main className="flex flex-col min-h-screen bg-background">
+      {/* Connection Selector Header */}
+      <div className="w-full flex justify-center px-4 py-4">
+        <ConnectionSelector />
+      </div>
+      
+      <div className="flex-1 flex flex-col items-center justify-center">
+        <div className="w-full flex flex-col items-center">
         {/* Toggle Tabs - only show when editor is visible */}
         {showEditor && (
           <div className="w-full max-w-xl flex justify-center mb-2 mt-6">
@@ -176,6 +189,7 @@ function SqlBuilderInner() {
             <SqlResultTable columns={result.columns} rows={result.rows} />
           )}
         </section>
+        </div>
       </div>
     </main>
   );
