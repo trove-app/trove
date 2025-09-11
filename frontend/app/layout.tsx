@@ -4,6 +4,7 @@ import "./globals.css";
 import { SchemaProvider } from "./context/SchemaContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import { SidebarProvider } from "./context/SidebarContext";
+import { DatabaseConnectionProvider } from "./context/DatabaseConnectionContext";
 import SidebarLayout from "./components/SidebarLayout";
 
 const geistSans = Geist({
@@ -30,11 +31,13 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}>
         <ThemeProvider>
-          <SchemaProvider>
-            <SidebarProvider>
-              <SidebarLayout>{children}</SidebarLayout>
-            </SidebarProvider>
-          </SchemaProvider>
+          <DatabaseConnectionProvider>
+            <SchemaProvider>
+              <SidebarProvider>
+                <SidebarLayout>{children}</SidebarLayout>
+              </SidebarProvider>
+            </SchemaProvider>
+          </DatabaseConnectionProvider>
         </ThemeProvider>
       </body>
     </html>

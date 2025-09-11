@@ -1,6 +1,8 @@
 'use client';
 import React, { useState, useEffect } from "react";
 import { useSchema } from "../context/SchemaContext";
+import { useDatabaseConnection } from "../context/DatabaseConnectionContext";
+import ConnectionSelector from "../components/ConnectionSelector";
 import TableSidebar from "./TableSidebar";
 import TableDetails from "./TableDetails";
 
@@ -23,6 +25,7 @@ function useDebounce<T>(value: T, delay: number): T {
 
 export default function DBExplorerPage() {
   const { tables, loading, error } = useSchema();
+  const { selectedConnection } = useDatabaseConnection();
   const [selected, setSelected] = useState<string | null>(null);
   const [filter, setFilter] = useState("");
   const [hoveredInfo, setHoveredInfo] = useState<{ type: 'table' | 'column'; name: string; dataType?: string } | null>(null);
@@ -62,8 +65,14 @@ export default function DBExplorerPage() {
   const selectedTable = tables.find(t => t.table_name === selected) || (filteredTables.length === 1 ? filteredTables[0] : null);
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background px-4 py-8">
-      <div className="flex w-full max-w-5xl h-[calc(100vh-8rem)] rounded-xl shadow-treasure 
+    <main className="flex flex-col min-h-screen bg-background px-4 py-8">
+      {/* Connection Selector Header */}
+      <div className="w-full max-w-5xl mx-auto mb-4">
+        <ConnectionSelector />
+      </div>
+      
+      {/* Main Content */}
+      <div className="flex w-full max-w-5xl mx-auto h-[calc(100vh-12rem)] rounded-xl shadow-treasure 
                       bg-card/80 backdrop-blur-sm border border-border/50 overflow-hidden">
         <TableSidebar
           tables={filteredTables} 

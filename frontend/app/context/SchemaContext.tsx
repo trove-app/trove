@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { useDatabaseConnection } from "./DatabaseConnectionContext";
 
 export interface ColumnMetadata {
   name: string;
@@ -30,15 +31,20 @@ export function useSchema() {
 }
 
 export function SchemaProvider({ children }: { children: ReactNode }) {
+  const { selectedConnection } = useDatabaseConnection();
   const [tables, setTables] = useState<TableMetadata[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchTables = async () => {
+  const fetchTables = async (connectionId?: number) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/schema/tables");
+      let url = "/api/schema/tables";
+      if (connectionId) {
+        url += `?connection_id=${connectionId}`;
+      }
+      const res = await fetch(url);
       if (!res.ok) throw new Error("Failed to fetch schema tables");
       const data = await res.json();
       setTables(data);
@@ -50,11 +56,21 @@ export function SchemaProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    fetchTables();
-  }, []);
+    if (selectedConnection) {
+      fetchTables(selectedConnection.id);
+    } else {
+      // Clear tables if no connection selected
+      setTables([]);
+    }
+  }, [selectedConnection]);
 
   return (
-    <SchemaContext.Provider value={{ tables, loading, error, refresh: fetchTables }}>
+    <SchemaContext.Provider value={{ 
+      tables, 
+      loading, 
+      error, 
+      refresh: () => fetchTables(selectedConnection?.id) 
+    }}>
       {children}
     </SchemaContext.Provider>
   );

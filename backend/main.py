@@ -40,6 +40,7 @@ app.add_middleware(
 class QueryRequest(BaseModel):
     query: str
     limit: Optional[int] = None
+    connection_id: Optional[int] = None
 
 class ColumnMetadata(BaseModel):
     name: str
@@ -51,13 +52,59 @@ class TableMetadata(BaseModel):
     table_name: str
     columns: List[ColumnMetadata]
 
+async def get_connection_string(connection_id: int) -> str:
+    """Get database connection string for a given connection ID."""
+    logger.info(f"Getting connection string for connection_id: {connection_id}")
+    conn = await asyncpg.connect(DATABASE_URL)
+    try:
+        result = await conn.fetchrow("""
+            SELECT connection_type, host, port, database, username, password
+            FROM database_connections
+            WHERE id = $1 AND is_active = true
+        """, connection_id)
+        
+        if not result:
+            logger.error(f"Connection {connection_id} not found in database")
+            raise HTTPException(status_code=404, detail=f"Connection {connection_id} not found")
+        
+        logger.info(f"Found connection: {result['connection_type']} to {result['host']}:{result['port']}/{result['database']}")
+        
+        # Decrypt password
+        try:
+            decrypted_password = crypto_manager.decrypt(result['password'])
+        except Exception as e:
+            logger.error(f"Failed to decrypt password for connection {connection_id}: {e}")
+            raise HTTPException(status_code=500, detail="Failed to decrypt connection password")
+        
+        # Build connection string based on connection type - for now only PostgreSQL
+        if result['connection_type'] == 'postgresql':
+            connection_string = f"postgresql://{result['username']}:{decrypted_password}@{result['host']}:{result['port']}/{result['database']}"
+            logger.info(f"Built connection string for PostgreSQL connection to {result['host']}")
+            return connection_string
+        else:
+            logger.error(f"Unsupported connection type: {result['connection_type']}")
+            raise HTTPException(status_code=400, detail=f"Currently only PostgreSQL connections are supported. Found: {result['connection_type']}")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error getting connection string: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Error retrieving connection information")
+    finally:
+        await conn.close()
+
 # Include routers
 app.include_router(database_router.router)
 
 @app.post("/api/v1/query")
 async def run_query(request: QueryRequest) -> Any:
     try:
-        conn = await asyncpg.connect(DATABASE_URL)
+        print(request)
+        if request.connection_id is not None:
+            connection_string = await get_connection_string(request.connection_id)
+        else:
+            raise HTTPException(status_code=400, detail="No database selected.")
+        
+        conn = await asyncpg.connect(connection_string)
         try:
             query_to_execute = request.query
             if request.limit is not None and request.limit > 0:
@@ -72,9 +119,14 @@ async def run_query(request: QueryRequest) -> Any:
         raise HTTPException(status_code=400, detail=str(e))
 
 @app.get("/api/v1/tables", response_model=List[TableMetadata])
-async def get_tables_metadata() -> Any:
+async def get_tables_metadata(connection_id: Optional[int] = None) -> Any:
     try:
-        conn = await asyncpg.connect(DATABASE_URL)
+        if connection_id is not None:
+            connection_string = await get_connection_string(connection_id)
+        else:
+            raise HTTPException(status_code=400, detail="No database selected.")
+        
+        conn = await asyncpg.connect(connection_string)
         try:
             # Get all user tables in the public schema
             tables = await conn.fetch("""
@@ -106,7 +158,7 @@ async def get_tables_metadata() -> Any:
         finally:
             await conn.close()
     except Exception as e:
-        logger.error(f"Error fetching table metadata: {e}")
+        logger.error(f"Error fetching table metadata: {e}", exc_info=True)
         raise HTTPException(
             status_code=400,
             detail=f"Error fetching table metadata: {str(e)}"

@@ -33,6 +33,8 @@ async def create_connection(
     db: asyncpg.Connection = Depends(get_db)
 ):
     """Create a new database connection."""
+    print(connection)
+    print(db)
     try:
         # Encrypt the password
         encrypted_password = crypto_manager.encrypt(
