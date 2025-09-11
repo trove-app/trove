@@ -40,7 +40,7 @@ export function SchemaProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     setError(null);
     try {
-      const headers: any = {};
+      const headers: Record<string, string> = {};
       
       // Send connection_id as header for consistency
       if (connectionId) {

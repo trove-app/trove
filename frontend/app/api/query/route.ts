@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
     console.log("[API/query] Incoming body:", body);
     
     // Forward connection ID from header
-    const headers: any = { "Content-Type": "application/json" };
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
     const connectionId = req.headers.get('X-Connection-ID');
     if (connectionId) {
       headers['X-Connection-ID'] = connectionId;

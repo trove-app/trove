@@ -1,7 +1,6 @@
 'use client';
 import React, { useState, useEffect } from "react";
 import { useSchema } from "../context/SchemaContext";
-import { useDatabaseConnection } from "../context/DatabaseConnectionContext";
 import ConnectionSelector from "../components/ConnectionSelector";
 import TableSidebar from "./TableSidebar";
 import TableDetails from "./TableDetails";
@@ -25,7 +24,6 @@ function useDebounce<T>(value: T, delay: number): T {
 
 export default function DBExplorerPage() {
   const { tables, loading, error } = useSchema();
-  const { selectedConnection } = useDatabaseConnection();
   const [selected, setSelected] = useState<string | null>(null);
   const [filter, setFilter] = useState("");
   const [hoveredInfo, setHoveredInfo] = useState<{ type: 'table' | 'column'; name: string; dataType?: string } | null>(null);

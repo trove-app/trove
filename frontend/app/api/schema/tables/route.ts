@@ -8,7 +8,7 @@ export async function GET(request: Request) {
     
     // Forward connection ID from header
     const connectionId = request.headers.get('X-Connection-ID');
-    const headers: any = {};
+    const headers: Record<string, string> = {};
     if (connectionId) {
       headers['X-Connection-ID'] = connectionId;
     }

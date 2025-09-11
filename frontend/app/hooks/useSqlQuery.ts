@@ -44,8 +44,8 @@ export function useSqlQuery(sql: string, onQueryComplete?: () => void, connectio
       return cacheEntry.value;
     }
     try {
-      const requestBody: any = { query };
-      const headers: any = { "Content-Type": "application/json" };
+      const requestBody = { query };
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
       
       // Send connection_id as header for consistency
       if (connectionIdRef.current) {
