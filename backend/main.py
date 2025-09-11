@@ -3,9 +3,29 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Any, List, Dict, Optional
 import asyncpg
+import logging
 import os
 
+from db import DatabaseManager
+from routers import database as database_router
+from utils.crypto import crypto_manager
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Database configuration
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@trove-db:5432/trove")
+db_manager = DatabaseManager(DATABASE_URL)
+
 app = FastAPI()
+
+@app.on_event("startup")
+async def on_startup():
+    """Run on application startup."""
+    logger.info("Running database migrations...")
+    await db_manager.run_migrations()
+    logger.info("Database migrations completed")
 
 # CORS
 app.add_middleware(
@@ -16,8 +36,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Internal database configuration (for trove's metadata)
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@trove-db:5432/trove")
 
 class QueryRequest(BaseModel):
     query: str
@@ -32,6 +50,9 @@ class ColumnMetadata(BaseModel):
 class TableMetadata(BaseModel):
     table_name: str
     columns: List[ColumnMetadata]
+
+# Include routers
+app.include_router(database_router.router)
 
 @app.post("/api/v1/query")
 async def run_query(request: QueryRequest) -> Any:
@@ -54,8 +75,6 @@ async def run_query(request: QueryRequest) -> Any:
 async def get_tables_metadata() -> Any:
     try:
         conn = await asyncpg.connect(DATABASE_URL)
-        print(DATABASE_URL)
-        
         try:
             # Get all user tables in the public schema
             tables = await conn.fetch("""
@@ -64,6 +83,7 @@ async def get_tables_metadata() -> Any:
                 WHERE table_schema = 'public' AND table_type = 'BASE TABLE'
                 ORDER BY table_name;
             """)
+            
             table_list = []
             for table in tables:
                 table_name = table['table_name']
@@ -86,4 +106,8 @@ async def get_tables_metadata() -> Any:
         finally:
             await conn.close()
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Error fetching table metadata: {str(e)}") 
+        logger.error(f"Error fetching table metadata: {e}")
+        raise HTTPException(
+            status_code=400,
+            detail=f"Error fetching table metadata: {str(e)}"
+        )
