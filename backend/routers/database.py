@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from typing import List
 import asyncpg
 import logging
+import os
 
 from models.database import (
     DatabaseConnectionCreate,
@@ -12,12 +13,19 @@ from models.database import (
 )
 from utils.crypto import crypto_manager
 
+# Use the internal database for storing connection metadata
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@trove-db:5432/trove")
+
 router = APIRouter(prefix="/api/v1/connections", tags=["database"])
 logger = logging.getLogger(__name__)
 
 async def get_db():
-    """Get database connection from pool."""
-    raise NotImplementedError("TODO: Implement connection pooling")
+    """Get database connection."""
+    try:
+        conn = await asyncpg.connect(DATABASE_URL)
+        yield conn
+    finally:
+        await conn.close()
 
 @router.post("/", response_model=DatabaseConnectionResponse)
 async def create_connection(

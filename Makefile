@@ -39,6 +39,13 @@ db-seed: ## Reset and seed database (dev only!)
 	docker compose run --rm dbt dbt seed --profiles-dir /app/profiles
 	docker compose run --rm dbt dbt run --profiles-dir /app/profiles
 
+# Utility Commands
+logs-all: ## View service logs (usage: make logs [service=name])
+	@if [ "$(service)" ]; then \
+		docker compose logs -f $(service); \
+	else \
+		docker compose logs -f; \
+	fi
 
 # Utility Commands  
 logs: ## Container-agnostic Docker logs with filtering (see CLAUDE.md for usage)

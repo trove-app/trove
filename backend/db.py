@@ -2,7 +2,9 @@
 
 import asyncpg
 import logging
+import os
 from typing import List, Optional
+from utils.crypto import crypto_manager
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +38,19 @@ class DatabaseManager:
     ) -> None:
         """Apply a single migration."""
         async with conn.transaction():
+            # For migration 2 (sample db connection), we need to encrypt the password
+            if migration_id == 2:
+                # Get the sample DB password from environment or use default
+                sample_db_password = os.getenv("SAMPLE_DB_PASSWORD", "postgres")
+                encrypted_password = crypto_manager.encrypt(sample_db_password)
+                
+                # Replace the placeholder with the actual encrypted password
+                # Convert bytes to bytea format that PostgreSQL expects
+                migration_sql = migration_sql.replace(
+                    "'encrypted_password_placeholder'",
+                    f"E'\\\\x{encrypted_password.hex()}'"  # Proper bytea format
+                )
+            
             await conn.execute(migration_sql)
             await conn.execute(
                 "INSERT INTO schema_migrations (migration_id) VALUES ($1);",

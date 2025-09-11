@@ -8,6 +8,7 @@ Each migration is a string containing SQL statements.
 migrations = [
     # Migration 0001 - Create database_connections table
     """
+    -- Create the database_connections table
     CREATE TABLE IF NOT EXISTS database_connections (
         id SERIAL PRIMARY KEY,
         name VARCHAR(255) NOT NULL UNIQUE,
@@ -16,7 +17,7 @@ migrations = [
         port INTEGER NOT NULL,
         database VARCHAR(255) NOT NULL,
         username VARCHAR(255) NOT NULL,
-        password VARCHAR(255) NOT NULL,
+        password BYTEA NOT NULL,  -- Encrypted password stored as binary
         ssl_mode VARCHAR(50) DEFAULT 'prefer',
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -52,5 +53,16 @@ migrations = [
     
     -- Index on is_active for filtering active connections
     CREATE INDEX IF NOT EXISTS idx_database_connections_is_active ON database_connections(is_active);
+    """,
+
+    # Migration 0002 - Insert sample database connection
+    """
+    -- Insert the sample database connection with encrypted password
+    -- Note: The password will be encrypted by the application layer before insertion
+    INSERT INTO database_connections 
+        (name, connection_type, host, port, database, username, password, ssl_mode)
+    VALUES 
+        ('sample_db', 'postgresql', 'sample-db', 5432, 'postgres', 'postgres', 'encrypted_password_placeholder', 'prefer')
+    ON CONFLICT (name) DO NOTHING;
     """
 ]
