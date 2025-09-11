@@ -40,12 +40,59 @@ db-seed: ## Reset and seed database (dev only!)
 	docker compose run --rm dbt dbt run --profiles-dir /app/profiles
 
 
-# Utility Commands
-logs: ## View service logs (usage: make logs [service=name])
-	@if [ "$(service)" ]; then \
-		docker compose logs -f $(service); \
+# Utility Commands  
+logs: ## Container-agnostic Docker logs with filtering (see CLAUDE.md for usage)
+	@$(eval CONTAINER := $(or $(CONTAINER),$(service)))
+	@$(eval LINES := $(or $(LINES),50))
+	@$(eval SINCE := $(SINCE))
+	@$(eval FILTER := $(FILTER))
+	@$(eval EXCLUDE := $(EXCLUDE))
+	@$(eval FOLLOW := $(FOLLOW))
+	@$(eval LIST := $(LIST))
+	@if [ "$(LIST)" = "true" ]; then \
+		echo "Running Docker containers:"; \
+		docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}"; \
+	elif [ "$(CONTAINER)" ]; then \
+		echo "=== Logs for container: $(CONTAINER) ==="; \
+		if [ "$(FOLLOW)" = "true" ]; then \
+			if [ "$(FILTER)" ] && [ "$(EXCLUDE)" ]; then \
+				docker logs -f --tail $(LINES) $(if $(SINCE),--since $(SINCE)) $(CONTAINER) 2>&1 | grep -E "$(FILTER)" | grep -v -E "$(EXCLUDE)"; \
+			elif [ "$(FILTER)" ]; then \
+				docker logs -f --tail $(LINES) $(if $(SINCE),--since $(SINCE)) $(CONTAINER) 2>&1 | grep -E "$(FILTER)"; \
+			elif [ "$(EXCLUDE)" ]; then \
+				docker logs -f --tail $(LINES) $(if $(SINCE),--since $(SINCE)) $(CONTAINER) 2>&1 | grep -v -E "$(EXCLUDE)"; \
+			else \
+				docker logs -f --tail $(LINES) $(if $(SINCE),--since $(SINCE)) $(CONTAINER); \
+			fi \
+		else \
+			if [ "$(FILTER)" ] && [ "$(EXCLUDE)" ]; then \
+				docker logs --tail $(LINES) $(if $(SINCE),--since $(SINCE)) $(CONTAINER) 2>&1 | grep -E "$(FILTER)" | grep -v -E "$(EXCLUDE)"; \
+			elif [ "$(FILTER)" ]; then \
+				docker logs --tail $(LINES) $(if $(SINCE),--since $(SINCE)) $(CONTAINER) 2>&1 | grep -E "$(FILTER)"; \
+			elif [ "$(EXCLUDE)" ]; then \
+				docker logs --tail $(LINES) $(if $(SINCE),--since $(SINCE)) $(CONTAINER) 2>&1 | grep -v -E "$(EXCLUDE)"; \
+			else \
+				docker logs --tail $(LINES) $(if $(SINCE),--since $(SINCE)) $(CONTAINER); \
+			fi \
+		fi \
 	else \
-		docker compose logs -f; \
+		echo "=== Logs from all running containers (last $(LINES) lines each) ==="; \
+		for container in $$(docker ps --format "{{.Names}}"); do \
+			echo ""; \
+			echo "=== $$container ==="; \
+			if [ "$(FILTER)" ] && [ "$(EXCLUDE)" ]; then \
+				docker logs --tail $(LINES) $(if $(SINCE),--since $(SINCE)) $$container 2>&1 | grep -E "$(FILTER)" | grep -v -E "$(EXCLUDE)" | head -20; \
+			elif [ "$(FILTER)" ]; then \
+				docker logs --tail $(LINES) $(if $(SINCE),--since $(SINCE)) $$container 2>&1 | grep -E "$(FILTER)" | head -20; \
+			elif [ "$(EXCLUDE)" ]; then \
+				docker logs --tail $(LINES) $(if $(SINCE),--since $(SINCE)) $$container 2>&1 | grep -v -E "$(EXCLUDE)" | head -20; \
+			else \
+				docker logs --tail $(LINES) $(if $(SINCE),--since $(SINCE)) $$container 2>&1 | head -20; \
+			fi \
+		done; \
+		echo ""; \
+		echo "=== Use 'make logs LIST=true' to see available containers ==="; \
+		echo "=== Use 'make logs CONTAINER=<name>' for specific container ==="; \
 	fi
 
 clean: ## Clean up containers and volumes
