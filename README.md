@@ -21,6 +21,8 @@ Forget per-seat pricing, clunky dashboards, and gatekeeping. With Trove, your wh
 
 - 🔍 **Explore your data** – Navigate schemas and tables like a map.
 - 🧾 **Query with SQL** – Or don't! You can always use the visual query builder or ask AI 😉
+- 🔗 **Multi-database support** – Connect to multiple PostgreSQL databases and switch between them seamlessly.
+- 🔐 **Secure connections** – Encrypted credential storage with frontend-managed database connections.
 - 🧑‍🤝‍🧑 **Made for teams** – Built for cross-functional folks, not just data engineers.
 - 💻 **Clean, modern UI** – Feels good for everyone, tech or not.
 - 🛠️ **Open source & extensible** – Apache 2.0 licensed and ready to hack.
@@ -61,6 +63,26 @@ Check out our [comprehensive documentation](./docs/README.md) to learn more abou
 - AI-assisted data questions
 - dbt metadata integration
 - More database connectors (BigQuery, Snowflake, etc.)
+
+---
+
+## 🔗 Database Connections
+
+Trove now supports frontend-managed database connections! You can:
+
+- **Add multiple PostgreSQL connections** through the web interface
+- **Switch between databases** instantly with the connection selector
+- **Secure credential storage** with encrypted passwords
+- **Isolated data exploration** - each connection is completely separate
+
+### Quick Start with Connections
+
+1. **Navigate to DB Connections** in the sidebar
+2. **Add your first connection** with your database credentials
+3. **Select it** from the dropdown on any page
+4. **Start exploring** - schema and queries automatically use your selected connection
+
+For detailed setup and architecture information, see our [Database Connections Documentation](docs/database-connections.md).
 
 ---
 
