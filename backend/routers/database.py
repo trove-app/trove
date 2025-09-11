@@ -12,17 +12,15 @@ from models.database import (
     DatabaseConnectionResponse
 )
 from utils.crypto import crypto_manager
-
-# Use the internal database for storing connection metadata
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@trove-db:5432/trove")
+from utils.connection_manager import connection_manager
 
 router = APIRouter(prefix="/api/v1/connections", tags=["database"])
 logger = logging.getLogger(__name__)
 
 async def get_db():
-    """Get database connection."""
+    """Get internal database connection for metadata operations."""
     try:
-        conn = await asyncpg.connect(DATABASE_URL)
+        conn = await connection_manager.get_internal_connection()
         yield conn
     finally:
         await conn.close()

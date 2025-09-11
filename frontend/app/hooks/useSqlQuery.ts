@@ -45,13 +45,16 @@ export function useSqlQuery(sql: string, onQueryComplete?: () => void, connectio
     }
     try {
       const requestBody: any = { query };
+      const headers: any = { "Content-Type": "application/json" };
+      
+      // Send connection_id as header for consistency
       if (connectionIdRef.current) {
-        requestBody.connection_id = connectionIdRef.current;
+        headers["X-Connection-ID"] = connectionIdRef.current.toString();
       }
       
       const res = await fetch("/api/query", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify(requestBody),
       });
       const data = await res.json();

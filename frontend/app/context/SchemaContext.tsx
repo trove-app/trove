@@ -40,11 +40,14 @@ export function SchemaProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     setError(null);
     try {
-      let url = "/api/schema/tables";
+      const headers: any = {};
+      
+      // Send connection_id as header for consistency
       if (connectionId) {
-        url += `?connection_id=${connectionId}`;
+        headers["X-Connection-ID"] = connectionId.toString();
       }
-      const res = await fetch(url);
+      
+      const res = await fetch("/api/schema/tables", { headers });
       if (!res.ok) throw new Error("Failed to fetch schema tables");
       const data = await res.json();
       setTables(data);
