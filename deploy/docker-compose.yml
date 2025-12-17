@@ -18,16 +18,34 @@ services:
     networks:
       - trove-network
 
-  sample_db:
+  db:
     image: postgres:15-alpine
     container_name: trove-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: trove
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - trove_db_data:/var/lib/postgresql/data
+    networks:
+      - trove-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  sample_db:
+    image: postgres:15-alpine
+    container_name: sample-db
     restart: unless-stopped
     environment:
       POSTGRES_DB: postgres
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - sample_db_data:/var/lib/postgresql/data
     networks:
       - trove-network
     healthcheck:
@@ -41,10 +59,13 @@ services:
     container_name: trove-backend
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@trove-db:5432/postgres
+      DATABASE_URL: postgresql://postgres:postgres@trove-db:5432/trove
       NODE_ENV: production
     depends_on:
-      - sample_db
+      db:
+        condition: service_healthy
+      sample_db:
+        condition: service_healthy
     networks:
       - trove-network
     healthcheck:
@@ -74,7 +95,8 @@ services:
     volumes:
       - ./sample_db/dbt_project:/app
     depends_on:
-      - sample_db
+      sample_db:
+        condition: service_healthy
     networks:
       - trove-network
     environment:
@@ -83,7 +105,8 @@ services:
     command: ["build", "--profiles-dir", "/app/profiles"]
 
 volumes:
-  postgres_data:
+  trove_db_data:
+  sample_db_data:
   caddy_data:
   caddy_config:
 

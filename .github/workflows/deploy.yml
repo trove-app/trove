@@ -93,6 +93,7 @@ jobs:
             echo 'REPO_NAME=${{ env.REPO_NAME }}' >> ~/deploy/.env
             echo 'IMAGE_TAG=${{ env.IMAGE_TAG }}' >> ~/deploy/.env
             echo 'BACKEND_URL=${{ env.BACKEND_URL }}' >> ~/deploy/.env
+            echo 'SAMPLE_DB_PASSWORD=postgres' >> ~/deploy/.env
 
       - name: Deploy application
         uses: google-github-actions/ssh-compute@v0
