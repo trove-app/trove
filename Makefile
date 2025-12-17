@@ -9,7 +9,7 @@ ifneq (,$(wildcard $(ENV_FILE)))
     export
 endif
 
-.PHONY: help up down build deploy clean logs test db-seed db-migrate test-frontend
+.PHONY: help up down build deploy clean logs test db-seed db-migrate test-frontend test-deploy
 
 help: ## Show help message
 	@echo 'Usage: make [target]'
@@ -109,4 +109,16 @@ clean: ## Clean up containers and volumes
 test: ## Run tests
 	cd backend && python -m pytest
 test-frontend:
-	cd frontend && npm test 
+	cd frontend && npm test
+
+test-deploy: ## Test deploy config locally
+	@echo "Building images..."
+	docker build -t trove-backend:local backend/
+	docker build -f frontend/prod.Dockerfile -t trove-frontend:local frontend/
+	@echo "Starting deployment..."
+	cd deploy && docker-compose -f docker-compose.yml -f docker-compose.local.yml up -d
+	@echo "Running dbt..."
+	cd deploy && docker-compose -f docker-compose.yml -f docker-compose.local.yml run --rm dbt deps
+	cd deploy && docker-compose -f docker-compose.yml -f docker-compose.local.yml run --rm dbt seed
+	cd deploy && docker-compose -f docker-compose.yml -f docker-compose.local.yml run --rm dbt run
+	@echo "Done! Access at http://localhost" 

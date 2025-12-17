@@ -1,0 +1,9 @@
+# Local testing override - uses locally built images
+version: "3.8"
+
+services:
+  backend:
+    image: trove-backend:local
+
+  frontend:
+    image: trove-frontend:local

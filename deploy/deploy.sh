@@ -129,7 +129,7 @@ health_check() {
         
         # Check if all containers are running
         local running_containers=$(docker-compose -f "$COMPOSE_FILE" ps -q | wc -l)
-        local expected_containers=4  # frontend, backend, db, caddy
+        local expected_containers=5  # frontend, backend, trove-db, sample-db, caddy
         
         if [[ $running_containers -eq $expected_containers ]]; then
             # Check if services are responding
