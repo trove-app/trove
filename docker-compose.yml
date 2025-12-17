@@ -1,9 +1,30 @@
 version: "3.8"
 
 services:
+  db:
+    image: postgres:15-alpine
+    container_name: trove-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: trove
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - trove_db_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    networks:
+      - trove-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 10s
+      retries: 3
+
   sample_db:
     image: postgres:15-alpine
     container_name: sample-db
+    restart: unless-stopped
     environment:
       POSTGRES_DB: postgres
       POSTGRES_USER: postgres
@@ -13,12 +34,53 @@ services:
     ports:
       - "5432:5432"
     networks:
-      - trove-net
+      - trove-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
-      timeout: 5s
-      retries: 5
+      timeout: 10s
+      retries: 3
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@trove-db:5432/trove
+    volumes:
+      - ./backend:/app # Mount BE code for hot reloading
+    depends_on:
+      db:
+        condition: service_healthy
+      sample_db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    networks:
+      - trove-network
+
+  frontend:
+    build:
+      context: ./frontend
+      # dockerfile: prod.Dockerfile # Production
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./frontend:/app # Mount frontend code for hot reloading (DEV only)
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - trove-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+    env_file:
+      - ./frontend/.env
 
   dbt:
     build: ./sample_db
@@ -28,72 +90,14 @@ services:
       sample_db:
         condition: service_healthy
     networks:
-      - trove-net
+      - trove-network
     environment:
       DBT_PROFILES_DIR: /app/profiles
 
-  db:
-    image: postgres:15-alpine
-    container_name: trove-db
-    environment:
-      POSTGRES_DB: trove
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    volumes:
-      - db_data:/var/lib/postgresql/data
-    ports:
-      - "5433:5432"
-    networks:
-      - trove-net
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  backend:
-    build: ./backend
-    env_file:
-      - ./backend/.env
-    environment:
-      - DATABASE_URL=postgresql://postgres:postgres@trove-db:5432/trove
-    volumes:
-      - ./backend:/app # Mount BE code for hot reloading
-    depends_on:
-      sample_db:
-        condition: service_healthy
-      db:
-        condition: service_healthy
-    ports:
-      - "8000:8000"
-    networks:
-      - trove-net
-
-  frontend:
-    build:
-      context: ./frontend
-      # dockerfile: prod.Dockerfile # Production
-    ports:
-      - "3001:3000"
-    volumes:
-      - ./frontend:/app # Mount frontend code for hot reloading (DEV only)
-      - /app/node_modules
-    depends_on:
-      - backend
-    networks:
-      - trove-net
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    env_file:
-      - ./frontend/.env
-
 volumes:
+  trove_db_data:
   sample_db_data:
-  db_data:
 
 networks:
-  trove-net:
+  trove-network:
     driver: bridge
